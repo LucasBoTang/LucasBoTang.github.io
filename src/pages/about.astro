@@ -1,0 +1,141 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+
+import { profile } from '../data/profile';
+---
+
+<SiteLayout
+  title="About — Bo Tang"
+  description="Bo Tang's research on machine learning and mathematical optimization, and his background at MIT, the University of Toronto, and PNNL."
+  page="about"
+  shell="reading"
+>
+  <div class="shell about-page">
+    <PageHeader title="About" variant="compact">
+      I am a postdoctoral associate at the MIT Sloan School of Management, working with{' '}
+      <a class="text-link text-link--inline" href={profile.supervisor.url}>
+        <span class="link-label">{profile.supervisor.name}</span>
+      </a>
+      {'.'}
+    </PageHeader>
+    <section class="about-row about-section" aria-labelledby="research-heading">
+      <h2 class="section-label" id="research-heading">
+        Research
+      </h2>
+      <div class="about-prose">
+        <p>
+          My research lies at the intersection of machine learning and mathematical optimization. I
+          focus on learning for decision-making, learning to optimize, and large-scale optimization
+          on modern computing hardware.
+        </p>
+        <p>
+          In decision-focused learning, I study how predictive models can be trained for the quality
+          of the decisions they inform. My work on learning to optimize explores how learning can
+          guide and accelerate the solution of complex optimization problems. I also investigate how
+          optimization algorithms can make effective use of modern hardware, particularly GPUs, to
+          solve larger problems more efficiently.
+        </p>
+        <p>
+          I aim to bring together algorithms, AI, and modern hardware to make optimization more
+          useful in practice. Faster and more scalable methods can support planning with more
+          realistic models and enable timely decisions as conditions change. By building these
+          advances into open-source computational infrastructure, I hope to broaden where
+          optimization can be used and improve the decisions it supports.
+        </p>
+      </div>
+    </section>
+    <section class="about-row about-section" aria-labelledby="background-heading">
+      <h2 class="section-label" id="background-heading">
+        Background
+      </h2>
+      <div class="about-prose">
+        <p>
+          I received my PhD in Operations Research from the University of Toronto in 2025, advised
+          by{' '}
+          <a class="text-link text-link--inline" href={profile.doctoralAdvisor.url}>
+            <span class="link-label">{profile.doctoralAdvisor.name}</span>
+          </a>
+          .
+        </p>
+        <p>
+          In 2023, I was a research intern at Pacific Northwest National Laboratory, where I studied
+          learning-based correction methods for mixed-integer nonlinear optimization.
+        </p>
+        <div class="about-links">
+          <a class="text-link" href={profile.cv} download>
+            <span class="link-label">CV (PDF)</span>
+          </a>
+          <a class="text-link" href={`mailto:${profile.email}`}>
+            <span class="link-label">Email</span>
+          </a>
+          <a class="text-link" href={profile.github}>
+            <span class="link-label">GitHub</span>
+          </a>
+        </div>
+      </div>
+    </section>
+  </div>
+</SiteLayout>
+
+<style>
+  .about-page {
+    --about-measure: 62ch;
+    --page-header-columns: var(--reading-label-column) minmax(0, 1fr);
+    --page-header-gap: var(--reading-column-gap);
+    --page-header-measure: var(--about-measure);
+  }
+  .about-row {
+    column-gap: var(--reading-column-gap);
+    display: grid;
+    grid-template-columns: var(--reading-label-column) minmax(0, 1fr);
+  }
+  .about-section {
+    border-top: var(--rule-line);
+    padding-block: 2rem;
+  }
+  h2 {
+    line-height: var(--leading-prose);
+  }
+  p {
+    margin: 0;
+    max-width: var(--about-measure);
+    font-size: var(--text-base);
+    font-weight: 400;
+    line-height: var(--leading-prose);
+    color: var(--muted);
+  }
+  .about-prose p + p {
+    margin-top: 1.5rem;
+  }
+  .text-link--inline {
+    color: var(--paper);
+  }
+  .text-link--inline:is(:hover, :focus-visible) {
+    color: var(--blue);
+  }
+  .about-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.5rem;
+    margin-top: 1.75rem;
+    font-size: var(--text-xs);
+    color: var(--blue);
+  }
+  @media (max-width: 720px) {
+    .about-page {
+      --page-header-columns: minmax(0, 1fr);
+      --page-header-gap: 1.5rem;
+    }
+    .about-row {
+      gap: 1.5rem;
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .about-section {
+      padding-block: 1.75rem;
+    }
+    p {
+      font-size: var(--text-sm);
+    }
+  }
+</style>

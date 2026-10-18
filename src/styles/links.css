@@ -1,0 +1,28 @@
+/* Shared text feedback; placement and typography stay with each component. */
+.text-link {
+  text-decoration: none;
+}
+.link-label {
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  padding-bottom: 0.15rem;
+  background: linear-gradient(var(--blue), var(--blue)) 0 100% / 0 1px no-repeat;
+}
+.text-link--inline .link-label {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-size: 100% 1px;
+}
+.text-link:is(:hover, :focus-visible) .link-label {
+  background-image: linear-gradient(var(--blue), var(--blue));
+  background-size: 100% 1px;
+}
+.text-link:active .link-label {
+  color: var(--paper);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .link-label {
+    transition:
+      background-size 240ms ease,
+      color 180ms ease;
+  }
+}

@@ -1,0 +1,114 @@
+@layer reset, base;
+
+@layer reset {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    margin: 0;
+  }
+  img,
+  svg {
+    display: block;
+    max-width: 100%;
+  }
+  a {
+    color: inherit;
+  }
+}
+
+@layer base {
+  :root {
+    --font: 'Manrope Variable', 'Helvetica Neue', sans-serif;
+    --font-display: 'Syne Variable', var(--font);
+    --rule-line: 1px solid var(--rule);
+    --text-base: 1rem;
+    --text-lg: 1.125rem;
+    --leading-compact: 1.5;
+    --leading-body: 1.65;
+    --leading-prose: 1.85;
+    --text-xs: 0.8125rem; /* 13px: metadata, resource links and roles */
+    --text-sm: 0.9375rem; /* 15px: secondary copy and section labels */
+    --page-width-wide: 1200px;
+    --page-width-reading: 1040px;
+    --page-width: var(--page-width-wide);
+    --gutter: clamp(1.4rem, 5.6vw, 6rem);
+    /* Label column and gap shared by the Home sections and the About page. */
+    --reading-label-column: 18.75rem;
+    --reading-column-gap: 4rem;
+    color-scheme: dark;
+  }
+  @media (max-width: 900px) {
+    :root {
+      --reading-column-gap: 3rem;
+      --reading-label-column: 17rem;
+    }
+  }
+  body[data-shell='reading'] {
+    --page-width: var(--page-width-reading);
+  }
+  body {
+    font-family: var(--font);
+    font-weight: 400;
+    line-height: var(--leading-body);
+    background: var(--ink);
+    color: var(--paper);
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection {
+    background: var(--blue);
+    color: var(--ink);
+  }
+  a {
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+  a:is(:hover, :focus-visible) {
+    color: var(--blue);
+  }
+  :focus-visible {
+    border-radius: 1px;
+    outline: 2px solid var(--blue);
+    outline-offset: 6px;
+  }
+  p,
+  h1,
+  h2,
+  h3 {
+    overflow-wrap: break-word;
+  }
+  .shell {
+    margin-inline: auto;
+    width: min(calc(100% - var(--gutter) * 2), var(--page-width));
+  }
+  .section-label {
+    margin: 0;
+    font-size: var(--text-sm);
+    font-weight: 500;
+  }
+  .skip-link {
+    left: var(--gutter);
+    position: absolute;
+    top: 1rem;
+    z-index: 10;
+    padding: 0.6rem 1rem;
+    background: var(--paper);
+    color: var(--ink);
+    transform: translateY(-200%);
+  }
+  .skip-link:focus {
+    transform: translateY(0);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    a {
+      transition:
+        color 150ms ease,
+        text-decoration-color 150ms ease;
+    }
+  }
+}

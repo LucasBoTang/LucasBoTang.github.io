@@ -1,0 +1,21 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+import ArrowLink from '../components/ArrowLink.astro';
+import { routes } from '../data/navigation';
+---
+
+<SiteLayout
+  title="Page not found — Bo Tang"
+  description="This page could not be found."
+  shell="reading"
+>
+  <div class="shell">
+    <PageHeader
+      title="Page not found"
+      description="The address may have changed, or the page may no longer exist."
+      variant="compact"
+    />
+    <ArrowLink href={routes.home}>Back to home</ArrowLink>
+  </div>
+</SiteLayout>

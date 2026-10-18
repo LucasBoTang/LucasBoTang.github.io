@@ -1,0 +1,24 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import HomeHero from '../components/home/HomeHero.astro';
+import SelectedWork from '../components/home/SelectedWork.astro';
+import AboutSection from '../components/home/AboutSection.astro';
+---
+
+<SiteLayout
+  title="Bo Tang — Optimization & Machine Learning"
+  description="Bo Tang is a postdoctoral associate at MIT Sloan working on decision-focused learning, learning to optimize, and GPU-accelerated optimization."
+  page="home"
+>
+  <div class="home">
+    <HomeHero />
+    <SelectedWork />
+    <AboutSection />
+  </div>
+</SiteLayout>
+
+<style>
+  .home {
+    --page-width: var(--page-width-reading);
+  }
+</style>

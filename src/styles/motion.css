@@ -1,0 +1,14 @@
+/* Static content is the default; motion never gates reading or navigation. */
+@media (prefers-reduced-motion: no-preference) {
+  main {
+    animation: page-arrive 280ms ease-out;
+  }
+  @keyframes page-arrive {
+    from {
+      opacity: 0.9;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}

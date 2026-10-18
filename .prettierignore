@@ -1,0 +1,6 @@
+node_modules/
+dist/
+.astro/
+.verification/
+package-lock.json
+/docs/

@@ -1,0 +1,57 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import PageHeader from '../components/PageHeader.astro';
+import SoftwareItem from '../components/SoftwareItem.astro';
+import { softwareGroups } from '../data/software';
+
+const description = 'Research software I develop and contribute to.';
+---
+
+<SiteLayout title="Software — Bo Tang" description={description} page="software" shell="reading">
+  <div class="shell software-page">
+    <PageHeader title="Software" description={description} variant="compact" />
+    {softwareGroups.map((group) => (
+      <section class="software-group" id={group.id} aria-labelledby={`${group.id}-title`}>
+        <h2 class="section-label" id={`${group.id}-title`}>
+          {group.title}
+        </h2>
+        {group.entries.map((entry) => (
+          <SoftwareItem entry={entry} variant={group.variant} />
+        ))}
+      </section>
+    ))}
+  </div>
+</SiteLayout>
+
+<style>
+  .software-page {
+    --page-header-columns: var(--software-columns);
+    --page-header-gap: var(--software-gap);
+    --software-columns: 16.5rem minmax(0, 1fr);
+    --software-gap: 3.5rem;
+  }
+  .software-group {
+    scroll-margin-top: 2.5rem;
+  }
+  .software-group + .software-group {
+    margin-top: 2rem;
+  }
+  h2 {
+    margin-bottom: 0.75rem;
+    line-height: var(--leading-compact);
+  }
+  @media (max-width: 900px) {
+    .software-page {
+      --software-columns: 14rem minmax(0, 1fr);
+      --software-gap: 2.5rem;
+    }
+  }
+  @media (max-width: 720px) {
+    .software-page {
+      --software-columns: minmax(0, 1fr);
+    }
+    .software-group + .software-group {
+      margin-top: 1.5rem;
+    }
+  }
+</style>

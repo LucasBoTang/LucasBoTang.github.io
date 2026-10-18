@@ -1,0 +1,72 @@
+---
+interface Props {
+  title: string;
+  /** Plain description; pass rich content (such as inline links) through the default slot instead. */
+  description?: string;
+  variant?: 'default' | 'compact';
+}
+const { title, description, variant = 'default' } = Astro.props;
+// Slot HTML comes only from authored Astro templates. Trim template boundary whitespace.
+const descriptionHtml = Astro.slots.has('default')
+  ? (await Astro.slots.render('default')).trim()
+  : undefined;
+---
+
+<header class:list={['page-header', { compact: variant === 'compact' }]}>
+  <h1>{title}</h1>
+  {descriptionHtml ? (
+    <p set:html={descriptionHtml} />
+  ) : (
+    description?.trim() && <p>{description.trim()}</p>
+  )}
+</header>
+
+<style>
+  .page-header {
+    align-items: end;
+    display: grid;
+    gap: clamp(2rem, 6vw, 6rem);
+    grid-template-columns: 1.25fr 1fr;
+    padding-bottom: 4.5rem;
+    padding-top: 3.7rem;
+  }
+  h1 {
+    margin: 0;
+    font-size: clamp(3.8rem, 8vw, 7rem);
+    font-weight: 450;
+    letter-spacing: -0.055em;
+    line-height: 1.05;
+    color: var(--blue);
+  }
+  .page-header p {
+    margin: 0 0 0.15rem;
+    max-width: var(--page-header-measure, 45ch);
+    font-size: var(--text-base);
+    line-height: var(--leading-prose);
+    color: var(--muted);
+  }
+  .page-header.compact {
+    gap: var(--page-header-gap, 3rem);
+    grid-template-columns: var(--page-header-columns, 1.25fr 1fr);
+    padding-block: 2rem 2.5rem;
+  }
+  .compact h1 {
+    font-size: clamp(3.25rem, 6vw, 4rem);
+  }
+  @media (max-width: 720px) {
+    .page-header {
+      gap: 1.7rem;
+      grid-template-columns: 1fr;
+      padding-block: 2.5rem 2rem;
+    }
+    .page-header.compact {
+      gap: 1rem;
+      grid-template-columns: 1fr;
+      padding-block: 1.5rem 2rem;
+    }
+    .page-header p {
+      max-width: 46ch;
+      font-size: var(--text-sm);
+    }
+  }
+</style>
