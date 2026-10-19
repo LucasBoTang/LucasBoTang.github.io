@@ -86,22 +86,46 @@ const shareImage =
       }
     </style>
     {/* Leaving for another page in a transition, the page keeps its title for the next page to
-        rewrite (PageHeader); a page without one keeps an empty title. */}
+        rewrite (PageHeader); a page without one keeps an empty title. It keeps it as a link to
+        another page is clicked, which is always before the next page starts to read it, and again
+        on `pageswap`, for ways of leaving without a click, such as going back. */}
     <script is:inline>
-      addEventListener('pageswap', (event) => {
-        if (!event.viewTransition || !event.activation?.entry?.url) return;
-        const title = document.querySelector('[data-reveal="title"]');
-        try {
-          sessionStorage.setItem(
-            'page-title-from',
-            JSON.stringify({
-              to: event.activation.entry.url,
-              title: title?.getAttribute('aria-label') ?? '',
-              at: Date.now(),
-            }),
-          );
-        } catch {}
-      });
+      (() => {
+        if (!('onpageswap' in window) || matchMedia('(prefers-reduced-motion: reduce)').matches)
+          return;
+        // The page is named without any fragment, as the next page reads its own address.
+        const keep = (address) => {
+          const to = address.split('#')[0];
+          const title = document.querySelector('[data-reveal="title"]');
+          try {
+            sessionStorage.setItem(
+              'page-title-from',
+              JSON.stringify({
+                to,
+                title: title?.getAttribute('aria-label') ?? '',
+                at: Date.now(),
+              }),
+            );
+          } catch {}
+        };
+        addEventListener('click', (event) => {
+          const link = event.target instanceof Element && event.target.closest('a[href]');
+          if (!link || event.defaultPrevented || event.button !== 0) return;
+          if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+          if (link.hasAttribute('download') || (link.target && link.target !== '_self')) return;
+          const to = new URL(link.href, location.href);
+          if (
+            to.origin !== location.origin ||
+            to.pathname + to.search === location.pathname + location.search
+          )
+            return;
+          keep(to.href);
+        });
+        addEventListener('pageswap', (event) => {
+          if (event.viewTransition && event.activation?.entry?.url)
+            keep(event.activation.entry.url);
+        });
+      })();
     </script>
     {opening && <script is:inline>
       if (!matchMedia('(prefers-reduced-motion: reduce)').matches && Element.prototype.animate) {

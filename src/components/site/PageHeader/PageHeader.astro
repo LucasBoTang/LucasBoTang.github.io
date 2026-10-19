@@ -32,7 +32,8 @@ const { title, description, variant = 'default' } = Astro.props;
       try {
         const entry = JSON.parse(sessionStorage.getItem('page-title-from') ?? 'null');
         sessionStorage.removeItem('page-title-from');
-        if (!entry || entry.to !== location.href || Date.now() - entry.at > 4000) return;
+        if (!entry || entry.to !== location.href.split('#')[0] || Date.now() - entry.at > 4000)
+          return;
         title.dataset.titleFrom = entry.title;
         title.firstElementChild.textContent = entry.title || ' ';
       } catch {}

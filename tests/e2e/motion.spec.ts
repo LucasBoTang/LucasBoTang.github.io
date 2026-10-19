@@ -118,10 +118,14 @@ test('moving between pages, the page title rewrites itself in place', async ({ p
   await recordAttribute(page, 'data-title-from');
   await page.locator('nav a[href="/software/"]').click();
   await expect(page).toHaveURL(/\/software\/$/);
-  // The new page starts from the last title, then settles on its own.
-  await expect(page.locator('h1 .title-signal')).toHaveText('Software', { timeout: 3000 });
+  // The new page starts from the last title, rewrites it, then settles on its own. Each step is
+  // waited for, as the rewriting takes its own time.
+  const handedOver = async (on: boolean) =>
+    (await attributeChanges(page, 'data-title-from')).some((change) => change.on === on);
+  await expect.poll(() => handedOver(true)).toBe(true);
+  await expect.poll(() => handedOver(false), { timeout: 3000 }).toBe(true);
   await expect(page.locator('h1')).not.toHaveAttribute('data-title-from', /.*/);
-  expect((await attributeChanges(page, 'data-title-from')).some(({ on }) => !on)).toBe(true);
+  await expect(page.locator('h1 .title-signal')).toHaveText('Software');
   await expect(page.locator('h1')).toHaveAccessibleName('Software');
 });
 
