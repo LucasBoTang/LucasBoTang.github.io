@@ -109,9 +109,12 @@ function setupWordmark(node: HTMLElement) {
   beam.className = 'project-beam';
   beam.setAttribute('aria-hidden', 'true');
   glyphs.append(beam);
-  let ink = inkOf(glyphs, face);
-  new ResizeObserver(() => (ink = inkOf(glyphs, face))).observe(glyphs);
-  void document.fonts.ready.then(() => (ink = inkOf(glyphs, face)));
+  // Measured when first needed, not as the page loads, and again whenever the word may have
+  // changed size.
+  let measured: ReturnType<typeof inkOf> | undefined;
+  const ink = () => (measured ??= inkOf(glyphs, face));
+  new ResizeObserver(() => (measured = undefined)).observe(glyphs);
+  void document.fonts.ready.then(() => (measured = undefined));
 
   let running = false;
   let poweredAt = 0;
@@ -138,14 +141,15 @@ function setupWordmark(node: HTMLElement) {
 
   /** Draws one redraw of the tremor at `strength`, from 0 to 1. */
   const draw = (strength: number) => {
-    const span = ink.bottom - ink.top;
+    const { top: inkTop, bottom: inkBottom } = ink();
+    const span = inkBottom - inkTop;
     const percent = (share: number) => `${(share * 100).toFixed(1)}%`;
     // Thin bands at random through the ink, kept apart so each reads on its own.
     const torn: [number, number][] = [];
     const count = Math.random() < CLEAN_CHANCE ? 0 : Math.round(between(BANDS));
     for (let tries = 0; torn.length < count && tries < 12; tries++) {
       const height = between(BAND_HEIGHT) * span;
-      const top = ink.top + Math.random() * (span - height);
+      const top = inkTop + Math.random() * (span - height);
       if (torn.some(([t, b]) => top < b + 0.02 && top + height > t - 0.02)) continue;
       torn.push([top, top + height]);
     }
@@ -237,7 +241,8 @@ function setupWordmark(node: HTMLElement) {
     phrase = { from: poweredAt, to: poweredAt + between(OPENING_PHRASE), rise: 0 };
     due = 0;
     settle();
-    const middle = `${(((ink.top + ink.bottom) / 2) * 100).toFixed(1)}%`;
+    const { top: inkTop, bottom: inkBottom } = ink();
+    const middle = `${(((inkTop + inkBottom) / 2) * 100).toFixed(1)}%`;
     beam.style.top = middle;
     face.style.transformOrigin = `center ${middle}`;
     beam.animate(BEAM_FRAMES, { duration: POWER_ON, delay, fill: 'backwards' });

@@ -1,3 +1,4 @@
+import { whenIdle } from '../../../lib/lifecycle';
 import { createLoop } from '../../../lib/loop';
 import { burstDuration, SIGNAL_INTERVAL, slipDuration } from '../../../lib/signal';
 import { openingEvents, openingTiming as time } from '../opening/opening';
@@ -162,30 +163,34 @@ export function createPortraitSignal(hero: HTMLElement) {
       const naturalPixels = new Uint8ClampedArray(pixels.data);
       printInBlueInk(pixels.data);
       tintedContext.putImageData(pixels, 0, 0);
-      // Cache the actual RGB channels of the blue photograph, not coloured noise.
-      for (let channel = 0; channel < 3; channel++) {
-        const layer = sampleCanvas();
-        const layerContext = layer.getContext('2d');
-        if (!layerContext) continue;
-        const data = layerContext.createImageData(width, height);
-        for (let i = 0; i < pixels.data.length; i += 4) {
-          data.data[i + channel] = pixels.data[i + channel];
-          data.data[i + 3] = 255;
-        }
-        layerContext.putImageData(data, 0, 0);
-        tintedChannels.push(layer);
-        const naturalLayer = sampleCanvas();
-        const naturalLayerContext = naturalLayer.getContext('2d');
-        if (naturalLayerContext) {
-          for (let i = 0; i < data.data.length; i += 4)
-            data.data[i + channel] = naturalPixels[i + channel];
-          naturalLayerContext.putImageData(data, 0, 0);
-          naturalChannels.push(naturalLayer);
-        }
-      }
       ready = true;
       canvas.setAttribute('data-image-ready', '');
       draw(0);
+      // The tear's colour channels are first needed as the name decodes, well after the page has
+      // shown, so they are made while the browser is idle rather than as it loads.
+      whenIdle(() => {
+        // Cache the actual RGB channels of the blue photograph, not coloured noise.
+        for (let channel = 0; channel < 3; channel++) {
+          const layer = sampleCanvas();
+          const layerContext = layer.getContext('2d');
+          if (!layerContext) continue;
+          const data = layerContext.createImageData(width, height);
+          for (let i = 0; i < pixels.data.length; i += 4) {
+            data.data[i + channel] = pixels.data[i + channel];
+            data.data[i + 3] = 255;
+          }
+          layerContext.putImageData(data, 0, 0);
+          tintedChannels.push(layer);
+          const naturalLayer = sampleCanvas();
+          const naturalLayerContext = naturalLayer.getContext('2d');
+          if (naturalLayerContext) {
+            for (let i = 0; i < data.data.length; i += 4)
+              data.data[i + channel] = naturalPixels[i + channel];
+            naturalLayerContext.putImageData(data, 0, 0);
+            naturalChannels.push(naturalLayer);
+          }
+        }
+      });
     })
     .catch(() => {
       // The blue image drawn by HomeHero's SVG filter remains as the fallback.

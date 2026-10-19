@@ -1,3 +1,4 @@
+import { whenIdle } from '../../../lib/lifecycle';
 import { openingTiming as time } from '../opening/opening';
 import { printInBlueInk } from './blue-ink';
 import { createDevelopment, revealTimes } from './portrait-dither';
@@ -9,6 +10,11 @@ import { canvasOf, pixelsOf } from './raster';
 // screen of dots (portrait-dither.ts). As soon as the portrait can be made out, it glitches into
 // the photograph (portrait-glitch.ts).
 
+/** The photograph in the blue ink is first drawn late in the glitch; it is printed this many rows
+ * at a time, frame by frame while the picture develops, rather than all at once as it starts. */
+const INK_ROWS_PER_FRAME = 64;
+/** The entrance is worked out in idle time before the opening, waiting at most this long. */
+const PREPARE_WAIT = 200;
 /** The photograph is held on the canvas this long past the handover, so no frame shows neither. */
 const HANDOVER_HOLD = 120;
 /** The appearance order follows the photograph's light, softened by this factor. */
@@ -24,28 +30,32 @@ export function createPortraitDevelop(hero: HTMLElement) {
   const context = canvas?.getContext('2d');
   const picture = new Image();
   if (canvas?.dataset.portraitPixels) picture.src = canvas.dataset.portraitPixels;
-  /** Settles once the pixel picture has decoded, or failed to. */
-  const ready = picture.decode().catch(() => {});
   let frame = 0;
+  /** The entrance, worked out ahead and waiting to start. */
+  let prepared: (() => void) | undefined;
 
   const stop = () => {
     cancelAnimationFrame(frame);
     if (canvas && context) context.clearRect(0, 0, canvas.width, canvas.height);
   };
 
-  /** Starts the entrance. Returns false, drawing nothing, when an image cannot be read yet. */
-  const play = (): boolean => {
+  /**
+   * Works out the entrance: reads both images, orders the picture's cells, and lays out the
+   * canvases it draws on. Returns the function that starts it, or nothing when an image cannot be
+   * read yet.
+   */
+  const prepare = (): (() => void) | undefined => {
     const frameBox = canvas?.parentElement?.getBoundingClientRect();
-    if (!canvas || !context || !frameBox || !image) return false;
+    if (!canvas || !context || !frameBox || !image) return undefined;
     if (!image.complete || !image.naturalWidth || !picture.complete || !picture.naturalWidth)
-      return false;
+      return undefined;
 
     // Everything below is in device pixels, the grid of the canvas itself.
     const box = canvas.getBoundingClientRect();
     const ratio = Math.min(devicePixelRatio || 1, 2);
     const width = Math.round(box.width * ratio);
     const height = Math.round(box.height * ratio);
-    if (!width || !height) return false;
+    if (!width || !height) return undefined;
     const grid = {
       originX: Math.round((frameBox.left - box.left) * ratio),
       originY: Math.round((frameBox.top - box.top) * ratio),
@@ -60,9 +70,9 @@ export function createPortraitDevelop(hero: HTMLElement) {
       art = pixelsOf(picture, grid.columns, grid.rows);
       softLight = pixelsOf(image, grid.columns, grid.rows, LIGHT_SOFTENING);
     } catch {
-      return false;
+      return undefined;
     }
-    if (!art || !softLight) return false;
+    if (!art || !softLight) return undefined;
 
     const { regionAt, shownAt } = revealTimes(softLight, grid.columns, grid.rows);
     const development = createDevelopment(art, shownAt, grid);
@@ -94,15 +104,25 @@ export function createPortraitDevelop(hero: HTMLElement) {
       !formedInkContext ||
       !maskContext
     )
-      return false;
+      return undefined;
     photoContext.drawImage(image, 0, 0, grid.frameWidth, grid.frameHeight);
+    let inked: ImageData;
     try {
-      const inked = photoContext.getImageData(0, 0, grid.frameWidth, grid.frameHeight);
-      printInBlueInk(inked.data);
-      inkPhotoContext.putImageData(inked, 0, 0);
+      inked = photoContext.getImageData(0, 0, grid.frameWidth, grid.frameHeight);
     } catch {
-      return false;
+      return undefined;
     }
+    let inkedRows = 0;
+    /** Prints up to `rows` more rows of the photograph in the blue ink; true once all are. */
+    const printInk = (rows: number) => {
+      if (inkedRows >= inked.height) return true;
+      const to = Math.min(inked.height, inkedRows + rows);
+      printInBlueInk(inked.data.subarray(inkedRows * inked.width * 4, to * inked.width * 4));
+      inkedRows = to;
+      if (to < inked.height) return undefined;
+      inkPhotoContext.putImageData(inked, 0, 0);
+      return true;
+    };
     const maskPixels = maskContext.createImageData(grid.columns, grid.rows);
     const sources: GlitchSources = {
       ...grid,
@@ -119,32 +139,59 @@ export function createPortraitDevelop(hero: HTMLElement) {
       formed.drawImage(formedMask, 0, 0, grid.frameWidth, grid.frameHeight);
     };
 
-    canvas.width = width;
-    canvas.height = height;
-    const startedAt = performance.now();
-    const draw = (now: number) => {
-      const elapsed = now - startedAt;
-      if (elapsed >= time.glitchEnd + HANDOVER_HOLD) {
-        context.clearRect(0, 0, width, height);
-        return;
-      }
-      development.step(elapsed, developedBuffer);
-      if (elapsed < time.glitchStart) context.putImageData(developed, 0, 0);
-      else {
-        // The photograph is the picture's truth: it shows only where the picture has appeared.
-        pictureContext.putImageData(developed, 0, 0);
-        for (let cell = 0; cell < regionAt.length; cell++)
-          maskPixels.data[cell * 4 + 3] = elapsed >= regionAt[cell] ? 255 : 0;
-        maskContext.putImageData(maskPixels, 0, 0);
-        formedOnly(formedPhotoContext, photo);
-        formedOnly(formedInkContext, inkPhoto);
-        const current = glitch.find((step) => elapsed < step.until) ?? glitch[glitch.length - 1];
-        drawGlitchFrame(context, current, sources);
-      }
+    return () => {
+      canvas.width = width;
+      canvas.height = height;
+      const startedAt = performance.now();
+      const draw = (now: number) => {
+        const elapsed = now - startedAt;
+        if (elapsed >= time.glitchEnd + HANDOVER_HOLD) {
+          context.clearRect(0, 0, width, height);
+          return;
+        }
+        development.step(elapsed, developedBuffer);
+        if (elapsed < time.glitchStart) {
+          printInk(INK_ROWS_PER_FRAME);
+          context.putImageData(developed, 0, 0);
+        } else {
+          // The photograph is the picture's truth: it shows only where the picture has appeared.
+          pictureContext.putImageData(developed, 0, 0);
+          for (let cell = 0; cell < regionAt.length; cell++)
+            maskPixels.data[cell * 4 + 3] = elapsed >= regionAt[cell] ? 255 : 0;
+          maskContext.putImageData(maskPixels, 0, 0);
+          formedOnly(formedPhotoContext, photo);
+          const current = glitch.find((step) => elapsed < step.until) ?? glitch[glitch.length - 1];
+          if (current.bands.some(({ source }) => source === 'ink') && printInk(Infinity))
+            formedOnly(formedInkContext, inkPhoto);
+          drawGlitchFrame(context, current, sources);
+        }
+        frame = requestAnimationFrame(draw);
+      };
       frame = requestAnimationFrame(draw);
     };
-    frame = requestAnimationFrame(draw);
-    return true;
+  };
+
+  /** Settles once both images have decoded, or failed to, and the entrance is worked out: in the
+   * browser's idle time, before the opening starts, when nothing moves that a busy moment could
+   * hold up. */
+  const ready = Promise.all([picture.decode(), image?.decode()])
+    .catch(() => {})
+    .then(
+      () =>
+        new Promise<void>((resolve) =>
+          whenIdle(() => {
+            prepared = prepare();
+            resolve();
+          }, PREPARE_WAIT),
+        ),
+    );
+
+  /** Starts the entrance. Returns false, drawing nothing, when an image cannot be read yet. */
+  const play = (): boolean => {
+    const start = prepared ?? prepare();
+    prepared = undefined;
+    start?.();
+    return !!start;
   };
 
   return { ready, play, stop };

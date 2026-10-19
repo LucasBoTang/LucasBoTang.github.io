@@ -1,4 +1,4 @@
-import { enhance } from '../../../lib/lifecycle';
+import { enhanceNear } from '../../../lib/lifecycle';
 import { createLoop } from '../../../lib/loop';
 import { watchActivity } from '../../../lib/motion';
 import { openingPending } from '../../../lib/opening-gate';
@@ -132,7 +132,8 @@ function setupDecisionSign(svg: SVGSVGElement) {
   });
 }
 
-enhance('[data-decision-sign]', (section) => {
+// The sign lies far below the first screen; it is set up as the reader nears it.
+enhanceNear('[data-decision-sign]', (section) => {
   const svg = section.querySelector<SVGSVGElement>('svg');
   if (svg) setupDecisionSign(svg);
 });

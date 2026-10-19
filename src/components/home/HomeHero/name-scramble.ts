@@ -77,8 +77,9 @@ export function createNameScramble(name: HTMLElement) {
     }
     name.append(layer);
 
-    // Each frame places the letters over the name's own, as it is laid out now: its font may still
-    // be arriving, and kerning sets letters closer than they would stand alone.
+    // The letters are placed over the name's own, as it is laid out: kerning sets letters closer
+    // than they would stand alone. Until the font has arrived, which can move them, every frame
+    // places them again; after that, once is enough.
     const range = document.createRange();
     // Every box is measured before any is moved, so the frame lays out the name only once.
     const place = () => {
@@ -94,6 +95,7 @@ export function createNameScramble(name: HTMLElement) {
       });
     };
 
+    let placed = false;
     const startedAt = performance.now();
     const end = nameScrambleDuration(letters.length);
     const draw = (now: number) => {
@@ -102,7 +104,10 @@ export function createNameScramble(name: HTMLElement) {
         finish();
         return;
       }
-      if (elapsed >= 0) place();
+      if (elapsed >= 0 && !placed) {
+        place();
+        placed = document.fonts.status === 'loaded';
+      }
       letters.forEach(({ char, near, glyph, block }, index) => {
         const appear = index * STAGGER;
         if (elapsed < appear) return;
