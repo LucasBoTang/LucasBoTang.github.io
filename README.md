@@ -17,7 +17,7 @@ npm run portrait  # redraw the home portrait's pixel picture after changing the 
 npm run preview   # serve the built site
 ```
 
-To deploy, set the public URL so pages get canonical and share metadata:
+Every push to `main` builds the site and deploys it to GitHub Pages at <https://lucasbotang.github.io/> (`.github/workflows/deploy.yml`). To build for another host, set the public URL so pages get canonical and share metadata:
 
 ```sh
 SITE_URL=https://example.org npm run build
