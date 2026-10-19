@@ -1,0 +1,21 @@
+Bo Tang — Personal Website
+Copyright 2026 Bo Tang
+
+Designed and built by Bo Tang (https://github.com/LucasBoTang).
+
+The source code in this repository is licensed under the Apache License,
+Version 2.0 (see LICENSE).
+
+Personal content is not covered by the Apache License and remains
+all rights reserved. This includes:
+
+- the photographs and portrait images in src/assets/
+- the documents in public/files/, including the CV
+- the biography, research descriptions, publication records and other
+  written content in src/data/ and src/studies/
+
+Published papers referenced on the site remain under the copyright or
+license of their respective publishers.
+
+The site uses third-party fonts from Fontsource, each distributed under
+its own license (SIL Open Font License 1.1).

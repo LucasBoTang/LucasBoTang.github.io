@@ -2,6 +2,8 @@
 import ContactLinks from '../ui/ContactLinks.astro';
 import { routes } from '../../data/navigation';
 import { profile } from '../../data/profile';
+
+const year = new Date().getFullYear();
 ---
 
 <footer class="site-footer shell">
@@ -10,6 +12,7 @@ import { profile } from '../../data/profile';
       {profile.name}
     </a>
     <p>{profile.location}</p>
+    <p>© {year}</p>
   </div>
   <ContactLinks placement="footer" />
 </footer>

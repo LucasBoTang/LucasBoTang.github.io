@@ -34,3 +34,7 @@ Everything lives in `src/data/`:
 - `profile.ts`: name, affiliation and contact links.
 
 The CV is `public/files/Bo-Tang-CV.pdf` and the portrait is `src/assets/bo-tang.jpg`. Replace the files to update them.
+
+## License
+
+The code is licensed under the [Apache License 2.0](LICENSE). Personal content (the portrait, the CV, and the biography, research and publication text) is not covered by it and remains all rights reserved. See [NOTICE](NOTICE) for details.
