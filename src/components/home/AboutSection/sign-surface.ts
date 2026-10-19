@@ -110,17 +110,32 @@ export function createSurface(svg: SVGSVGElement) {
     /**
      * Clips `element` to the sign less the cells it is given, as a path; `name` makes the clip's
      * ID unique within the sign. Returns the clip's setter, which starts with the whole sign.
+     *
+     * The element sits inside the mask, and Safari does not see a clip's path change there, so a
+     * group hidden once, as the fields are between cycles, would stay hidden until something else
+     * redrew the sign. So two clips take turns: each change goes into the one not in use, and the
+     * element is pointed at it, a change Safari does see.
      */
     clip(element: SVGElement, name: string) {
-      const clip = document.createElementNS(SVG, 'clipPath');
-      clip.id = `${prefix}-${name}`;
-      clip.setAttribute('clipPathUnits', 'userSpaceOnUse');
-      const path = document.createElementNS(SVG, 'path');
-      path.setAttribute('clip-rule', 'evenodd');
-      clip.append(path);
-      defs.append(clip);
-      element.setAttribute('clip-path', `url(#${clip.id})`);
-      const set = pathSetter(path);
+      const clips = ['a', 'b'].map((turn) => {
+        const clip = document.createElementNS(SVG, 'clipPath');
+        clip.id = `${prefix}-${name}-${turn}`;
+        clip.setAttribute('clipPathUnits', 'userSpaceOnUse');
+        const path = document.createElementNS(SVG, 'path');
+        path.setAttribute('clip-rule', 'evenodd');
+        clip.append(path);
+        defs.append(clip);
+        return { id: clip.id, path };
+      });
+      let turn = 0;
+      let shown: string | undefined;
+      const set = (d: string) => {
+        if (d === shown) return;
+        shown = d;
+        turn = 1 - turn;
+        clips[turn].path.setAttribute('d', d);
+        element.setAttribute('clip-path', `url(#${clips[turn].id})`);
+      };
       set(full);
       return set;
     },
