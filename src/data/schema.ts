@@ -30,8 +30,9 @@ const publicationSchema = z.object({
 const researchAreaSchema = z.object({
   id,
   title: text,
-  question: text,
-  introduction: text,
+  /** The question the area asks, and a passage introducing it; an area may simply list its papers. */
+  question: text.optional(),
+  introduction: text.optional(),
   publications: z.array(publicationSchema),
   /** Featured areas appear as the research topics on the home page. */
   featured: z.boolean().optional(),

@@ -39,9 +39,6 @@ export const researchAreas: ResearchArea[] = [
   {
     id: 'other-research',
     title: 'Other research',
-    question: 'How can optimization recover geometric structure from data?',
-    introduction:
-      'Recovering structure from data requires reasoning about both local variation and global geometry. My work brings these together through mixed-integer optimization, combining data fitting with explicit models of region connectivity and discontinuous boundaries in image segmentation and piecewise affine reconstruction.',
     publications: [publications.piecewiseAffineFitting, publications.mrfConnectivity],
   },
 ];

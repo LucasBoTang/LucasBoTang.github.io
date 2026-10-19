@@ -14,10 +14,12 @@ const sortedPublications = publicationsByYear(area);
     {area.title}
   </h2>
   {/* The question and its introduction read as one passage, so they arrive together. */}
-  <div data-reveal="unit">
-    <p class="research-question">{area.question}</p>
-    <p class="research-introduction">{area.introduction}</p>
-  </div>
+  {(area.question || area.introduction) && (
+    <div data-reveal="unit">
+      {area.question && <p class="research-question">{area.question}</p>}
+      {area.introduction && <p class="research-introduction">{area.introduction}</p>}
+    </div>
+  )}
   {area.publications.length > 0 && (
     <ul class="publication-list">
       {sortedPublications.map((publication) => (
