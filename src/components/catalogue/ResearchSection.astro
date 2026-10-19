@@ -1,5 +1,5 @@
 ---
-import '@fontsource-variable/bodoni-moda';
+import '@fontsource-variable/bodoni-moda/opsz.css';
 import PublicationItem from './PublicationItem.astro';
 import { publicationsByYear, type ResearchArea } from '../../data/research';
 
@@ -41,8 +41,10 @@ const sortedPublications = publicationsByYear(area);
     margin: 0 0 var(--space-6);
     max-width: 24ch;
     font-family: var(--font-serif);
-    font-optical-sizing: auto;
+    /* The text cut: at this size the display cut's hairlines, hyphens among them, nearly vanish. */
+    font-optical-sizing: none;
     font-size: clamp(1.9rem, 2.9vw, 2.5rem);
+    font-variation-settings: 'opsz' 11;
     font-weight: 400;
     letter-spacing: -0.035em;
     line-height: 1.2;

@@ -1,6 +1,6 @@
 ---
 import { Image } from 'astro:assets';
-import '@fontsource-variable/bodoni-moda';
+import '@fontsource-variable/bodoni-moda/opsz.css';
 import ArrowLink from '../../ui/ArrowLink.astro';
 import ResearchNavigator from '../ResearchNavigator/ResearchNavigator.astro';
 import ContactLinks from '../../ui/ContactLinks.astro';
@@ -171,8 +171,9 @@ const [inkRed, inkGreen, inkBlue] = blueInk.dark.map((dark, i) => `${dark} ${blu
     z-index: 1;
     margin: -0.1em 0 0;
     font-family: var(--font-serif);
-    font-optical-sizing: auto;
+    font-optical-sizing: none;
     font-size: 4.5rem;
+    font-variation-settings: 'opsz' 96;
     font-weight: 400;
     letter-spacing: -0.055em;
     line-height: 1.12;

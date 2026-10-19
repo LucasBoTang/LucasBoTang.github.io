@@ -1,5 +1,5 @@
 ---
-import '@fontsource-variable/bodoni-moda';
+import '@fontsource-variable/bodoni-moda/opsz.css';
 
 interface Props {
   title: string;
@@ -59,8 +59,10 @@ const { title, description, variant = 'default' } = Astro.props;
   h1 {
     margin: 0;
     font-family: var(--font-serif);
-    font-optical-sizing: auto;
+    /* A sturdier cut than the display size: its hairlines hold up through the decode and glitch. */
+    font-optical-sizing: none;
     font-size: clamp(3.8rem, 8vw, 7rem);
+    font-variation-settings: 'opsz' 32;
     font-weight: 400;
     letter-spacing: -0.045em;
     line-height: 0.95;
