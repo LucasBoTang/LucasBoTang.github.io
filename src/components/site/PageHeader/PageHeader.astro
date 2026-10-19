@@ -1,0 +1,178 @@
+---
+import '@fontsource-variable/syne';
+
+interface Props {
+  title: string;
+  /** One short line on what the page holds, in plain words. */
+  description?: string;
+  variant?: 'default' | 'compact' | 'editorial';
+}
+const { title, description, variant = 'default' } = Astro.props;
+---
+
+<header
+  class:list={[
+    'page-header',
+    {
+      'page-header--compact': variant === 'compact',
+      'page-header--editorial': variant === 'editorial',
+    },
+  ]}
+>
+  <h1 data-reveal="title" aria-label={title}>
+    <span class="title-signal signal-slices" data-signal-text={title} aria-hidden="true">
+      {title}
+    </span>
+  </h1>
+  {/* Moving here from another page: before this page first shows, the title takes the last page's
+      title, which SiteLayout kept as that page left, and title-decode.ts then rewrites it. */}
+  <script is:inline>
+    (() => {
+      const title = document.currentScript.previousElementSibling;
+      try {
+        const entry = JSON.parse(sessionStorage.getItem('page-title-from') ?? 'null');
+        sessionStorage.removeItem('page-title-from');
+        if (!entry || entry.to !== location.href || Date.now() - entry.at > 4000) return;
+        title.dataset.titleFrom = entry.title;
+        title.firstElementChild.textContent = entry.title || ' ';
+      } catch {}
+    })();
+  </script>
+  {description?.trim() && <p data-reveal="lead">{description.trim()}</p>}
+</header>
+
+<script>
+  import './title-decode';
+  import './title-signal';
+</script>
+
+<style>
+  .page-header {
+    align-items: end;
+    display: grid;
+    gap: clamp(2rem, 6vw, 6rem);
+    grid-template-columns: 1.25fr 1fr;
+    padding-bottom: 4.5rem;
+    padding-top: 3.7rem;
+  }
+  h1 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: clamp(3.8rem, 8vw, 7rem);
+    font-weight: 520;
+    letter-spacing: -0.055em;
+    line-height: 0.95;
+    color: var(--blue);
+  }
+  .page-header p {
+    margin: 0 0 0.15rem;
+    max-width: var(--page-header-measure, 45ch);
+    font-size: var(--text-base);
+    line-height: var(--leading-prose);
+    text-wrap: balance;
+    color: var(--muted);
+  }
+  .page-header--compact {
+    gap: var(--space-12);
+    padding-block: var(--space-8) var(--space-10);
+  }
+  .page-header--compact h1,
+  .page-header--editorial h1 {
+    font-size: clamp(3.5rem, 6.2vw, 4.75rem);
+  }
+  .page-header--editorial {
+    display: block;
+    padding-block: 3rem clamp(3.5rem, 6vw, 5.5rem);
+  }
+  .page-header--editorial p {
+    margin: 1.3rem 0 0;
+    max-width: var(--page-header-measure, 49ch);
+    line-height: var(--leading-body);
+  }
+  /* A title being rewritten stands through the opening gate, so it never leaves the screen. */
+  h1[data-title-from] {
+    visibility: visible;
+  }
+  /* The decoding letters (title-decode.ts). A blink only dims a letter to a trace: at this size a
+     letter gone reads as a hole in the word. A block flashes over it in a tone of the signal;
+     `ink` erases. */
+  h1 :global(.title-decode-glyph) {
+    position: relative;
+    display: inline-block;
+  }
+  h1 :global(.title-decode-glyph[data-noise]) {
+    color: var(--signal-light);
+  }
+  h1 :global(.title-decode-glyph[data-blink]) {
+    color: color-mix(in srgb, var(--signal-light) 25%, transparent);
+  }
+  h1 :global(.title-decode-glyph[data-echo]) {
+    text-shadow: -2px 0 var(--signal-light);
+  }
+  h1 :global(.title-decode-glyph[data-block])::after {
+    content: '';
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: var(--block-top);
+    height: var(--block-height);
+    background: var(--blue);
+  }
+  h1 :global(.title-decode-glyph[data-block='light'])::after {
+    background: var(--signal-light);
+  }
+  h1 :global(.title-decode-glyph[data-block='ink'])::after {
+    background: var(--ink);
+  }
+  .title-signal {
+    position: relative;
+    display: inline-block;
+  }
+  .title-signal::before {
+    text-shadow: -2px 0 var(--blue);
+    clip-path: inset(30% 0 55%);
+    color: var(--paper);
+  }
+  .title-signal::after {
+    clip-path: inset(61% 0 27%);
+    color: var(--signal-light);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    /* Its own layer in transitions between pages (see motion.css). */
+    h1 {
+      view-transition-name: page-title;
+    }
+    .title-signal[data-slip] {
+      animation: signal-title-distort var(--signal-burst) steps(1, end) both;
+    }
+    .title-signal[data-slip]::before {
+      animation: signal-title-slip-upper var(--signal-burst) steps(1, end) both;
+    }
+    .title-signal[data-slip]::after {
+      animation: signal-title-slip-lower var(--signal-burst) steps(1, end) both;
+    }
+  }
+  @media (max-width: 720px) {
+    h1,
+    .page-header--compact h1,
+    .page-header--editorial h1 {
+      font-size: var(--text-page-mobile);
+    }
+    .page-header {
+      gap: var(--space-4);
+      grid-template-columns: 1fr;
+      padding-block: var(--space-6) var(--space-8);
+    }
+    .page-header p {
+      max-width: 46ch;
+      font-size: var(--text-sm);
+    }
+    .page-header--editorial {
+      padding-block: var(--space-7) 2.75rem;
+    }
+    .page-header--editorial p {
+      margin-top: var(--space-4);
+      max-width: 35ch;
+    }
+  }
+</style>

@@ -1,0 +1,46 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import AboutSectionStudy from './components/AboutSectionStudy.astro';
+---
+
+<SiteLayout
+  title="About — material studies"
+  description="About typography and material studies"
+  shell="reading"
+>
+  <div class="studies">
+    <div class="study">
+      <p class="caption shell">A · 蓝 / 白 / 灰</p>
+      <AboutSectionStudy study />
+    </div>
+    <div class="study">
+      <p class="caption shell">B · 整块色面 / 负形文字</p>
+      <AboutSectionStudy study variant="negative" />
+    </div>
+    <div class="study" id="moire-study">
+      <p class="caption shell">C · 双层疏网 / 缓慢干涉</p>
+      <AboutSectionStudy study variant="negative" texture="moire" />
+    </div>
+    <div class="study" id="pixel-study">
+      <p class="caption shell">D · 烟蓝像素灯牌 / 局部刷新</p>
+      <AboutSectionStudy study variant="negative" texture="pixel" />
+    </div>
+  </div>
+</SiteLayout>
+
+<style>
+  .studies {
+    padding-block: var(--space-8) var(--space-16);
+  }
+  .study + .study {
+    margin-top: 5rem;
+  }
+  .caption {
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    color: var(--type-dim);
+  }
+  .study :global(.about) {
+    margin-top: var(--space-5);
+  }
+</style>

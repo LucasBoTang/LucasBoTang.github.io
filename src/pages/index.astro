@@ -1,24 +1,30 @@
 ---
 import SiteLayout from '../layouts/SiteLayout.astro';
-import HomeHero from '../components/home/HomeHero.astro';
+import HomeHero from '../components/home/HomeHero/HomeHero.astro';
 import SelectedWork from '../components/home/SelectedWork.astro';
-import AboutSection from '../components/home/AboutSection.astro';
+import AboutSection from '../components/home/AboutSection/AboutSection.astro';
 ---
 
 <SiteLayout
   title="Bo Tang — Optimization & Machine Learning"
-  description="Bo Tang is a postdoctoral associate at MIT Sloan working on decision-focused learning, learning to optimize, and GPU-accelerated optimization."
+  description="Bo Tang is a postdoctoral associate at MIT Sloan working on GPU-accelerated optimization, learning to optimize, and decision-focused learning."
   page="home"
+  opening="custom"
 >
-  <div class="home">
+  <div class="home" data-opening-content>
     <HomeHero />
     <SelectedWork />
     <AboutSection />
   </div>
 </SiteLayout>
 
+<script>
+  import '../components/home/opening/home-opening';
+</script>
+
 <style>
   .home {
     --page-width: var(--page-width-reading);
+    overflow-x: clip;
   }
 </style>

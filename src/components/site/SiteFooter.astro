@@ -1,0 +1,47 @@
+---
+import ContactLinks from '../ui/ContactLinks.astro';
+import { routes } from '../../data/navigation';
+import { profile } from '../../data/profile';
+---
+
+<footer class="site-footer shell">
+  <div>
+    <a class="site-footer-name" href={routes.home}>
+      {profile.name}
+    </a>
+    <p>{profile.location}</p>
+  </div>
+  <ContactLinks placement="footer" />
+</footer>
+
+<style>
+  .site-footer {
+    align-items: flex-end;
+    display: flex;
+    gap: var(--space-8);
+    justify-content: space-between;
+    border-top: var(--rule-line);
+    margin-top: 6rem;
+    padding-block: 2.2rem 2.6rem;
+    font-size: var(--text-xs);
+  }
+  .site-footer-name {
+    font-weight: 600;
+    text-decoration: none;
+    color: var(--paper);
+  }
+  p {
+    margin: var(--space-2) 0 0;
+    color: var(--muted);
+  }
+  @media (max-width: 600px) {
+    .site-footer {
+      align-items: flex-start;
+      flex-direction: column;
+      margin-top: var(--space-16);
+    }
+    .site-footer :global(.contact-links--footer) {
+      align-self: flex-end;
+    }
+  }
+</style>

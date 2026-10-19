@@ -1,4 +1,69 @@
-/* Static content is the default; motion never gates reading or navigation. */
+/* Static content is the default: motion never gates reading or navigation for long. */
+
+/* While a page with an opening waits for its script, its footer and any section marked
+   `data-opening-content` stay hidden, and on the home page, whose opening brings the header in
+   too, the header. SiteLayout sets the attribute from a script, so pages without JavaScript never
+   hide; the page's script lifts it, or SiteLayout does after 2.5 seconds. */
+html[data-opening-pending][data-opening='custom'] .site-header,
+html[data-opening-pending] [data-opening-content],
+html[data-opening-pending] .site-footer {
+  visibility: hidden;
+}
+
+/* Moving between pages, as SiteLayout opts in. The header holds its place. The page title holds
+   its place too, on its own layer: the next page shows the last title where its own will stand,
+   and rewrites it (PageHeader). The rest of the page leaves upward, out of focus, quickening as it
+   goes, while the next page's first units already rise beneath it along the same line. A title
+   with no title to hand over to, going home, leaves with its page; one with none to take over,
+   coming from home, comes out of noise once home has nearly gone. Browsers without
+   cross-document view transitions simply change page. */
+@media (prefers-reduced-motion: no-preference) {
+  .site-header {
+    view-transition-name: site-header;
+  }
+  /* The next page shows at first as its bare background, waiting for its opening, so the leaving
+     page stays on top of it as it goes. */
+  ::view-transition-old(root) {
+    z-index: 1;
+    animation: page-leave 280ms cubic-bezier(0.32, 0, 0.67, 0) both;
+  }
+  ::view-transition-new(root) {
+    animation: none;
+  }
+  /* Between two titled pages, the next page already shows the last title, so only it is shown. */
+  ::view-transition-group(page-title) {
+    animation: none;
+  }
+  ::view-transition-old(page-title) {
+    opacity: 0;
+    animation: none;
+  }
+  ::view-transition-old(page-title):only-child {
+    opacity: 1;
+    animation: page-leave 280ms cubic-bezier(0.32, 0, 0.67, 0) both;
+  }
+  ::view-transition-new(page-title) {
+    animation: none;
+  }
+  /* A title with no title to take over, coming from home, waits until home has nearly gone. */
+  ::view-transition-new(page-title):only-child {
+    animation: page-title-wait 240ms;
+  }
+  @keyframes page-title-wait {
+    from,
+    to {
+      opacity: 0;
+    }
+  }
+  @keyframes page-leave {
+    to {
+      filter: blur(4px);
+      opacity: 0;
+      transform: translateY(-12px);
+    }
+  }
+}
+
 @media (prefers-reduced-motion: no-preference) {
   main {
     animation: page-arrive 280ms ease-out;
@@ -10,5 +75,42 @@
     to {
       opacity: 1;
     }
+  }
+}
+
+/* A lit unit, marked `data-lit`: a block read as one, such as a work entry, a research area or an
+   About row. Pointed at, or holding keyboard focus, it is lit from behind by a faint blue light,
+   brightest about its middle and gone well before its edges, so the unit reads as chosen without
+   anything being drawn around it. */
+[data-lit] {
+  isolation: isolate;
+  position: relative;
+}
+[data-lit]::before {
+  content: '';
+  inset: 0;
+  position: absolute;
+  z-index: -1;
+  background: radial-gradient(
+    ellipse 46% 50% at 50% 50%,
+    color-mix(in srgb, var(--blue) 6%, transparent),
+    color-mix(in srgb, var(--blue) 3%, transparent) 40%,
+    color-mix(in srgb, var(--blue) 1%, transparent) 70%,
+    transparent
+  );
+  opacity: 0;
+  pointer-events: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  [data-lit]:is(:hover, :has(:focus-visible))::before {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  [data-lit]::before {
+    transition: opacity 360ms cubic-bezier(0.33, 1, 0.68, 1);
+  }
+  [data-lit]:is(:hover, :has(:focus-visible))::before {
+    transition-duration: 560ms;
   }
 }

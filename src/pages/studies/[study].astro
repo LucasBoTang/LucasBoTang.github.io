@@ -1,0 +1,17 @@
+---
+import type { AstroComponentFactory } from 'astro/runtime/server/index.js';
+
+// Design studies: each file in src/studies/ is served at /studies/<file name>/ by `npm run dev`.
+// Production builds generate none of them.
+export function getStaticPaths() {
+  if (!import.meta.env.DEV) return [];
+  return Object.keys(import.meta.glob('../../studies/*.astro')).map((path) => ({
+    params: { study: path.slice(path.lastIndexOf('/') + 1, -'.astro'.length) },
+  }));
+}
+
+const studies = import.meta.glob<{ default: AstroComponentFactory }>('../../studies/*.astro');
+const { default: Study } = await studies[`../../studies/${Astro.params.study}.astro`]();
+---
+
+<Study />

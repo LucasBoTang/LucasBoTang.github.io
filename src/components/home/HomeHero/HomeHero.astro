@@ -1,0 +1,395 @@
+---
+import { Image } from 'astro:assets';
+import '@fontsource-variable/syne';
+import '@fontsource-variable/bodoni-moda';
+import ArrowLink from '../../ui/ArrowLink.astro';
+import ResearchNavigator from '../ResearchNavigator/ResearchNavigator.astro';
+import ContactLinks from '../../ui/ContactLinks.astro';
+import { routes } from '../../../data/navigation';
+import { profile } from '../../../data/profile';
+import { blueInk } from './blue-ink';
+import portrait from '../../../assets/bo-tang.jpg';
+import portraitPixels from '../../../assets/portrait-pixels.png';
+
+// The blue ink's range for each colour channel, as the SVG filter's lookup tables.
+const [inkRed, inkGreen, inkBlue] = blueInk.dark.map((dark, i) => `${dark} ${blueInk.light[i]}`);
+---
+
+<section class="hero shell" aria-labelledby="hero-name" data-home-motion>
+  <div class="identity">
+    <div class="portrait-block">
+      <Image
+        src={portrait}
+        widths={[256, 480, 640]}
+        sizes="(max-width: 900px) 240px, 256px"
+        width={640}
+        alt="Bo Tang, seated at a table against a dark background."
+        loading="eager"
+        fetchpriority="high"
+        class="portrait"
+      />
+      <Image
+        src={portrait}
+        widths={[256, 480, 640]}
+        sizes="(max-width: 900px) 240px, 256px"
+        width={640}
+        alt=""
+        aria-hidden="true"
+        loading="eager"
+        class="portrait-ink"
+      />
+      <canvas class="portrait-signal" data-portrait-signal aria-hidden="true"></canvas>
+      <canvas
+        class="portrait-develop"
+        data-portrait-develop
+        data-portrait-pixels={portraitPixels.src}
+        aria-hidden="true"
+      ></canvas>
+      <h1 id="hero-name" class="signal-slices" aria-label="Bo Tang" data-signal-text="Bo Tang">
+        <span class="name-base">Bo Tang</span>
+      </h1>
+      <div class="name-marks" aria-hidden="true">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+    <ContactLinks />
+    <svg class="ink-filter" aria-hidden="true" width="0" height="0">
+      <defs>
+        <filter id="portrait-blue-ink" color-interpolation-filters="sRGB">
+          <feColorMatrix
+            type="matrix"
+            values=".2126 .7152 .0722 0 0 .2126 .7152 .0722 0 0 .2126 .7152 .0722 0 0 0 0 0 1 0"
+          />
+          <feComponentTransfer>
+            <feFuncR type="table" tableValues={inkRed} />
+            <feFuncG type="table" tableValues={inkGreen} />
+            <feFuncB type="table" tableValues={inkBlue} />
+          </feComponentTransfer>
+        </filter>
+      </defs>
+    </svg>
+  </div>
+  <div class="hero-copy">
+    <div class="affiliation">
+      <p>{profile.role}</p>
+      <a class="text-link" href={profile.institutionUrl}>
+        <span class="link-label">{profile.institution}</span>
+      </a>
+    </div>
+    <ResearchNavigator />
+    <p class="hero-intro">
+      <span class="intro-copy">
+        I develop machine learning methods and scalable algorithms for mathematical optimization.
+      </span>
+      <span class="intro-typing" aria-hidden="true">
+        <span data-intro-typed></span>
+        <span class="intro-cursor"></span>
+      </span>
+    </p>
+    <div class="hero-actions">
+      <ArrowLink href={routes.research}>View research</ArrowLink>
+    </div>
+  </div>
+</section>
+
+<script>
+  import './hero-motion';
+</script>
+
+<style>
+  .hero {
+    /* The portrait splits two thirds of the way down: the photograph above, and below it the blue
+       third, shifted right by --ink-shift. ContactLinks sits under the portrait, aligned with it. */
+    --contact-links-offset: calc(var(--name-offset) + var(--ink-shift));
+    --contact-links-width: var(--portrait-width);
+    --ink-height: 33.334%;
+    --ink-shift: 18px;
+    --ink-top: 66.666%;
+    --name-offset: 2.75rem;
+    --portrait-width: 16rem;
+    align-items: start;
+    column-gap: var(--reading-column-gap);
+    display: grid;
+    grid-template-columns: var(--reading-label-column) minmax(0, 1fr);
+    padding-top: clamp(2.5rem, 4.3vw, 4rem);
+  }
+  .identity {
+    min-width: 0;
+  }
+  .portrait-block {
+    isolation: isolate;
+    position: relative;
+    aspect-ratio: 2 / 3;
+    margin-left: var(--name-offset);
+    width: var(--portrait-width);
+  }
+  .portrait-block :global(.portrait) {
+    clip-path: inset(0 0 var(--ink-height));
+  }
+  .portrait-block :global(.portrait),
+  .portrait-block :global(.portrait-ink) {
+    display: block;
+    height: 100%;
+    object-fit: contain;
+    width: 100%;
+  }
+  .portrait-block :global(.portrait-ink) {
+    inset: 0;
+    position: absolute;
+    clip-path: inset(var(--ink-top) 0 0);
+    filter: url('#portrait-blue-ink');
+    transform: translateX(var(--ink-shift));
+    pointer-events: none;
+  }
+  .ink-filter {
+    position: absolute;
+    pointer-events: none;
+  }
+  .portrait-signal {
+    inset: var(--ink-top) 0 0;
+    position: absolute;
+    height: var(--ink-height);
+    width: 100%;
+    opacity: 0;
+    transform: translateX(var(--ink-shift));
+  }
+  .portrait-develop {
+    inset: 0;
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    pointer-events: none;
+  }
+  [data-motion-ready] .portrait-signal[data-image-ready] {
+    opacity: 1;
+  }
+  h1 {
+    left: calc(-1 * var(--name-offset));
+    position: absolute;
+    top: var(--ink-top);
+    z-index: 1;
+    margin: -0.1em 0 0;
+    font-family: var(--font-serif);
+    font-optical-sizing: auto;
+    font-size: 4.5rem;
+    font-weight: 400;
+    letter-spacing: -0.055em;
+    line-height: 1.12;
+    white-space: nowrap;
+    color: var(--paper);
+  }
+  /* The opening's scrambled letters, laid over the name by name-scramble.ts. */
+  h1 :global(.name-scramble) {
+    inset: 0;
+    position: absolute;
+    pointer-events: none;
+  }
+  h1 :global(.name-scramble-glyph) {
+    position: absolute;
+    top: 0;
+    color: var(--paper);
+  }
+  h1 :global(.name-scramble-glyph[data-light]) {
+    color: var(--signal-light);
+  }
+  h1 :global(.name-scramble-glyph[data-echo]) {
+    text-shadow: -2px 0 var(--blue);
+  }
+  h1 :global(.name-scramble-block) {
+    position: absolute;
+    background: var(--blue);
+  }
+  h1 :global(.name-scramble-block[data-tone='light']) {
+    background: var(--signal-light);
+  }
+  h1 :global(.name-scramble-block[data-tone='ink']) {
+    background: var(--ink);
+  }
+  .name-marks {
+    left: calc(-1 * var(--name-offset));
+    position: absolute;
+    top: calc(var(--ink-top) + 5.25rem);
+    z-index: 2;
+    align-items: center;
+    display: flex;
+    gap: 5px;
+    height: 12px;
+    pointer-events: none;
+  }
+  .name-marks span {
+    display: block;
+    height: 6px;
+    width: 6px;
+    background: var(--blue);
+    opacity: 0.65;
+  }
+  h1::before {
+    text-shadow: -2px 0 var(--blue);
+    clip-path: inset(30% 0 55%);
+    color: var(--paper);
+  }
+  h1::after {
+    clip-path: inset(61% 0 27%);
+    color: var(--signal-light);
+  }
+  .hero-copy {
+    min-width: 0;
+    padding-top: 2.8rem;
+  }
+  .affiliation {
+    margin-bottom: 2.3rem;
+    font-size: var(--text-sm);
+    line-height: var(--leading-prose);
+  }
+  .affiliation p {
+    margin: 0 0 0.3rem;
+    font-size: var(--text-xs);
+    color: var(--muted);
+  }
+  .hero-intro {
+    position: relative;
+    margin: 2.2rem 0 0;
+    max-width: 60ch;
+    font-size: var(--text-base);
+    line-height: var(--leading-prose);
+    color: var(--muted);
+  }
+  .intro-typing {
+    display: none;
+  }
+  [data-typing-ready] .intro-copy {
+    color: transparent;
+  }
+  /* The typed letters lie over the sentence, which carries its text for reading and copying; the
+     letters are not selectable, so a copy holds the sentence once. */
+  [data-typing-ready] .intro-typing {
+    inset: 0;
+    position: absolute;
+    display: block;
+    user-select: none;
+  }
+  .intro-cursor {
+    left: 100%;
+    position: absolute;
+    top: 0.12em;
+    display: inline-block;
+    height: 1em;
+    margin-left: 3px;
+    width: 2px;
+    vertical-align: -0.14em;
+    background: var(--blue);
+  }
+  [data-intro-waiting] .intro-cursor {
+    visibility: hidden;
+  }
+  .intro-cursor[data-at-start] {
+    left: 0;
+  }
+  /* Letters laid out by intro-typing.ts, revealed one by one. */
+  .intro-typing :global(.intro-word) {
+    white-space: nowrap;
+  }
+  .intro-typing :global(.intro-letter) {
+    position: relative;
+  }
+  .intro-typing :global(.intro-letter[data-unseen]) {
+    visibility: hidden;
+  }
+  .hero-actions {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem var(--space-8);
+    justify-content: space-between;
+    margin-top: 1.2rem;
+    max-width: 29rem;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .name-marks span {
+      animation: signal-marks-hop 2.7s steps(1, end) infinite;
+    }
+    .name-marks span:nth-child(2) {
+      animation-delay: -1.1s;
+      animation-duration: 3.1s;
+    }
+    .name-marks span:nth-child(3) {
+      animation-delay: -0.6s;
+      animation-duration: 2.3s;
+    }
+    [data-motion-suspended] .name-marks span {
+      animation-play-state: paused;
+    }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    [data-slip] h1 {
+      animation: signal-name-distort var(--signal-burst) steps(1, end) both;
+    }
+    [data-slip] h1::before {
+      animation: signal-name-slip-upper var(--signal-burst) steps(1, end) both;
+    }
+    [data-slip] h1::after {
+      animation: signal-name-slip-lower var(--signal-burst) steps(1, end) both;
+    }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .intro-cursor {
+      animation: intro-cursor-blink 1.1s step-end infinite;
+    }
+    [data-motion-suspended] .intro-cursor {
+      animation-play-state: paused;
+    }
+    [data-typing] .intro-cursor {
+      animation: none;
+    }
+  }
+  @keyframes intro-cursor-blink {
+    0%,
+    55%,
+    100% {
+      opacity: 1;
+    }
+    56%,
+    99% {
+      opacity: 0;
+    }
+  }
+  @media (max-width: 900px) {
+    .hero {
+      --name-offset: 2rem;
+      --portrait-width: 15rem;
+    }
+    h1 {
+      font-size: 4rem;
+    }
+    .name-marks {
+      top: calc(var(--ink-top) + 4.75rem);
+    }
+    .hero-copy {
+      padding-top: 1.8rem;
+    }
+    .hero-intro {
+      font-size: var(--text-sm);
+    }
+  }
+  @media (max-width: 720px) {
+    .hero {
+      grid-template-columns: minmax(0, 1fr);
+      row-gap: var(--space-7);
+      padding-top: var(--space-6);
+    }
+    .hero-copy {
+      padding-top: 0;
+    }
+    .affiliation {
+      margin-bottom: 1.4rem;
+    }
+    .hero-intro {
+      margin-top: var(--space-6);
+    }
+    .hero-actions {
+      margin-top: 0.9rem;
+    }
+  }
+</style>

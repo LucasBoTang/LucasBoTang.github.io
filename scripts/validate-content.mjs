@@ -1,25 +1,29 @@
 import assert from 'node:assert/strict';
-import { getPublicationHref } from '../src/data/publications.ts';
+import { getPaperUrl } from '../src/data/publications.ts';
+import { siteContentSchema } from '../src/data/schema.ts';
+
+// Rules that span records. The shape of each record, including the form of its ID, is checked by
+// the schema first.
 
 function uniqueIds(records, label) {
   const ids = records.map(({ id }) => id);
-  for (const id of ids) {
-    assert.match(id, /^[a-z0-9]+(?:-[a-z0-9]+)*$/, `Invalid ${label} ID: ${id}`);
-  }
   assert.equal(new Set(ids).size, ids.length, `Duplicate ${label} ID`);
 }
 
-function publicationHref(publication) {
-  return getPublicationHref(publication);
-}
-
 export function validateContent(content) {
-  const { publications, researchAreas, softwareGroups, selectedWork } = content;
+  const parsed = siteContentSchema.safeParse(content);
+  assert.ok(
+    parsed.success,
+    `Content does not match src/data/schema.ts:\n${parsed.error?.issues
+      .map((issue) => `  ${issue.path.join('.')}: ${issue.message}`)
+      .join('\n')}`,
+  );
+  const { publications, researchAreas, softwareGroups, selectedWork, contactLinks } = content;
   const records = Object.values(publications);
   const byId = new Map(records.map((publication) => [publication.id, publication]));
   const softwareEntries = softwareGroups.flatMap((group) => group.entries);
-  const softwareProjects = softwareGroups
-    .filter((group) => group.variant === 'primary')
+  const projectEntries = softwareGroups
+    .filter((group) => group.variant === 'project')
     .flatMap((group) => group.entries);
   uniqueIds(records, 'publication');
   uniqueIds(researchAreas, 'research area');
@@ -33,7 +37,6 @@ export function validateContent(content) {
         'Preprint',
         `${publication.id}: review metadata requires Preprint status`,
       );
-      assert.ok(publication.review.journal.trim(), `${publication.id}: review journal is required`);
     }
   }
 
@@ -44,10 +47,7 @@ export function validateContent(content) {
   const occurrences = new Map(records.map(({ id }) => [id, 0]));
   for (const area of researchAreas) {
     for (const publication of area.publications) {
-      assert.ok(
-        publication && byId.has(publication.id),
-        `${area.id}: canonical publication does not exist`,
-      );
+      assert.ok(byId.has(publication.id), `${area.id}: canonical publication does not exist`);
       assert.equal(
         byId.get(publication.id),
         publication,
@@ -60,14 +60,13 @@ export function validateContent(content) {
     assert.equal(count, 1, `${id}: each publication must appear exactly once in Research`);
   }
 
-  for (const project of softwareProjects) {
-    assert.ok(project.publication, `${project.id}: canonical publication is required`);
+  for (const project of projectEntries) {
     assert.ok(
       byId.has(project.publication.id),
       `${project.id}: canonical publication does not exist`,
     );
     assert.equal(
-      byId.get(project.publication?.id),
+      byId.get(project.publication.id),
       project.publication,
       `${project.id}: use a canonical publication reference`,
     );
@@ -81,7 +80,7 @@ export function validateContent(content) {
       `${project.id}: Code and repository must agree`,
     );
     assert.ok(
-      project.links.some((link) => link.href === publicationHref(project.publication)),
+      project.links.some((link) => link.href === getPaperUrl(project.publication)),
       `${project.id}: related-paper link must reach its publication`,
     );
   }
@@ -89,24 +88,25 @@ export function validateContent(content) {
   const selectedIds = new Set();
   for (const work of selectedWork) {
     assert.ok(
-      softwareProjects.includes(work.project),
+      projectEntries.includes(work.project),
       `${work.title}: selected work must reference a primary project`,
     );
     assert.ok(!selectedIds.has(work.project.id), `${work.title}: duplicate selected work project`);
     selectedIds.add(work.project.id);
     assert.equal(
       work.href,
-      publicationHref(work.project.publication),
+      getPaperUrl(work.project.publication),
       `${work.title}: selected work must link to its project's paper`,
     );
-    for (const [label, resource] of [['Code', work.project.code]]) {
-      assert.equal(
-        work.links.find((link) => link.label === label)?.href,
-        resource.href,
-        `${work.title}: selected work ${label} must match its project`,
-      );
-    }
+    assert.equal(
+      work.links.find((link) => link.label === 'Code')?.href,
+      work.project.code.href,
+      `${work.title}: selected work Code must match its project`,
+    );
   }
+
+  const destinations = contactLinks.map((link) => link.href);
+  assert.equal(new Set(destinations).size, destinations.length, 'Duplicate contact destination');
 
   return {
     publications: records.length,

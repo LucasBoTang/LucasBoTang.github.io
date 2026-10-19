@@ -1,0 +1,251 @@
+/* The signal language: brief, stepped glitches shared across the site.
+   Keyframe names are global, so each starts with `signal-` and names what it animates.
+   Components keep their own trigger rules and clip positions; the motion lives here. */
+
+/* One burst: every glitch plays over it, and scripts that mark an element `data-slip` read it
+   through src/lib/signal.ts. */
+:root {
+  --signal-burst: 400ms;
+}
+
+/* Two copies of a text that show only while it glitches. Put the text in `data-signal-text`;
+   each component positions and colours its own ::before and ::after. */
+.signal-slices::before,
+.signal-slices::after {
+  content: attr(data-signal-text);
+  inset: 0;
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Home hero: the marks beside the name, and the name tearing apart. */
+@keyframes signal-marks-hop {
+  0%,
+  32%,
+  73%,
+  100% {
+    opacity: 0.65;
+    transform: none;
+  }
+  18%,
+  65% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+  25% {
+    opacity: 0.85;
+    transform: translate(1px, -1px);
+  }
+  88% {
+    opacity: 0.4;
+    transform: translateY(2px);
+  }
+}
+@keyframes signal-name-distort {
+  0%,
+  42%,
+  100% {
+    transform: none;
+  }
+  12% {
+    transform: skewX(-3deg) scaleY(0.985);
+  }
+  26% {
+    transform: skewX(1.5deg);
+  }
+  62% {
+    transform: skewX(-1deg);
+  }
+  76% {
+    transform: none;
+  }
+}
+@keyframes signal-name-slip-upper {
+  0%,
+  100% {
+    opacity: 0;
+    transform: translateX(0);
+  }
+  12%,
+  26% {
+    opacity: 0.95;
+    transform: translateX(4px) skewX(-5deg);
+  }
+  42% {
+    opacity: 0;
+  }
+  62% {
+    opacity: 0.7;
+    transform: translateX(-2px);
+  }
+  88% {
+    opacity: 0;
+    transform: none;
+  }
+}
+@keyframes signal-name-slip-lower {
+  0%,
+  100% {
+    opacity: 0;
+    transform: translateX(0);
+  }
+  18%,
+  34% {
+    opacity: 0.8;
+    transform: translateX(-3px) skewX(3deg);
+  }
+  48% {
+    opacity: 0;
+  }
+  66% {
+    opacity: 0.45;
+    transform: translateX(1px);
+  }
+  82% {
+    opacity: 0;
+  }
+}
+
+/* Page titles: a lighter version of the hero name tear. */
+@keyframes signal-title-distort {
+  0%,
+  38%,
+  100% {
+    transform: none;
+  }
+  12% {
+    transform: skewX(-4deg) scaleY(0.97);
+  }
+  24% {
+    transform: skewX(2.2deg) scaleY(1.015);
+  }
+  62% {
+    transform: skewX(-1.3deg);
+  }
+  74% {
+    transform: none;
+  }
+}
+@keyframes signal-title-slip-upper {
+  0%,
+  10%,
+  38%,
+  100% {
+    opacity: 0;
+    transform: none;
+  }
+  12%,
+  24% {
+    clip-path: inset(29% 0 61%);
+    opacity: 0.85;
+    transform: translateX(4px);
+  }
+  26%,
+  36% {
+    clip-path: inset(34% 0 59%);
+    opacity: 0.65;
+    transform: translateX(-2px);
+  }
+  62%,
+  70% {
+    clip-path: inset(31% 0 62%);
+    opacity: 0.45;
+    transform: translateX(1px);
+  }
+  72% {
+    opacity: 0;
+    transform: none;
+  }
+}
+@keyframes signal-title-slip-lower {
+  0%,
+  22%,
+  54%,
+  100% {
+    opacity: 0;
+    transform: none;
+  }
+  24%,
+  38% {
+    clip-path: inset(65% 0 26%);
+    opacity: 0.75;
+    transform: translateX(-3px);
+  }
+  40%,
+  52% {
+    clip-path: inset(61% 0 31%);
+    opacity: 0.5;
+    transform: translateX(2px);
+  }
+}
+
+/* Contact icons: a band cut out of the icon, and its shifted copy. */
+@keyframes signal-contact-hover-cut {
+  0%,
+  8.44%,
+  17.33%,
+  100% {
+    mask-image: none;
+  }
+  2.67%,
+  5.33%,
+  13.78% {
+    mask-image: linear-gradient(to bottom, black 40%, transparent 40%, transparent 62%, black 62%);
+  }
+}
+@keyframes signal-contact-hover-slip {
+  0%,
+  8.44%,
+  17.33%,
+  100% {
+    opacity: 0;
+    transform: none;
+  }
+  2.67% {
+    opacity: 1;
+    transform: translateX(var(--signal-shift));
+  }
+  5.33% {
+    opacity: 1;
+    transform: translateX(-1px);
+  }
+  13.78% {
+    opacity: 1;
+    transform: translateX(1px);
+  }
+}
+@keyframes signal-contact-cut {
+  0%,
+  38%,
+  78%,
+  100% {
+    mask-image: none;
+  }
+  12%,
+  24%,
+  62% {
+    mask-image: linear-gradient(to bottom, black 40%, transparent 40%, transparent 62%, black 62%);
+  }
+}
+@keyframes signal-contact-slip {
+  0%,
+  38%,
+  78%,
+  100% {
+    opacity: 0;
+    transform: none;
+  }
+  12% {
+    opacity: 1;
+    transform: translateX(var(--signal-shift));
+  }
+  24% {
+    opacity: 1;
+    transform: translateX(-1px);
+  }
+  62% {
+    opacity: 1;
+    transform: translateX(1px);
+  }
+}

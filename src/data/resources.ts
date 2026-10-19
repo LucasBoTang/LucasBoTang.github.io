@@ -1,7 +1,6 @@
-export interface ResourceLink {
-  label: string;
-  href: string;
-}
+import type { ResourceLink } from './schema.ts';
+
+export type { ResourceLink };
 
 // Shared destinations for publications, the software catalogue, and home highlights.
 export const projectResources = {

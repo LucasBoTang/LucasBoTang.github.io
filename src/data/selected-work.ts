@@ -1,22 +1,15 @@
-import { formatPublicationSummary, getPublicationHref } from './publications.ts';
-import type { ResourceLink } from './resources.ts';
-import { primaryProjects, type SoftwareProject } from './software.ts';
+import { formatVenueWithYear, getPaperUrl } from './publications.ts';
+import type { SelectedWork } from './schema.ts';
+import { projects, type SoftwareProject } from './software.ts';
 
-export interface SelectedWork {
-  title: string;
-  description: string;
-  note: string;
-  href: string;
-  links: ResourceLink[];
-  project: SoftwareProject;
-}
+export type { SelectedWork };
 
 function selectWork(project: SoftwareProject, description: string): SelectedWork {
   return {
     title: project.publication.title,
     description,
-    note: formatPublicationSummary(project.publication),
-    href: getPublicationHref(project.publication),
+    note: formatVenueWithYear(project.publication),
+    href: getPaperUrl(project.publication),
     links: [project.code, ...(project.documentation ? [project.documentation] : [])],
     project,
   };
@@ -24,15 +17,15 @@ function selectWork(project: SoftwareProject, description: string): SelectedWork
 
 export const selectedWork: SelectedWork[] = [
   selectWork(
-    primaryProjects.pyepo,
-    'Introduces a unified framework and benchmarks for decision-focused learning, integrating linear and integer programming solvers with PyTorch and JAX training.',
+    projects.hPdlp,
+    'Develops a generalized primal-dual hybrid gradient framework for a compact homogeneous self-dual formulation with linear convergence guarantees. Enables matrix-free GPU computation of linear programming solutions and infeasibility certificates.',
   ),
   selectWork(
-    primaryProjects.reins,
+    projects.reins,
     'Learns to solve parametric mixed-integer nonlinear programs without an optimization solver at inference time, using differentiable integer correction and feasibility projection with theoretical guarantees.',
   ),
   selectWork(
-    primaryProjects.hPdlp,
-    'Develops a generalized primal-dual hybrid gradient framework for a compact homogeneous self-dual formulation with linear convergence guarantees. Enables matrix-free GPU computation of linear programming solutions and infeasibility certificates.',
+    projects.pyepo,
+    'Introduces a unified framework and benchmarks for decision-focused learning, integrating linear and integer programming solvers with PyTorch and JAX training.',
   ),
 ];

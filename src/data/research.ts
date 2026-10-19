@@ -1,26 +1,28 @@
-import type { ImageMetadata } from 'astro';
 import { routes } from './navigation.ts';
-import { publications, type Publication } from './publications.ts';
+import { publications } from './publications.ts';
+import type { Publication, ResearchArea } from './schema.ts';
 
-export interface ResearchIllustration {
-  /** An image imported from `src/assets/`, so the build can size and optimize it. */
-  src: ImageMetadata;
-  alt: string;
-  caption?: string;
-}
-
-export interface ResearchArea {
-  id: string;
-  title: string;
-  question: string;
-  introduction: string;
-  publications: Publication[];
-  /** Featured areas appear as the research topics on the home page. */
-  featured?: boolean;
-  illustration?: ResearchIllustration;
-}
+export type { ResearchArea };
 
 export const researchAreas: ResearchArea[] = [
+  {
+    id: 'first-order-methods',
+    title: 'GPU-accelerated optimization',
+    question: 'How can optimization algorithms scale with modern hardware?',
+    introduction:
+      'GPU-accelerated optimization rethinks algorithms to use parallel computing for larger problems and faster solutions. I develop first-order methods that bring linear programming and infeasibility detection into a unified GPU framework, with convergence guarantees that connect algorithm design to reliable computation.',
+    publications: [publications.hPdlp],
+    featured: true,
+  },
+  {
+    id: 'learning-to-optimize',
+    title: 'Learning to optimize',
+    question: 'How can learning make constrained optimization faster and more effective?',
+    introduction:
+      'Learning to optimize uses patterns across problems to accelerate optimization. My work spans learning to solve constrained problems directly and learning to guide classical algorithms. This includes solver-free methods for mixed-integer nonlinear optimization, and learned dual inequalities that stabilize and accelerate column generation.',
+    publications: [publications.learningMinlpFeasibility, publications.learnedDualInequalities],
+    featured: true,
+  },
   {
     id: 'decision-focused-learning',
     title: 'Decision-focused learning',
@@ -35,24 +37,6 @@ export const researchAreas: ResearchArea[] = [
     featured: true,
   },
   {
-    id: 'learning-to-optimize',
-    title: 'Learning to optimize',
-    question: 'How can learning make constrained optimization faster and more effective?',
-    introduction:
-      'Learning to optimize uses patterns across problems to accelerate optimization. My work spans learning to solve constrained problems directly and learning to guide classical algorithms. This includes solver-free methods for mixed-integer nonlinear optimization, and learned dual inequalities that stabilize and accelerate column generation.',
-    publications: [publications.learningMinlpFeasibility, publications.learnedDualInequalities],
-    featured: true,
-  },
-  {
-    id: 'first-order-methods',
-    title: 'GPU-accelerated optimization',
-    question: 'How can optimization algorithms make full use of modern computing hardware?',
-    introduction:
-      'GPU-accelerated optimization rethinks algorithms to use parallel computing for larger problems and faster solutions. I develop first-order methods that bring linear programming and infeasibility detection into a unified GPU framework, with convergence guarantees that connect algorithm design to reliable computation.',
-    publications: [publications.hPdlp],
-    featured: true,
-  },
-  {
     id: 'other-research',
     title: 'Other research',
     question: 'How can optimization recover geometric structure from data?',
@@ -63,6 +47,11 @@ export const researchAreas: ResearchArea[] = [
 ];
 
 export const featuredResearchAreas: ResearchArea[] = researchAreas.filter((area) => area.featured);
+
+/** A theme's papers as Research lists them: newest first, ties in the order written above. */
+export function publicationsByYear(area: ResearchArea): Publication[] {
+  return [...area.publications].sort((a, b) => b.year - a.year);
+}
 
 export function getResearchAreaHref(area: ResearchArea): string {
   return `${routes.research}#${area.id}`;

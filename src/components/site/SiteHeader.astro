@@ -1,0 +1,140 @@
+---
+import HeaderRoll from './HeaderRoll.astro';
+import { primaryNavigation, routes, type PageId } from '../../data/navigation';
+import { profile } from '../../data/profile';
+
+interface Props {
+  page?: PageId;
+}
+const { page } = Astro.props;
+---
+
+<header class="site-header shell">
+  <a
+    class="site-header-name"
+    href={routes.home}
+    aria-label={`${profile.name} — home`}
+    aria-current={page === 'home' ? 'page' : undefined}
+  >
+    <span class="site-header-signal signal-slices" data-signal-text={profile.name}>
+      {profile.name}
+    </span>
+    <span class="site-header-dot" aria-hidden="true">
+      .
+    </span>
+  </a>
+  <nav aria-label="Main navigation">
+    {primaryNavigation.map((item, index) => (
+      <a href={routes[item.page]} aria-current={item.page === page ? 'page' : undefined}>
+        <HeaderRoll direction={index % 2 ? 'up' : 'down'}>{item.label}</HeaderRoll>
+      </a>
+    ))}
+    <a href={profile.cv} download aria-label="CV (PDF)">
+      <HeaderRoll direction={primaryNavigation.length % 2 ? 'up' : 'down'}>
+        CV <span class="site-header-file-type">(PDF)</span>
+      </HeaderRoll>
+    </a>
+  </nav>
+</header>
+
+<style>
+  .site-header {
+    align-items: center;
+    display: flex;
+    gap: var(--space-8);
+    justify-content: space-between;
+    padding-block: var(--space-8);
+  }
+  .site-header-name {
+    font-size: var(--text-lg);
+    font-weight: 650;
+    letter-spacing: -0.04em;
+    text-decoration: none;
+    color: var(--paper);
+  }
+  /* Hovering the name tears it once, as the home name tears: the links roll, but the name is the
+     signal. Its colour stays. */
+  .site-header-name:is(:hover, :focus-visible) {
+    color: var(--paper);
+  }
+  .site-header-signal {
+    position: relative;
+    display: inline-block;
+  }
+  .site-header-signal::before {
+    text-shadow: -2px 0 var(--blue);
+    clip-path: inset(30% 0 55%);
+    color: var(--paper);
+  }
+  .site-header-signal::after {
+    clip-path: inset(61% 0 27%);
+    color: var(--signal-light);
+  }
+  @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+    .site-header-name:is(:hover, :focus-visible) .site-header-signal {
+      animation: signal-name-distort var(--signal-burst) steps(1, end) both;
+    }
+    .site-header-name:is(:hover, :focus-visible) .site-header-signal::before {
+      animation: signal-name-slip-upper var(--signal-burst) steps(1, end) both;
+    }
+    .site-header-name:is(:hover, :focus-visible) .site-header-signal::after {
+      animation: signal-name-slip-lower var(--signal-burst) steps(1, end) both;
+    }
+  }
+  .site-header-dot {
+    color: var(--blue);
+  }
+  nav {
+    align-items: center;
+    display: flex;
+    gap: var(--space-8);
+    font-size: var(--text-sm);
+  }
+  nav a {
+    padding-block: 0.35rem;
+    text-decoration: none;
+    color: var(--muted);
+  }
+  /* Hover only rolls the label (HeaderRoll), alternately down and up from link to link; the
+     colour stays, and blue marks the current page alone. */
+  nav a:is(:hover, :focus-visible) {
+    color: var(--muted);
+  }
+  nav a[aria-current='page'] {
+    color: var(--blue);
+  }
+  .site-header-file-type {
+    margin-left: 0.2rem;
+    font-size: var(--text-xs);
+    color: var(--muted);
+  }
+  @media (max-width: 600px) {
+    .site-header {
+      align-items: flex-start;
+      gap: var(--space-4);
+      padding-block: 1.4rem;
+    }
+    nav {
+      flex-wrap: wrap;
+      gap: var(--space-4);
+      justify-content: flex-end;
+      font-size: var(--text-xs);
+    }
+    .site-header-name {
+      flex-shrink: 0;
+    }
+    .site-header-file-type {
+      display: none;
+    }
+  }
+  @media (max-width: 380px) {
+    .site-header {
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+    nav {
+      gap: 0.65rem;
+      justify-content: flex-start;
+    }
+  }
+</style>

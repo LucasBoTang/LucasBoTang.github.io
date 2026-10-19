@@ -26,14 +26,27 @@
   :root {
     --font: 'Manrope Variable', 'Helvetica Neue', sans-serif;
     --font-display: 'Syne Variable', var(--font);
+    --font-serif: 'Bodoni Moda Variable', 'Bodoni MT', Didot, Georgia, serif;
     --rule-line: 1px solid var(--rule);
+    --text-xs: 0.8125rem; /* 13px: metadata, resource links and roles */
+    --text-sm: 0.9375rem; /* 15px: secondary copy and section labels */
     --text-base: 1rem;
     --text-lg: 1.125rem;
+    --text-page-mobile: clamp(2.5rem, 10vw, 3.5rem); /* page titles on phones */
     --leading-compact: 1.5;
     --leading-body: 1.65;
     --leading-prose: 1.85;
-    --text-xs: 0.8125rem; /* 13px: metadata, resource links and roles */
-    --text-sm: 0.9375rem; /* 15px: secondary copy and section labels */
+    /* Spacing on a 0.25rem grid: --space-N is N × 0.25rem. Values off this grid stay literal. */
+    --space-2: 0.5rem;
+    --space-3: 0.75rem;
+    --space-4: 1rem;
+    --space-5: 1.25rem;
+    --space-6: 1.5rem;
+    --space-7: 1.75rem;
+    --space-8: 2rem;
+    --space-10: 2.5rem;
+    --space-12: 3rem;
+    --space-16: 4rem;
     --page-width-wide: 1200px;
     --page-width-reading: 1040px;
     --page-width: var(--page-width-wide);
@@ -49,16 +62,19 @@
       --reading-label-column: 17rem;
     }
   }
-  body[data-shell='reading'] {
-    --page-width: var(--page-width-reading);
+  /* Every page shares one left edge, the header's: a reading page keeps that edge and only
+     narrows its content to a reading measure, so moving between pages never shifts anything. */
+  body[data-shell='reading'] main .shell {
+    margin-left: max(var(--gutter), calc((100% - var(--page-width)) / 2));
+    width: min(calc(100% - var(--gutter) * 2), var(--page-width-reading));
   }
   body {
     font-family: var(--font);
+    -webkit-font-smoothing: antialiased;
     font-weight: 400;
     line-height: var(--leading-body);
     background: var(--ink);
     color: var(--paper);
-    -webkit-font-smoothing: antialiased;
   }
   ::selection {
     background: var(--blue);
@@ -94,9 +110,9 @@
   .skip-link {
     left: var(--gutter);
     position: absolute;
-    top: 1rem;
+    top: var(--space-4);
     z-index: 10;
-    padding: 0.6rem 1rem;
+    padding: 0.6rem var(--space-4);
     background: var(--paper);
     color: var(--ink);
     transform: translateY(-200%);

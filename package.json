@@ -11,23 +11,32 @@
     "build": "astro build",
     "preview": "astro preview --host 127.0.0.1",
     "check": "astro check",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
+    "format": "prettier --write . && node scripts/code-style.mjs --write",
+    "format:check": "node scripts/code-style.mjs && prettier --check .",
     "verify": "npm run format:check && npm run check && npm run check:content && npm test && npm run build && npm run check:output",
     "check:content": "node scripts/check-content.mjs",
     "check:output": "node scripts/check-output.mjs",
-    "test": "node --test scripts/*.test.mjs"
+    "test": "node --test tests/unit/*.test.mjs",
+    "test:e2e": "playwright test --project=e2e",
+    "test:visual": "playwright test --project=visual",
+    "test:visual:update": "playwright test --project=visual --update-snapshots",
+    "portrait": "node scripts/portrait-pixels.mjs"
   },
   "dependencies": {
+    "@fontsource-variable/bodoni-moda": "5.3.0",
     "@fontsource-variable/manrope": "5.3.0",
     "@fontsource-variable/syne": "5.3.0",
     "astro": "7.4.0"
   },
   "devDependencies": {
     "@astrojs/check": "0.9.10",
+    "@fontsource-variable/roboto-flex": "5.3.0",
+    "@playwright/test": "1.63.0",
+    "@types/node": "24.19.1",
     "linkedom": "0.18.13",
     "prettier": "3.9.10",
     "prettier-plugin-astro": "1.1.1",
+    "sharp": "0.35.5",
     "typescript": "6.0.3"
   }
 }

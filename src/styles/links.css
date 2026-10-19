@@ -3,10 +3,17 @@
   text-decoration: none;
 }
 .link-label {
-  -webkit-box-decoration-break: clone;
-  box-decoration-break: clone;
   padding-bottom: 0.15rem;
   background: linear-gradient(var(--blue), var(--blue)) 0 100% / 0 1px no-repeat;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+/* Links inside running prose: paper text with a permanent underline. */
+.text-link--inline {
+  color: var(--paper);
+}
+.text-link--inline:is(:hover, :focus-visible) {
+  color: var(--blue);
 }
 .text-link--inline .link-label {
   background-image: linear-gradient(currentColor, currentColor);

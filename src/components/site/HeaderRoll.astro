@@ -1,0 +1,50 @@
+---
+// A header link's label that rolls while its link is hovered or focused: the label rolls out and
+// its copy rolls in behind it, `down` or `up`. The colour stays; only the label moves.
+interface Props {
+  direction?: 'down' | 'up';
+}
+const { direction = 'down' } = Astro.props;
+const label = await Astro.slots.render('default');
+---
+
+<span class="roll" data-direction={direction}>
+  <span class="roll-face">
+    <Fragment set:html={label} />
+  </span>
+  <span class="roll-face" aria-hidden="true">
+    <Fragment set:html={label} />
+  </span>
+</span>
+
+<style>
+  .roll {
+    display: inline-grid;
+    overflow: hidden;
+    vertical-align: bottom;
+  }
+  .roll-face {
+    grid-area: 1 / 1;
+  }
+  /* The copy waits on the side the label rolls towards it from. */
+  .roll-face + .roll-face {
+    transform: translateY(-100%);
+  }
+  .roll[data-direction='up'] .roll-face + .roll-face {
+    transform: translateY(100%);
+  }
+  @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+    .roll-face {
+      transition: transform 480ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    :global(a:is(:hover, :focus-visible)) .roll .roll-face:first-child {
+      transform: translateY(100%);
+    }
+    :global(a:is(:hover, :focus-visible)) .roll[data-direction='up'] .roll-face:first-child {
+      transform: translateY(-100%);
+    }
+    :global(a:is(:hover, :focus-visible)) .roll .roll-face + .roll-face {
+      transform: none;
+    }
+  }
+</style>

@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { parseHTML } from 'linkedom';
+import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { parseHTML } from 'linkedom';
+import { openingParts } from '../src/components/home/opening/opening.ts';
 import { theme } from '../src/data/theme.ts';
 import { siteContent } from './site-content.mjs';
 import { validateOutput } from './validate-output.mjs';
@@ -20,13 +21,10 @@ assert.equal(
   'Home name must retain its word separator',
 );
 const about = readPage('about/index.html');
-const introduction = about.querySelector('.page-header p').textContent;
-assert.equal(introduction, introduction.trim(), 'About intro must not have boundary whitespace');
-assert.doesNotMatch(
-  introduction,
-  /\s+[.,]/,
-  'About intro must not have whitespace before punctuation',
-);
+for (const paragraph of about.querySelectorAll('.page-header p, .about-prose p')) {
+  const text = paragraph.textContent.replace(/\s+/g, ' ').trim();
+  assert.doesNotMatch(text, /\s[.,]/, `About text must not space before punctuation: ${text}`);
+}
 const missing = readPage('404.html');
 assert.equal(missing.querySelector('meta[name="robots"]').content, 'noindex');
 assert.equal(missing.querySelectorAll('[aria-current="page"]').length, 0);
@@ -60,3 +58,31 @@ for (const description of home.querySelectorAll('.work-description')) {
     'Home highlights must spell out optimization terms',
   );
 }
+
+// Animation contracts: a missing marker would silently drop part of an opening.
+for (const name of openingParts) {
+  assert.ok(
+    home.querySelector(`[data-opening-part="${name}"]`),
+    `Home opening part missing: ${name}`,
+  );
+}
+// Every page that asks SiteLayout for the reveal opening, found from its source.
+const pagesDirectory = new URL('../src/pages/', import.meta.url);
+const revealPages = readdirSync(pagesDirectory)
+  .filter((name) => name.endsWith('.astro'))
+  .filter((name) =>
+    readFileSync(new URL(name, pagesDirectory), 'utf8').includes('opening="reveal"'),
+  )
+  .map((name) => `${name.replace(/\.astro$/, '')}/index.html`);
+assert.ok(revealPages.length > 0, 'No page uses the reveal opening');
+for (const file of revealPages) {
+  const root = readPage(file).querySelector('[data-reveal-root]');
+  assert.ok(root, `${file}: reveal root missing`);
+  assert.equal(
+    root.querySelectorAll('[data-reveal="title"]').length,
+    1,
+    `${file}: one reveal title`,
+  );
+  assert.ok(root.querySelector('[data-reveal="unit"]'), `${file}: reveal units missing`);
+}
+console.log('Verified opening parts and reveal markers.');

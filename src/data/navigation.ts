@@ -8,7 +8,7 @@ export const routes = {
 
 export type PageId = keyof typeof routes;
 
-export interface NavigationItem {
+interface NavigationItem {
   label: string;
   page: PageId;
 }

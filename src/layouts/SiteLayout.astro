@@ -1,25 +1,41 @@
 ---
 import { getImage } from 'astro:assets';
 import '@fontsource-variable/manrope';
+import serifFont from '@fontsource-variable/bodoni-moda/files/bodoni-moda-latin-wght-normal.woff2?url';
+import displayFont from '@fontsource-variable/syne/files/syne-latin-wght-normal.woff2?url';
 import '../styles/global.css';
 import '../styles/links.css';
 import '../styles/motion.css';
-import SiteHeader from '../components/SiteHeader.astro';
-import SiteFooter from '../components/SiteFooter.astro';
+import '../styles/signal.css';
+import SiteHeader from '../components/site/SiteHeader.astro';
+import SiteFooter from '../components/site/SiteFooter.astro';
 import type { PageId } from '../data/navigation';
 import { profile } from '../data/profile';
-import portrait from '../assets/bo-tang.jpg';
 import { theme, themeVariables } from '../data/theme';
-import displayFont from '@fontsource-variable/syne/files/syne-latin-wght-normal.woff2?url';
+import portrait from '../assets/bo-tang.jpg';
 
 interface Props {
   title: string;
   description: string;
   page?: PageId;
-  /** Shell width shared by header, content and footer; Research keeps the wide default. */
+  /** The content's width; the header and footer stay wide on every page. */
   shell?: 'wide' | 'reading';
+  /**
+   * Hide the site header, footer and `[data-opening-content]` until the opening starts (the gate
+   * lifts after 2.5s regardless; see `src/lib/opening-gate.ts`).
+   * `reveal`: `main` is the content; elements marked `data-reveal` arrive through `src/lib/reveal.ts`.
+   * `custom`: the page marks its own content and runs its own script.
+   */
+  opening?: 'reveal' | 'custom';
 }
-const { title, description, page, shell = 'wide' } = Astro.props;
+const { title, description, page, shell = 'wide', opening } = Astro.props;
+// Fonts visible in the first screen of each page, fetched before the stylesheet asks for them.
+const preloadFonts: Partial<Record<PageId, string[]>> = {
+  home: [serifFont, displayFont],
+  about: [displayFont],
+  research: [displayFont],
+  software: [serifFont, displayFont],
+};
 
 // Absolute URLs need the public origin; without SITE_URL the build omits them.
 const canonical = page && Astro.site && new URL(Astro.url.pathname, Astro.site).href;
@@ -29,7 +45,7 @@ const shareImage =
 ---
 
 <!doctype html>
-<html lang="en" style={themeVariables}>
+<html lang="en" style={themeVariables} data-opening={opening}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -38,9 +54,9 @@ const shareImage =
     <meta property="og:site_name" content={profile.name} />
     <meta name="twitter:card" content="summary" />
     {!page && <meta name="robots" content="noindex" />}
-    {page === 'home' && (
-      <link rel="preload" href={displayFont} as="font" type="font/woff2" crossorigin />
-    )}
+    {(page ? (preloadFonts[page] ?? []) : []).map((font) => (
+      <link rel="preload" href={font} as="font" type="font/woff2" crossorigin />
+    ))}
     <meta property="og:type" content="website" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
@@ -57,15 +73,59 @@ const shareImage =
     {shareImage && <meta property="og:image:alt" content={`Portrait of ${profile.name}`} />}
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <title>{title}</title>
+    {/* Opts into transitions between pages (see motion.css). The rule must stand in the page itself:
+        a page that would take it from a linked stylesheet is not opted in when it first appears. */}
+    <style is:inline>
+      @view-transition {
+        navigation: auto;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        @view-transition {
+          navigation: none;
+        }
+      }
+    </style>
+    {/* Leaving for another page in a transition, the page keeps its title for the next page to
+        rewrite (PageHeader); a page without one keeps an empty title. */}
+    <script is:inline>
+      addEventListener('pageswap', (event) => {
+        if (!event.viewTransition || !event.activation?.entry?.url) return;
+        const title = document.querySelector('[data-reveal="title"]');
+        try {
+          sessionStorage.setItem(
+            'page-title-from',
+            JSON.stringify({
+              to: event.activation.entry.url,
+              title: title?.getAttribute('aria-label') ?? '',
+              at: Date.now(),
+            }),
+          );
+        } catch {}
+      });
+    </script>
+    {opening && <script is:inline>
+      if (!matchMedia('(prefers-reduced-motion: reduce)').matches && Element.prototype.animate) {
+        document.documentElement.setAttribute('data-opening-pending', '');
+        setTimeout(() => document.documentElement.removeAttribute('data-opening-pending'), 2500);
+      }
+    </script>}
   </head>
   <body data-shell={shell}>
     <a class="skip-link" href="#main">
       Skip to content
     </a>
     <SiteHeader page={page} />
-    <main id="main">
+    <main
+      id="main"
+      data-reveal-root={opening === 'reveal' || undefined}
+      data-opening-content={opening === 'reveal' || undefined}
+    >
       <slot />
     </main>
     <SiteFooter />
   </body>
 </html>
+
+<script>
+  import '../lib/reveal';
+</script>

@@ -1,0 +1,124 @@
+---
+import '@fontsource-variable/bodoni-moda';
+import type { WordmarkStyle } from '../../../data/software';
+
+interface Props {
+  name: string;
+  id: string;
+  /** Spacing from the project's data. */
+  wordmark: WordmarkStyle;
+}
+const { name, id, wordmark } = Astro.props;
+const glyphClasses = [
+  'project-glyphs',
+  {
+    'project-glyphs-long': wordmark.glyphs === 'long',
+    'project-glyphs-wide': wordmark.glyphs === 'wide',
+  },
+];
+---
+
+<h3 class="project-wordmark" id={id}>
+  <span class:list={glyphClasses}>
+    <span class="project-face">{name}</span>
+    <span class="project-echo" data-project-name={name} aria-hidden="true"></span>
+  </span>
+</h3>
+
+<script>
+  import './wordmark-motion';
+</script>
+
+<style>
+  /* The tear band, from the top of the word, along which the faint echo at rest breaks the
+     letters; the signal's disturbances (wordmark-motion.ts) tear bands of their own. */
+  .project-wordmark {
+    --project-tear-bottom: 68%;
+    --project-tear-top: 48%;
+    position: relative;
+    align-items: center;
+    display: flex;
+    justify-content: var(--project-align, center);
+    margin: 0;
+    min-height: var(--project-height, 112px);
+    font-family: var(--font-serif);
+    font-optical-sizing: none;
+    font-size: var(--project-size, clamp(2.5rem, 3.6vw, 3rem));
+    font-variation-settings: 'opsz' 48;
+    font-weight: 450;
+    letter-spacing: -0.025em;
+    line-height: 1.15;
+    text-align: center;
+    color: var(--blue);
+  }
+  .project-glyphs {
+    isolation: isolate;
+    position: relative;
+    display: inline-block;
+    white-space: nowrap;
+    transform-origin: var(--project-origin, center);
+  }
+  .project-glyphs-long {
+    font-size: 0.88em;
+    letter-spacing: 0.005em;
+  }
+  .project-glyphs-wide {
+    font-size: 0.94em;
+    letter-spacing: 0.055em;
+  }
+  .project-face {
+    display: inline-block;
+  }
+  .project-echo {
+    inset: 0;
+    position: absolute;
+    clip-path: inset(var(--project-tear-top) -12px calc(100% - var(--project-tear-bottom)));
+    opacity: 0.1;
+    transform: translateX(2px);
+    pointer-events: none;
+  }
+  .project-echo::before {
+    content: attr(data-project-name);
+  }
+  /* Pointed at, or holding keyboard focus, the entry tunes the signal in (wordmark-motion.ts),
+     and the word comes forward a little, from the side it is aligned to, as the entry is lit
+     (`data-lit`, motion.css). */
+  @media (hover: hover) and (pointer: fine) {
+    :global([data-project-host]:is(:hover, :has(:focus-visible))) .project-glyphs {
+      transform: scale(1.05);
+    }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .project-glyphs {
+      transition: transform 380ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+  }
+  /* The beam a power-on snaps on across the middle of the letters (wordmark-motion.ts): a thin
+     line of light blue with a soft blue glow, never white. */
+  .project-glyphs :global(.project-beam) {
+    left: -4%;
+    position: absolute;
+    right: -4%;
+    height: 2px;
+    margin-top: -1px;
+    background: var(--signal-light);
+    box-shadow:
+      0 0 6px color-mix(in srgb, var(--signal-light) 70%, transparent),
+      0 0 16px color-mix(in srgb, var(--blue) 45%, transparent);
+    opacity: 0;
+    pointer-events: none;
+  }
+  /* The bands a disturbance tears out of the word and slides sideways (wordmark-motion.ts). */
+  .project-glyphs :global(.project-band) {
+    inset: 0;
+    position: absolute;
+    pointer-events: none;
+  }
+  @media (max-width: 720px) {
+    .project-wordmark {
+      min-height: var(--project-height, 100px);
+      padding-block: var(--project-padding, 0.5rem);
+      font-size: var(--project-size, 2.5rem);
+    }
+  }
+</style>

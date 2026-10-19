@@ -1,0 +1,68 @@
+---
+interface Props {
+  href: string;
+  download?: boolean;
+}
+const { href, download } = Astro.props;
+---
+
+<a href={href} download={download} class="arrow-link text-link">
+  <span class="link-label">
+    <slot />
+  </span>
+  <svg
+    class="arrow-link-symbol"
+    width="30"
+    height="30"
+    viewBox="0 0 30 30"
+    aria-hidden="true"
+    focusable="false"
+  >
+    <circle class="arrow-link-orbit" cx="15" cy="15" r="13" pathLength="1" />
+    <path d="M10 20 20 10M10 10h10v10" />
+  </svg>
+</a>
+
+<style>
+  .arrow-link {
+    align-items: center;
+    display: inline-flex;
+    gap: var(--space-6);
+    justify-content: space-between;
+    min-height: 2.75rem;
+    padding-block: 0.4rem;
+    font-size: var(--text-xs);
+    color: var(--blue);
+  }
+  .arrow-link-symbol {
+    flex-shrink: 0;
+    overflow: visible;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1;
+  }
+  .arrow-link-orbit {
+    opacity: 0;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    transform: rotate(-90deg);
+    transform-origin: center;
+  }
+  .arrow-link:is(:hover, :focus-visible) .arrow-link-orbit {
+    opacity: 0.65;
+    stroke-dashoffset: 0;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .arrow-link-orbit {
+      transition:
+        stroke-dashoffset 320ms ease,
+        opacity 180ms ease;
+    }
+    .arrow-link-symbol {
+      transition: transform 180ms ease;
+    }
+    .arrow-link:active .arrow-link-symbol {
+      transform: scale(0.9);
+    }
+  }
+</style>

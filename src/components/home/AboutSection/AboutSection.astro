@@ -1,0 +1,86 @@
+---
+import DecisionSign from './DecisionSign.astro';
+import ArrowLink from '../../ui/ArrowLink.astro';
+import { routes } from '../../../data/navigation';
+import { profile } from '../../../data/profile';
+---
+
+<section class="about shell" id="about" aria-labelledby="about-title" data-opening-part="about">
+  <h2 class="section-label" id="about-title">
+    About
+  </h2>
+  <div class="about-fields">
+    <DecisionSign />
+  </div>
+  <div class="about-copy">
+    <p>
+      I am a postdoctoral associate at MIT Sloan, working with{' '}
+      <a class="text-link text-link--inline" href={profile.supervisor.url}>
+        <span class="link-label">{profile.supervisor.name}</span>
+      </a>
+      .
+    </p>
+    <p>
+      I develop machine learning methods and scalable algorithms for mathematical optimization, with
+      a focus on GPU-accelerated optimization, learning to optimize, and decision-focused learning.
+    </p>
+    <div class="about-action">
+      <ArrowLink href={routes.about}>More about me</ArrowLink>
+    </div>
+  </div>
+</section>
+
+<style>
+  .about {
+    column-gap: clamp(1.25rem, 1.7vw, 1.75rem);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) var(--reading-label-column);
+    margin-top: var(--space-12);
+    padding-right: clamp(0.75rem, 1.5vw, 1.5rem);
+    scroll-margin-top: 2rem;
+  }
+  .about > h2 {
+    grid-column: 1 / -1;
+    margin-bottom: var(--space-6);
+  }
+  .about-fields {
+    align-self: start;
+    grid-column: 2;
+    grid-row: 2;
+    width: 100%;
+  }
+  .about-copy {
+    grid-column: 1;
+    grid-row: 2;
+    max-width: 72ch;
+  }
+  .about-copy p {
+    margin: 0 0 var(--space-4);
+    font-size: var(--text-sm);
+    font-weight: 400;
+    line-height: var(--leading-prose);
+    color: var(--muted);
+  }
+  .about-copy .text-link--inline {
+    white-space: nowrap;
+  }
+  .about-action {
+    display: flex;
+    justify-content: flex-start;
+    margin-top: var(--space-4);
+  }
+  @media (max-width: 720px) {
+    .about {
+      gap: 0;
+      grid-template-columns: 1fr;
+      margin-top: 2.75rem;
+      padding-right: 0;
+    }
+    .about-fields {
+      grid-column: 1;
+      grid-row: 3;
+      margin-top: var(--space-7);
+      width: 88%;
+    }
+  }
+</style>

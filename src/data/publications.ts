@@ -1,18 +1,7 @@
-import { projectResources, type ResourceLink } from './resources.ts';
+import { projectResources } from './resources.ts';
+import type { Publication } from './schema.ts';
 
-export interface Publication {
-  id: string;
-  title: string;
-  authors: string[];
-  venue: string;
-  year: number;
-  status: 'Published' | 'Preprint';
-  review?: {
-    status: 'Under review' | 'Major revision';
-    journal: string;
-  };
-  links: ResourceLink[];
-}
+export type { Publication };
 
 // Keep published titles and author order aligned with the publication record.
 // Preprint years refer to the first public version. Review stages come from the author-supplied CV; planned submissions are omitted.
@@ -120,21 +109,24 @@ export const publications = {
   },
 } satisfies Record<string, Publication>;
 
-export function getPublicationHref(publication: Publication): string {
+/** The paper's own page, from its `Paper` link. */
+export function getPaperUrl(publication: Publication): string {
   const paper = publication.links.find((link) => link.label === 'Paper');
   if (!paper) throw new Error(`Missing paper link: ${publication.id}`);
   return paper.href;
 }
 
-export function formatPublicationMetadata(publication: Publication): string {
+/** Where the paper appeared, or its confirmed review stage. */
+export function formatVenue(publication: Publication): string {
   return publication.review
     ? `${publication.review.journal} (${publication.review.status})`
     : publication.venue;
 }
 
-export function formatPublicationSummary(publication: Publication): string {
+/** As `formatVenue`, with the year for published papers and preprints. */
+export function formatVenueWithYear(publication: Publication): string {
   if (publication.review) {
-    return formatPublicationMetadata(publication);
+    return formatVenue(publication);
   }
   return publication.status === 'Published'
     ? `${publication.venue}, ${publication.year}`

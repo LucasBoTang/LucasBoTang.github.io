@@ -1,0 +1,261 @@
+---
+import { featuredResearchAreas, getResearchAreaHref } from '../../../data/research';
+
+// Each topic drifts on its own clock, with its light at its own place in the lane. Topics take
+// these lanes in turn, starting again from the first after the last. Light stops are percentages
+// of the lane (in, start, end, out); phones use their own stops and add `phoneOffset` to the gutter.
+const lanes = [
+  {
+    duration: '58s',
+    direction: 'normal',
+    offset: '6rem',
+    phoneOffset: '0rem',
+    origin: '39%',
+    light: [5, 12, 65, 76],
+    phoneLight: [5, 19, 67, 85],
+  },
+  {
+    duration: '54s',
+    direction: 'reverse',
+    offset: '13.5rem',
+    phoneOffset: '1.3rem',
+    origin: '54%',
+    light: [21, 30, 78, 90],
+    phoneLight: [17, 33, 81, 96],
+  },
+  {
+    duration: '64s',
+    direction: 'normal',
+    offset: '3.25rem',
+    phoneOffset: '0rem',
+    origin: '41%',
+    light: [2, 9, 72, 83],
+    phoneLight: [3, 17, 72, 89],
+  },
+];
+const lightStops = ['in', 'start', 'end', 'out'];
+const laneStyle = (index: number) => {
+  const lane = lanes[index % lanes.length];
+  return [
+    `--lane-duration:${lane.duration}`,
+    `--lane-direction:${lane.direction}`,
+    `--lane-offset:${lane.offset}`,
+    `--lane-offset-phone:${lane.phoneOffset}`,
+    `--lane-origin:${lane.origin}`,
+    ...lightStops.map((stop, i) => `--light-${stop}:${lane.light[i]}%`),
+    ...lightStops.map((stop, i) => `--light-${stop}-phone:${lane.phoneLight[i]}%`),
+  ].join(';');
+};
+---
+
+<div class="research-navigator" data-opening-part="topics">
+  <ul class="research-topics" aria-label="Research interests">
+    {featuredResearchAreas.map((area, index) => (
+      <li class="research-topic" style={laneStyle(index)}>
+        <a class="research-link" href={getResearchAreaHref(area)} aria-label={area.title}>
+          <span class="lane-static" aria-hidden="true">
+            {area.title}
+          </span>
+          <span class="lane-visual" aria-hidden="true">
+            <span class="lane-field">
+              <span class="lane-ghosts">
+                <span class="lane-track">
+                  {Array.from({ length: 4 }, () => (
+                    <span class="lane-phrase">{area.title}</span>
+                  ))}
+                </span>
+              </span>
+              <span class="lane-foreground">
+                <span class="lane-light-window">
+                  <span class="lane-track">
+                    {Array.from({ length: 4 }, () => (
+                      <span class="lane-phrase">{area.title}</span>
+                    ))}
+                  </span>
+                </span>
+              </span>
+            </span>
+          </span>
+        </a>
+      </li>
+    ))}
+  </ul>
+</div>
+
+<style>
+  @property --lane-spread {
+    syntax: '<percentage>';
+    inherits: false;
+    initial-value: 0%;
+  }
+  @property --lane-open {
+    syntax: '<number>';
+    inherits: false;
+    initial-value: 1;
+  }
+  .research-navigator {
+    min-width: 0;
+  }
+  .research-topics {
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-display);
+    font-size: 1.75rem;
+    font-weight: 450;
+    letter-spacing: -0.035em;
+    line-height: 1.45;
+    list-style: none;
+    color: var(--blue);
+  }
+  .research-topic + .research-topic {
+    margin-top: 0.4rem;
+  }
+  .research-link {
+    position: relative;
+    display: block;
+    padding-block: 0.18rem;
+    text-decoration: none;
+    color: inherit;
+  }
+  .lane-static {
+    display: block;
+    text-wrap: pretty;
+  }
+  .lane-visual {
+    position: relative;
+    display: none;
+    height: 1.5em;
+    overflow: hidden;
+    width: 100%;
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      black 0.7rem,
+      black 72%,
+      transparent 94%,
+      transparent
+    );
+  }
+  .lane-field,
+  .lane-light-window {
+    inset: 0;
+    position: absolute;
+    mask-image: linear-gradient(
+      to right,
+      transparent calc(var(--lane-origin) - var(--lane-open) * 70%),
+      black calc(var(--lane-origin) - var(--lane-open) * 60%),
+      black calc(var(--lane-origin) + var(--lane-open) * 60%),
+      transparent calc(var(--lane-origin) + var(--lane-open) * 70%)
+    );
+  }
+  .lane-ghosts,
+  .lane-foreground {
+    inset: 0;
+    position: absolute;
+  }
+  .lane-ghosts {
+    color: var(--blue-dim);
+  }
+  .lane-foreground {
+    text-shadow:
+      0 0 2px transparent,
+      0 0 7px transparent;
+    mask-image: linear-gradient(
+      to right,
+      transparent calc(var(--light-in) - var(--lane-spread)),
+      black calc(var(--light-start) - var(--lane-spread)),
+      black calc(var(--light-end) + var(--lane-spread)),
+      transparent calc(var(--light-out) + var(--lane-spread))
+    );
+  }
+  .lane-track {
+    display: flex;
+    width: max-content;
+    transform: translateX(calc(-25% + var(--lane-offset)));
+  }
+  .lane-phrase {
+    display: block;
+    flex: none;
+    padding-right: 2.25rem;
+    white-space: nowrap;
+  }
+  .research-link:focus-visible {
+    outline-offset: 5px;
+  }
+  .research-link:focus-visible .lane-static {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .research-link:hover .lane-foreground {
+      --lane-spread: 6%;
+      text-shadow:
+        0 0 2px var(--blue-glow),
+        0 0 7px var(--blue-glow-soft);
+    }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .lane-foreground {
+      transition:
+        --lane-spread 500ms ease-out,
+        text-shadow 500ms ease-out;
+    }
+    :global([data-motion-ready]) .lane-static {
+      display: none;
+    }
+    :global([data-motion-ready]) .lane-visual {
+      display: block;
+    }
+    :global([data-motion-ready]) .lane-track {
+      animation: lane-drift var(--lane-duration) linear infinite var(--lane-direction);
+      will-change: transform;
+    }
+    :global([data-motion-suspended]) .lane-track,
+    [data-connecting] .lane-track,
+    .research-link:focus-visible .lane-track {
+      animation-play-state: paused;
+    }
+    .research-link:focus-visible .lane-visual {
+      display: none;
+    }
+    .research-link:focus-visible .lane-static {
+      display: block;
+    }
+    @keyframes lane-drift {
+      from {
+        transform: translateX(calc(-25% + var(--lane-offset)));
+      }
+      to {
+        transform: translateX(calc(-50% + var(--lane-offset)));
+      }
+    }
+  }
+  @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+    .research-link:hover .lane-foreground {
+      transition-duration: 280ms;
+    }
+  }
+  @media (max-width: 1050px) and (min-width: 721px) {
+    .research-topics {
+      font-size: 1.4rem;
+    }
+  }
+  @media (max-width: 720px) {
+    .research-topics {
+      font-size: clamp(1.05rem, 4.65vw, 1.4rem);
+    }
+    .research-topic + .research-topic {
+      margin-top: 0.65rem;
+    }
+    .lane-foreground {
+      --light-end: var(--light-end-phone);
+      --light-in: var(--light-in-phone);
+      --light-out: var(--light-out-phone);
+      --light-start: var(--light-start-phone);
+    }
+    .lane-track {
+      --lane-offset: calc(var(--gutter) + var(--lane-offset-phone));
+    }
+  }
+</style>

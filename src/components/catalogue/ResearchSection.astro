@@ -1,0 +1,70 @@
+---
+import PublicationItem from './PublicationItem.astro';
+import { publicationsByYear, type ResearchArea } from '../../data/research';
+
+interface Props {
+  area: ResearchArea;
+}
+const { area } = Astro.props;
+const sortedPublications = publicationsByYear(area);
+---
+
+<section class="research-section" id={area.id} aria-labelledby={`${area.id}-title`}>
+  <h2 id={`${area.id}-title`} data-reveal="unit" data-arrival="wipe">
+    {area.title}
+  </h2>
+  {/* The question and its introduction read as one passage, so they arrive together. */}
+  <div data-reveal="unit">
+    <p class="research-question">{area.question}</p>
+    <p class="research-introduction">{area.introduction}</p>
+  </div>
+  {area.publications.length > 0 && (
+    <ul class="publication-list">
+      {sortedPublications.map((publication) => (
+        <PublicationItem publication={publication} />
+      ))}
+    </ul>
+  )}
+</section>
+
+<style>
+  .research-section {
+    scroll-margin-top: 2.5rem;
+  }
+  .research-section + .research-section {
+    margin-top: 6.5rem;
+  }
+  h2 {
+    margin: 0 0 var(--space-6);
+    max-width: 24ch;
+    font-size: clamp(1.65rem, 2.5vw, 2.15rem);
+    font-weight: 500;
+    letter-spacing: -0.045em;
+    line-height: 1.3;
+    color: var(--blue);
+  }
+  .research-question {
+    margin: 0 0 0.8rem;
+    max-width: 58ch;
+    font-size: var(--text-base);
+    line-height: var(--leading-body);
+    color: var(--paper);
+  }
+  .research-introduction {
+    margin: 0 0 2.2rem;
+    max-width: 67ch;
+    font-size: var(--text-sm);
+    line-height: var(--leading-prose);
+    color: var(--muted);
+  }
+  .publication-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  @media (max-width: 600px) {
+    .research-section + .research-section {
+      margin-top: var(--space-16);
+    }
+  }
+</style>

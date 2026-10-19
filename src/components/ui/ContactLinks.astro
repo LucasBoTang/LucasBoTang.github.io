@@ -1,0 +1,201 @@
+---
+import { contactLinks } from '../../data/profile';
+
+interface Props {
+  placement?: 'hero' | 'footer';
+}
+const { placement = 'hero' } = Astro.props;
+---
+
+<nav
+  class:list={['contact-links', { 'contact-links--footer': placement === 'footer' }]}
+  aria-label="Contact and profiles"
+  data-opening-part={placement === 'hero' ? 'contacts' : undefined}
+>
+  {contactLinks.map((link, index) => (
+    <a
+      class:list={{ 'contact-slip-reverse': index % 2 === 1 }}
+      href={link.href}
+      aria-label={link.description ?? link.service}
+      title={link.description ?? link.service}
+    >
+      <span class="contact-symbol" data-contact-icon>
+        {[false, true].map((slice) => (
+          <svg
+            class:list={{ 'contact-face': !slice, 'contact-slice': slice }}
+            viewBox="0 0 24 24"
+            width="19"
+            height="19"
+            aria-hidden="true"
+            focusable="false"
+          >
+            {link.icon === 'email' && (
+              <>
+                <rect x="3" y="5" width="18" height="14" rx="1" />
+                <path d="m3 6 9 7 9-7" />
+              </>
+            )}
+            {link.icon === 'scholar' && (
+              <path d="m2 9 10-5 10 5-10 5Z M6 11v6c4 3 8 3 12 0v-6 M22 9v8" />
+            )}
+            {link.icon === 'github' && (
+              <path
+                class="contact-solid"
+                d="M12 .9a11.1 11.1 0 0 0-3.51 21.63c.55.1.76-.24.76-.54v-2.06c-3.09.67-3.74-1.31-3.74-1.31-.5-1.29-1.24-1.63-1.24-1.63-1.01-.69.08-.68.08-.68 1.12.08 1.71 1.15 1.71 1.15.99 1.7 2.6 1.21 3.23.93.1-.72.39-1.21.71-1.49-2.47-.28-5.07-1.24-5.07-5.49 0-1.21.43-2.2 1.14-2.97-.11-.28-.49-1.41.11-2.94 0 0 .93-.3 3.05 1.14a10.6 10.6 0 0 1 5.55 0c2.12-1.44 3.05-1.14 3.05-1.14.6 1.53.22 2.66.11 2.94.71.77 1.14 1.76 1.14 2.97 0 4.26-2.6 5.2-5.08 5.48.4.35.75 1.02.75 2.06v3.04c0 .3.2.65.77.54A11.1 11.1 0 0 0 12 .9Z"
+              />
+            )}
+            {link.icon === 'linkedin' && (
+              <>
+                <circle class="contact-solid" cx="5" cy="5" r="1.5" />
+                <path class="contact-linkedin-stems" d="M5 10v10 M11 20V10 M11 14c0-5 8-5 8 0v6" />
+              </>
+            )}
+          </svg>
+        ))}
+      </span>
+      <span data-contact-label>{link.label}</span>
+    </a>
+  ))}
+</nav>
+
+<style>
+  .contact-links {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin: 0.9rem 0 0 var(--contact-links-offset, 0px);
+    width: var(--contact-links-width, auto);
+  }
+  a {
+    position: relative;
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    min-height: 44px;
+    padding: var(--space-2) 0 0.6rem;
+    font-size: 0.75rem;
+    letter-spacing: 0.01em;
+    line-height: 1.3;
+    text-decoration: none;
+    color: var(--muted);
+  }
+  svg {
+    color: var(--blue);
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.3;
+  }
+  .contact-solid {
+    fill: currentColor;
+    stroke: none;
+  }
+  .contact-slice {
+    inset: 0;
+    position: absolute;
+    clip-path: inset(40% -3px 38%);
+    opacity: 0;
+    pointer-events: none;
+  }
+  .contact-linkedin-stems {
+    stroke-linecap: square;
+    stroke-width: 2.4;
+  }
+  .contact-symbol {
+    isolation: isolate;
+    position: relative;
+    display: grid;
+    place-items: center;
+    height: 19px;
+    width: 19px;
+  }
+  .contact-symbol::before {
+    content: '';
+    inset: -8.5px;
+    position: absolute;
+    z-index: -1;
+    border-radius: 50%;
+    background: var(--blue);
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  a:is(:hover, :focus-visible) {
+    color: var(--paper);
+  }
+  a:is(:hover, :focus-visible) .contact-symbol::before {
+    opacity: 1;
+    transform: scale(1);
+  }
+  a:is(:hover, :focus-visible) svg {
+    color: var(--ink);
+  }
+  a:focus-visible {
+    outline: none;
+  }
+  a:focus-visible .contact-symbol::before {
+    outline: 1px solid var(--blue);
+    outline-offset: 4px;
+  }
+  .contact-links.contact-links--footer {
+    display: flex;
+    gap: 0.65rem;
+    justify-content: flex-end;
+    margin: 0;
+    width: auto;
+  }
+  .contact-links--footer a {
+    gap: 0.3rem;
+    padding: 0.3rem 0;
+    font-size: 0.65rem;
+  }
+  .contact-links--footer .contact-symbol,
+  .contact-links--footer svg {
+    height: 16px;
+    width: 16px;
+  }
+  .contact-links--footer .contact-symbol::before {
+    inset: -7px;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .contact-symbol::before {
+      transition:
+        opacity 180ms ease,
+        transform 240ms cubic-bezier(0.2, 0.7, 0.3, 1);
+    }
+    svg {
+      transition: color 180ms ease;
+    }
+    a {
+      --signal-shift: 2px;
+    }
+    .contact-slip-reverse {
+      --signal-shift: -2px;
+    }
+    :global([data-slip]) .contact-links a:not(:hover, :focus-visible) .contact-face {
+      animation: signal-contact-cut var(--signal-burst) steps(1, end) both;
+    }
+    :global([data-slip]) .contact-links a:not(:hover, :focus-visible) .contact-slice {
+      animation: signal-contact-slip var(--signal-burst) steps(1, end) both;
+    }
+    a:focus-visible .contact-face {
+      animation: signal-contact-hover-cut 1800ms steps(1, end) infinite;
+    }
+    a:focus-visible .contact-slice {
+      animation: signal-contact-hover-slip 1800ms steps(1, end) infinite;
+    }
+  }
+  @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+    a:hover .contact-face {
+      animation: signal-contact-hover-cut 1800ms steps(1, end) infinite;
+    }
+    a:hover .contact-slice {
+      animation: signal-contact-hover-slip 1800ms steps(1, end) infinite;
+    }
+  }
+  @media (max-width: 720px) {
+    .contact-links {
+      margin-top: var(--space-3);
+    }
+  }
+</style>

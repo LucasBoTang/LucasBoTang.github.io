@@ -1,22 +1,8 @@
-import { getPublicationHref, publications, type Publication } from './publications.ts';
-import { projectResources, type ResourceLink } from './resources.ts';
+import { getPaperUrl, publications } from './publications.ts';
+import { projectResources } from './resources.ts';
+import type { SoftwareEntry, SoftwareGroup, SoftwareProject, WordmarkStyle } from './schema.ts';
 
-export interface SoftwareEntry {
-  id: string;
-  name: string;
-  role?: string;
-  description: string;
-  repository: string;
-  links: ResourceLink[];
-}
-
-export interface SoftwareProject extends SoftwareEntry {
-  role: string;
-  publication: Publication;
-  paper: ResourceLink;
-  code: ResourceLink;
-  documentation?: ResourceLink;
-}
+export type { SoftwareEntry, SoftwareGroup, SoftwareProject, WordmarkStyle };
 
 function createProject(project: Omit<SoftwareProject, 'repository' | 'links'>): SoftwareProject {
   return {
@@ -25,49 +11,52 @@ function createProject(project: Omit<SoftwareProject, 'repository' | 'links'>): 
     links: [
       project.code,
       ...(project.documentation ? [project.documentation] : []),
-      { label: 'Related paper', href: getPublicationHref(project.publication) },
+      { label: 'Related paper', href: getPaperUrl(project.publication) },
     ],
   };
 }
 
-export const primaryProjects = {
-  pyepo: createProject({
-    id: 'pyepo',
-    name: 'PyEPO',
-    role: 'Lead developer',
-    description:
-      'A unified framework for decision-focused learning with linear and integer optimization models, supporting PyTorch and JAX training.',
-    publication: publications.pyepo,
-    ...projectResources.pyepo,
-  }),
-  reins: createProject({
-    id: 'reins',
-    name: 'REINS',
-    role: 'Lead developer',
-    description:
-      'A learning framework for parametric mixed-integer nonlinear optimization that requires no optimization solver at training and inference time.',
-    publication: publications.learningMinlpFeasibility,
-    ...projectResources.reins,
-  }),
+export const projects = {
   hPdlp: createProject({
     id: 'h-pdlp',
     name: 'H-PDLP',
+    wordmark: { glyphs: 'long' },
     role: 'Joint work with Haihao Lu',
     description:
       'A matrix-free GPU solver built on generalized PDHG and homogeneous self-dual embedding, unifying LP solving and infeasibility certification.',
     publication: publications.hPdlp,
     ...projectResources.hPdlp,
   }),
+  reins: createProject({
+    id: 'reins',
+    name: 'REINS',
+    role: 'Primary developer',
+    wordmark: { glyphs: 'wide' },
+    description:
+      'A learning framework for parametric mixed-integer nonlinear optimization that requires no optimization solver at training and inference time.',
+    publication: publications.learningMinlpFeasibility,
+    ...projectResources.reins,
+  }),
+  pyepo: createProject({
+    id: 'pyepo',
+    name: 'PyEPO',
+    role: 'Primary developer',
+    wordmark: {},
+    description:
+      'A unified framework for decision-focused learning with linear and integer optimization models, supporting PyTorch and JAX training.',
+    publication: publications.pyepo,
+    ...projectResources.pyepo,
+  }),
 };
 
-export const softwareProjects: SoftwareProject[] = Object.values(primaryProjects);
+const projectList: SoftwareProject[] = Object.values(projects);
 
 function createContribution(entry: Omit<SoftwareEntry, 'links'>): SoftwareEntry {
   return { ...entry, links: [{ label: 'Code', href: entry.repository }] };
 }
 
 // Upstream projects with verified contributions; descriptions introduce the software itself.
-export const softwareContributions: SoftwareEntry[] = [
+const contributions: SoftwareEntry[] = [
   createContribution({
     id: 'cupdlpx',
     name: 'cuPDLPx',
@@ -94,22 +83,13 @@ export const softwareContributions: SoftwareEntry[] = [
   }),
 ];
 
-export type SoftwareVariant = 'primary' | 'contribution';
-
-export interface SoftwareGroup {
-  id: string;
-  title: string;
-  variant: SoftwareVariant;
-  entries: SoftwareEntry[];
-}
-
 // The Software page renders these sections in order; validators check the same groups.
 export const softwareGroups: SoftwareGroup[] = [
-  { id: 'projects', title: 'Projects', variant: 'primary', entries: softwareProjects },
+  { id: 'projects', title: 'Projects', variant: 'project', entries: projectList },
   {
     id: 'contributions',
     title: 'Contributions',
     variant: 'contribution',
-    entries: softwareContributions,
+    entries: contributions,
   },
 ];
