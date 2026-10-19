@@ -374,10 +374,18 @@ const [inkRed, inkGreen, inkBlue] = blueInk.dark.map((dark, i) => `${dark} ${blu
     }
   }
   @media (max-width: 720px) {
+    /* In one column the portrait stands in the middle: the photograph with its shifted blue third
+       is centred as one, the name still reaching out past its left edge, and the contact links
+       below follow the blue third. */
     .hero {
+      --contact-links-offset: calc(var(--portrait-inset) + var(--ink-shift));
+      --portrait-inset: calc((100% - var(--portrait-width) - var(--ink-shift)) / 2);
       grid-template-columns: minmax(0, 1fr);
       row-gap: var(--space-7);
       padding-top: var(--space-6);
+    }
+    .portrait-block {
+      margin-left: var(--portrait-inset);
     }
     .hero-copy {
       padding-top: 0;

@@ -78,8 +78,9 @@ html[data-opening-pending] .site-footer {
   }
 }
 
-/* A lit unit, marked `data-lit`: a block read as one, such as a work entry, a research area or an
-   About row. Pointed at, or holding keyboard focus, it is lit from behind by a faint blue light,
+/* A lit unit, marked `data-lit`: an entry the reader can act on, such as a work entry or a
+   software project. Pointed at, or holding keyboard focus, or on a screen without hover being the
+   one read (`data-focused`, src/lib/lit-focus.ts), it is lit from behind by a faint blue light,
    brightest about its middle and gone well before its edges, so the unit reads as chosen without
    anything being drawn around it. */
 [data-lit] {
@@ -101,6 +102,9 @@ html[data-opening-pending] .site-footer {
   opacity: 0;
   pointer-events: none;
 }
+[data-lit][data-focused]::before {
+  opacity: 1;
+}
 @media (hover: hover) and (pointer: fine) {
   [data-lit]:is(:hover, :has(:focus-visible))::before {
     opacity: 1;
@@ -110,7 +114,7 @@ html[data-opening-pending] .site-footer {
   [data-lit]::before {
     transition: opacity 360ms cubic-bezier(0.33, 1, 0.68, 1);
   }
-  [data-lit]:is(:hover, :has(:focus-visible))::before {
+  [data-lit]:is(:hover, :has(:focus-visible), [data-focused])::before {
     transition-duration: 560ms;
   }
 }

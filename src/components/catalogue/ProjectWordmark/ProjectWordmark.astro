@@ -80,9 +80,13 @@ const glyphClasses = [
   .project-echo::before {
     content: attr(data-project-name);
   }
-  /* Pointed at, or holding keyboard focus, the entry tunes the signal in (wordmark-motion.ts),
+  /* Pointed at, holding keyboard focus, or on a screen without hover being the entry read
+     (`data-focused`, src/lib/lit-focus.ts), the entry tunes the signal in (wordmark-motion.ts),
      and the word comes forward a little, from the side it is aligned to, as the entry is lit
      (`data-lit`, motion.css). */
+  :global([data-project-host][data-focused]) .project-glyphs {
+    transform: scale(1.05);
+  }
   @media (hover: hover) and (pointer: fine) {
     :global([data-project-host]:is(:hover, :has(:focus-visible))) .project-glyphs {
       transform: scale(1.05);

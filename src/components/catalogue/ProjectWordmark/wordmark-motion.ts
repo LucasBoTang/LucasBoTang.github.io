@@ -213,23 +213,29 @@ function setupWordmark(node: HTMLElement) {
     if (!frame) frame = requestAnimationFrame(loop);
   };
 
-  // Pointing at the entry, or keyboard focus inside it, tunes the signal in; a link clicked
-  // inside keeps focus but is not keyboard focus, so it does not hold the word still.
+  // Pointing at the entry, keyboard focus inside it, or on a screen without hover the entry being
+  // read (`data-focused`, src/lib/lit-focus.ts) tunes the signal in. A link clicked inside keeps
+  // focus but is not keyboard focus, so it does not hold the word still; a touch is not pointing,
+  // as it leaves the moment it lands.
   const tune = () => {
-    const now = pointed || host.matches(':has(:focus-visible)');
+    const now =
+      pointed || host.hasAttribute('data-focused') || host.matches(':has(:focus-visible)');
     if (now === tuned) return;
     tuned = now;
     if (tuned) stop();
     else resume();
   };
-  host.addEventListener('pointerenter', () => {
+  host.addEventListener('pointerenter', (event) => {
+    if (event.pointerType === 'touch') return;
     pointed = true;
     tune();
   });
-  host.addEventListener('pointerleave', () => {
+  host.addEventListener('pointerleave', (event) => {
+    if (event.pointerType === 'touch') return;
     pointed = false;
     tune();
   });
+  new MutationObserver(tune).observe(host, { attributes: true, attributeFilter: ['data-focused'] });
   host.addEventListener('focusin', tune);
   host.addEventListener('focusout', () => requestAnimationFrame(tune));
 

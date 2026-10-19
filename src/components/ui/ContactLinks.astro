@@ -197,5 +197,9 @@ const { placement = 'hero' } = Astro.props;
     .contact-links {
       margin-top: var(--space-3);
     }
+    /* On phones the footer's labels match the hero's, so they stay readable. */
+    .contact-links--footer a {
+      font-size: 0.75rem;
+    }
   }
 </style>

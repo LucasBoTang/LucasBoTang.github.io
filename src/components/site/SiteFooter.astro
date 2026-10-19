@@ -43,8 +43,9 @@ const year = new Date().getFullYear();
       flex-direction: column;
       margin-top: var(--space-16);
     }
+    /* In one column the links follow the name and address down the same left edge. */
     .site-footer :global(.contact-links--footer) {
-      align-self: flex-end;
+      justify-content: flex-start;
     }
   }
 </style>
