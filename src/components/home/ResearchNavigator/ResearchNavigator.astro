@@ -99,10 +99,9 @@ const laneStyle = (index: number) => {
   .research-topics {
     margin: 0;
     padding: 0;
-    font-family: var(--font-display);
-    font-size: 1.75rem;
-    font-weight: 450;
-    letter-spacing: -0.035em;
+    font-family: var(--font-mono);
+    font-size: 1.375rem;
+    letter-spacing: -0.02em;
     line-height: 1.45;
     list-style: none;
     color: var(--blue);
@@ -238,12 +237,12 @@ const laneStyle = (index: number) => {
   }
   @media (max-width: 1050px) and (min-width: 721px) {
     .research-topics {
-      font-size: 1.4rem;
+      font-size: 1.15rem;
     }
   }
   @media (max-width: 720px) {
     .research-topics {
-      font-size: clamp(1.05rem, 4.65vw, 1.4rem);
+      font-size: clamp(0.9rem, 4vw, 1.15rem);
     }
     .research-topic + .research-topic {
       margin-top: 0.65rem;

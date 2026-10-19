@@ -1,4 +1,5 @@
 ---
+import '@fontsource-variable/bodoni-moda';
 import ContactLinks from '../ui/ContactLinks.astro';
 import { routes } from '../../data/navigation';
 import { profile } from '../../data/profile';
@@ -29,12 +30,19 @@ const year = new Date().getFullYear();
     font-size: var(--text-xs);
   }
   .site-footer-name {
-    font-weight: 600;
+    font-family: var(--font-serif);
+    font-size: var(--text-base);
+    font-weight: 500;
+    letter-spacing: -0.02em;
     text-decoration: none;
     color: var(--paper);
   }
   p {
     margin: var(--space-2) 0 0;
+    font-family: var(--font-mono);
+    font-size: var(--text-label);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
     color: var(--muted);
   }
   @media (max-width: 600px) {

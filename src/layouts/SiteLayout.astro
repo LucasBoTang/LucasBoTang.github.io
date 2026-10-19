@@ -1,8 +1,9 @@
 ---
 import { getImage } from 'astro:assets';
-import '@fontsource-variable/manrope';
+import '@fontsource-variable/instrument-sans';
+import '@fontsource/fragment-mono/400.css';
 import serifFont from '@fontsource-variable/bodoni-moda/files/bodoni-moda-latin-wght-normal.woff2?url';
-import displayFont from '@fontsource-variable/syne/files/syne-latin-wght-normal.woff2?url';
+import monoFont from '@fontsource/fragment-mono/files/fragment-mono-latin-400-normal.woff2?url';
 import '../styles/global.css';
 import '../styles/links.css';
 import '../styles/motion.css';
@@ -31,10 +32,10 @@ interface Props {
 const { title, description, page, shell = 'wide', opening } = Astro.props;
 // Fonts visible in the first screen of each page, fetched before the stylesheet asks for them.
 const preloadFonts: Partial<Record<PageId, string[]>> = {
-  home: [serifFont, displayFont],
-  about: [displayFont],
-  research: [displayFont],
-  software: [serifFont, displayFont],
+  home: [serifFont, monoFont],
+  about: [serifFont],
+  research: [serifFont],
+  software: [serifFont],
 };
 
 // Absolute URLs need the public origin; without SITE_URL the build omits them.

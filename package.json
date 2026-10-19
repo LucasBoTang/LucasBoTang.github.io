@@ -25,8 +25,8 @@
   },
   "dependencies": {
     "@fontsource-variable/bodoni-moda": "5.3.0",
-    "@fontsource-variable/manrope": "5.3.0",
-    "@fontsource-variable/syne": "5.3.0",
+    "@fontsource-variable/instrument-sans": "5.3.0",
+    "@fontsource/fragment-mono": "5.3.0",
     "astro": "7.4.0"
   },
   "devDependencies": {

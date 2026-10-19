@@ -67,11 +67,12 @@ import { researchAreas } from '../data/research';
     display: flex;
     flex-direction: column;
     gap: var(--space-5);
-    max-width: 25ch;
+    max-width: 30ch;
   }
   .research-index nav a {
     position: relative;
-    font-size: var(--text-xs);
+    font-family: var(--font-mono);
+    font-size: var(--text-label);
     line-height: var(--leading-body);
     color: var(--muted);
   }
@@ -108,7 +109,6 @@ import { researchAreas } from '../data/research';
   .cv-reference {
     display: inline-block;
     margin-top: 2.8rem;
-    font-size: var(--text-xs);
   }
   .cv-reference-file-type {
     color: var(--muted);

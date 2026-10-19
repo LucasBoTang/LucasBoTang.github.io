@@ -73,8 +73,9 @@ const { placement = 'hero' } = Astro.props;
     gap: var(--space-2);
     min-height: 44px;
     padding: var(--space-2) 0 0.6rem;
-    font-size: 0.75rem;
-    letter-spacing: 0.01em;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.03em;
     line-height: 1.3;
     text-decoration: none;
     color: var(--muted);
@@ -147,7 +148,7 @@ const { placement = 'hero' } = Astro.props;
   .contact-links--footer a {
     gap: 0.3rem;
     padding: 0.3rem 0;
-    font-size: 0.65rem;
+    font-size: 0.625rem;
   }
   .contact-links--footer .contact-symbol,
   .contact-links--footer svg {
@@ -199,7 +200,7 @@ const { placement = 'hero' } = Astro.props;
     }
     /* On phones the footer's labels match the hero's, so they stay readable. */
     .contact-links--footer a {
-      font-size: 0.75rem;
+      font-size: 0.6875rem;
     }
   }
 </style>

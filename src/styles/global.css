@@ -24,14 +24,19 @@
 
 @layer base {
   :root {
-    --font: 'Manrope Variable', 'Helvetica Neue', sans-serif;
-    --font-display: 'Syne Variable', var(--font);
+    /* Three voices: the serif names things (the name, titles, projects), the mono speaks for the
+       machine (navigation, labels, dates, research topics), and the sans carries what is read. */
+    --font: 'Instrument Sans Variable', 'Helvetica Neue', sans-serif;
+    --font-mono: 'Fragment Mono', ui-monospace, Menlo, Consolas, monospace;
     --font-serif: 'Bodoni Moda Variable', 'Bodoni MT', Didot, Georgia, serif;
+    --tracking-label: 0.06em; /* the mono's capital labels */
     --rule-line: 1px solid var(--rule);
-    --text-xs: 0.8125rem; /* 13px: metadata, resource links and roles */
+    --text-label: 0.75rem; /* 12px: mono capital labels, navigation and metadata */
+    --text-xs: 0.8125rem; /* 13px: authors, venues and fine print */
     --text-sm: 0.9375rem; /* 15px: secondary copy and section labels */
     --text-base: 1rem;
     --text-lg: 1.125rem;
+    --text-xl: 1.375rem; /* the site name in the header */
     --text-page-mobile: clamp(2.5rem, 10vw, 3.5rem); /* page titles on phones */
     --leading-compact: 1.5;
     --leading-body: 1.65;
@@ -104,8 +109,11 @@
   }
   .section-label {
     margin: 0;
-    font-size: var(--text-sm);
-    font-weight: 500;
+    font-family: var(--font-mono);
+    font-size: var(--text-label);
+    font-weight: 400;
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
   }
   .skip-link {
     left: var(--gutter);
