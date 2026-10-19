@@ -23,7 +23,7 @@ export const projects = {
     wordmark: { glyphs: 'long' },
     role: 'Joint work with Haihao Lu',
     description:
-      'A matrix-free GPU solver built on generalized PDHG and homogeneous self-dual embedding, unifying LP solving and infeasibility certification.',
+      'A matrix-free GPU solver for large-scale LP, returning either optimal solutions or verifiable certificates of infeasibility or unboundedness.',
     publication: publications.hPdlp,
     ...projectResources.hPdlp,
   }),
@@ -33,7 +33,7 @@ export const projects = {
     role: 'Primary developer',
     wordmark: { glyphs: 'wide' },
     description:
-      'A learning framework for parametric mixed-integer nonlinear optimization that requires no optimization solver at training and inference time.',
+      'A solver-free learning framework for parametric mixed-integer nonlinear optimization, efficiently producing feasible, high-quality solutions.',
     publication: publications.learningMinlpFeasibility,
     ...projectResources.reins,
   }),
