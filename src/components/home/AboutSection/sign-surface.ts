@@ -36,7 +36,10 @@ const pathSetter = (path: SVGPathElement) => {
 
 /**
  * The surface of `svg`: a `rect` painted with a `pattern` whose tile is one pixel cell, seen
- * through the `mask` that cuts the lettering out of it, all the size of the `viewBox`.
+ * through the `mask` that cuts the lettering out of it, all the size of the `viewBox`. The pixels
+ * that are lit are drawn into that same mask, under the lettering: one mask, never one inside
+ * another, as Safari on phones leaves out the inner of two nested masks while the outer changes,
+ * so the lettering would only appear once the writing stopped.
  */
 export function createSurface(svg: SVGSVGElement) {
   const defs = svg.querySelector('defs');
@@ -57,20 +60,17 @@ export function createSurface(svg: SVGSVGElement) {
   const span = (row: number, from: number, to: number) =>
     `M${at(from)} ${at(row)}H${at(to)}V${at(row + 1)}H${at(from)}Z`;
 
-  // Which pixels are lit at all.
-  const visibility = document.createElementNS(SVG, 'mask');
-  visibility.id = `${prefix}-visibility`;
-  visibility.setAttribute('maskUnits', 'userSpaceOnUse');
-  for (const [name, value] of Object.entries({ x: 0, y: 0, width, height }))
-    visibility.setAttribute(name, String(value));
+  // Which pixels are lit at all: white in the mask, then darkened outside the sign's shape, which
+  // the mask's first path draws, and beneath the lettering, which the mask goes on to draw.
+  const shape = mask.querySelector<SVGPathElement>(':scope > path');
+  if (!shape) return undefined;
   const lit = document.createElementNS(SVG, 'path');
   lit.setAttribute('fill', 'white');
-  visibility.append(lit);
-  defs.append(visibility);
-  const wrapper = document.createElementNS(SVG, 'g');
-  wrapper.setAttribute('mask', `url(#${visibility.id})`);
-  painted.before(wrapper);
-  wrapper.append(painted);
+  const outside = document.createElementNS(SVG, 'path');
+  outside.setAttribute('d', `${full} ${shape.getAttribute('d')}`);
+  outside.setAttribute('fill', 'black');
+  outside.setAttribute('fill-rule', 'evenodd');
+  shape.replaceWith(lit, outside);
 
   // The spiral the pixels go out along, from the edges in, in square tiles.
   const tiles: string[] = [];
