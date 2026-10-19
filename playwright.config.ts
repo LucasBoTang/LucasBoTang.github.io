@@ -1,6 +1,8 @@
 import { defineConfig } from '@playwright/test';
 
-const port = 4400;
+// Another checkout running its own tests may hold the default port; set PLAYWRIGHT_PORT to keep
+// apart, since a server already listening there is reused.
+const port = Number(process.env.PLAYWRIGHT_PORT) || 4400;
 
 // `e2e` checks behaviour on every platform and runs in CI. `visual` compares screenshots with
 // baselines rendered on the author's machine, so it runs locally only (font rendering differs).
