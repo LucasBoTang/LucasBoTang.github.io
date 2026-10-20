@@ -87,7 +87,9 @@ function setupDecisionSign(svg: SVGSVGElement) {
           : surface.spiral((phase - vanishAt) / timing.extinguish);
     if (phase < rewriteAt || phase >= rewriteEnd) {
       showSlogan(phase < rewriteAt ? '' : full);
-      showFields(phase < rewriteAt ? full : '');
+      // The band sweeps only while the fields show whole, so it rides on their clip: the sign less
+      // the cells it covers (evenodd).
+      showFields(phase < rewriteAt ? full + band.cells(phase - bandAt, rewriteAt - bandAt) : '');
     } else {
       const cells = switchover.at(phase - rewriteAt);
       showSlogan(cells.slogan);
@@ -95,7 +97,6 @@ function setupDecisionSign(svg: SVGSVGElement) {
       lit = cells.lit;
     }
     surface.light(lit);
-    band.place(phase - bandAt, rewriteAt - bandAt);
     collision.place(phase - rewriteEnd);
     dots.place(phase - impact);
   };
@@ -124,7 +125,6 @@ function setupDecisionSign(svg: SVGSVGElement) {
       surface.light(full);
       showFields(full);
       showSlogan('');
-      band.still();
       collision.still();
       dots.still();
     } else if (!activity.hidden && activity.inView.size > 0) loop.start();

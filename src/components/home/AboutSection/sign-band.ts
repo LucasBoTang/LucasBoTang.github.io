@@ -13,10 +13,14 @@ const band = {
   rest: 300,
 };
 
-/** The band over `lettering` on `surface`. */
+/**
+ * The band over `lettering` on `surface`. It draws no clip of its own: it gives the cells it covers,
+ * and the fields' clip leaves them out (decision-sign.ts). A clip nested inside the fields' clip
+ * would not be redrawn by Safari on phones when the fields' clip changes, and the fields would be
+ * lost after their first cycle.
+ */
 export function createBand(lettering: SVGGraphicsElement, surface: Surface) {
-  const { pitch, full, span } = surface;
-  const show = surface.clip(lettering, 'band');
+  const { pitch, span } = surface;
   const box = lettering.getBBox();
   const top = Math.floor(box.y / pitch);
   const bottom = Math.ceil((box.y + box.height) / pitch) - 1;
@@ -28,10 +32,10 @@ export function createBand(lettering: SVGGraphicsElement, surface: Surface) {
   return {
     duration: band.duration,
     /**
-     * Places the band `t` milliseconds after its first sweep sets off. Sweeps repeat until `until`;
-     * one that could not finish by then does not start.
+     * The cells the band covers `t` milliseconds after its first sweep sets off, as a path, empty
+     * between sweeps. Sweeps repeat until `until`; one that could not finish by then does not start.
      */
-    place(t: number, until: number) {
+    cells(t: number, until: number) {
       const period = band.duration + band.rest;
       const start = Math.floor(t / period) * period;
       const progress = (t - start) / band.duration;
@@ -45,11 +49,7 @@ export function createBand(lettering: SVGGraphicsElement, surface: Surface) {
           if (to > from) cells += span(row, from, to);
         }
       }
-      show(full + cells);
-    },
-    /** Clears the band. */
-    still() {
-      show(full);
+      return cells;
     },
   };
 }

@@ -216,3 +216,27 @@ test('a wordmark waits to power on until it has come into view', async ({ page }
   await entry.locator('.project-wordmark').scrollIntoViewIfNeeded();
   await expect.poll(beamState, { timeout: 3000 }).not.toBe('paused');
 });
+
+test('the About sign draws its fields through a single clip that also carries the band', async ({
+  page,
+}) => {
+  // Safari on phones does not redraw a clipped shape inside a group whose own clip changes, so the
+  // fields would be lost after their first cycle: the band must ride on the fields' one clip.
+  await page.goto('/');
+  const sign = page.locator('.decision-sign');
+  await sign.scrollIntoViewIfNeeded();
+  await expect
+    .poll(() => sign.evaluate((element) => element.querySelector('svg')!.dataset.signState), {
+      timeout: 8000,
+    })
+    .toBe('writing');
+  expect(await page.locator('.research-lines').getAttribute('clip-path')).toBeNull();
+  const shapes = () =>
+    page.evaluate(() => {
+      const fields = document.querySelector('.research-lettering')!;
+      const id = fields.getAttribute('clip-path')!.slice(5, -1);
+      const d = document.getElementById(id)!.querySelector('path')!.getAttribute('d') ?? '';
+      return d.split('M').length - 1;
+    });
+  await expect.poll(shapes, { timeout: 4000, intervals: [50] }).toBeGreaterThan(1);
+});
