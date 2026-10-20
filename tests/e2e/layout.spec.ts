@@ -221,7 +221,7 @@ test('the BibTeX entry is set in the site mono', async ({ page }) => {
   const family = await page
     .locator('.bibtex-dialog[open] code')
     .evaluate((code) => getComputedStyle(code).fontFamily);
-  expect(family).toContain('Fragment Mono');
+  expect(family).toContain('Geist Mono');
 });
 
 test('BibTeX keeps its spelling', async ({ page }) => {
@@ -496,4 +496,21 @@ test.describe('on a touch phone', () => {
       .evaluateAll((all) => all.map((link) => link.getBoundingClientRect().height));
     for (const height of heights) expect(height).toBeGreaterThanOrEqual(32);
   });
+});
+
+test('text is set in Geist and labels in Geist Mono, beside the Bodoni names', async ({ page }) => {
+  await page.goto('/');
+  const families = await page.evaluate(() =>
+    ['.hero-intro', '.section-label', '#hero-name'].map(
+      (selector) => getComputedStyle(document.querySelector(selector)!).fontFamily.split(',')[0],
+    ),
+  );
+  expect(families).toEqual(['"Geist Variable"', '"Geist Mono Variable"', '"Bodoni Moda Variable"']);
+  const loaded = await page.evaluate(async () => {
+    await document.fonts.ready;
+    return ['16px "Geist Variable"', '12px "Geist Mono Variable"'].map((font) =>
+      document.fonts.check(font),
+    );
+  });
+  expect(loaded).toEqual([true, true]);
 });

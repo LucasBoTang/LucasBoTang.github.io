@@ -32,8 +32,8 @@
        --page-width; the zones (--zone-*) place things on it: text starts on column 1 or column 6,
        and column 12 stays empty. */
     --column-gap: 1.5rem;
-    --font: 'Instrument Sans Variable', 'Helvetica Neue', sans-serif;
-    --font-mono: 'Fragment Mono', ui-monospace, Menlo, Consolas, monospace;
+    --font: 'Geist Variable', 'Helvetica Neue', sans-serif;
+    --font-mono: 'Geist Mono Variable', ui-monospace, Menlo, Consolas, monospace;
     --font-serif: 'Bodoni Moda Variable', 'Bodoni MT', Didot, Georgia, serif;
     --gutter: clamp(1.4rem, 5.6vw, 6rem);
     /* The item rule, drawn as a background on a full-width grid entry: a quiet line from column 6
