@@ -34,7 +34,7 @@ const arrows = {
   .arrow-link {
     align-items: center;
     display: inline-flex;
-    gap: var(--step-24);
+    gap: var(--arrow-link-gap, var(--step-24));
     justify-content: space-between;
     min-height: 2.75rem;
     padding-block: var(--step-8);
@@ -44,8 +44,12 @@ const arrows = {
     color: var(--blue);
   }
   .arrow-link-symbol {
+    position: relative;
+    top: var(--arrow-link-offset, 0px);
     flex-shrink: 0;
+    height: var(--arrow-link-size, 30px);
     overflow: visible;
+    width: var(--arrow-link-size, 30px);
     fill: none;
     stroke: currentColor;
     stroke-width: 1;

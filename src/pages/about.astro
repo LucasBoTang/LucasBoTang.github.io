@@ -105,10 +105,13 @@ import { profile } from '../data/profile';
   .about-prose p + p {
     margin-top: var(--step-24);
   }
-  /* The CV reads flush right under the last section, as the home page's ways on do. */
+  /* The CV ends with the prose on column 11, leaving the margin column clear. */
   .about-navigation {
+    --arrow-link-gap: var(--step-8);
+    --arrow-link-offset: -2px; /* optical: align the arrow with the letters, not the line box */
+    --arrow-link-size: 24px;
     display: flex;
-    grid-column: var(--zone-main-wide);
+    grid-column: var(--zone-main);
     justify-content: flex-end;
     padding-top: var(--step-16);
   }
