@@ -46,7 +46,8 @@ function setupTitleDecode(title: HTMLElement) {
     if (text) text.textContent = to;
     title.removeAttribute('data-title-from');
   };
-  if (!text || from === to || reducedMotionQuery().matches) {
+  // Selecting the current page still replays its title's decode, even when the letters match.
+  if (!text || reducedMotionQuery().matches) {
     settle();
     return;
   }

@@ -9,7 +9,11 @@ const description = 'Open-source libraries for learning and optimization.';
 
 <SiteLayout title="Software — Bo Tang" description={description} page="software" opening="reveal">
   <div class="shell software-page">
-    <PageHeader title="Software" description={description} />
+    <PageHeader
+      title="Software"
+      description={description}
+      typing={{ thinkBefore: { learning: 150, optimization: 240 } }}
+    />
     {softwareGroups.map((group) => (
       // Each project is lit on its own; the contributions, a short list, are lit as one.
       <section

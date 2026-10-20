@@ -1,12 +1,15 @@
 ---
 import '@fontsource-variable/bodoni-moda/opsz.css';
+import TypedText from '../../ui/TypedText/TypedText.astro';
+import type { TypingRhythm } from '../../ui/TypedText/typed-text';
 
 interface Props {
   title: string;
   /** One short line on what the page holds, in plain words. */
   description?: string;
+  typing?: TypingRhythm;
 }
-const { title, description } = Astro.props;
+const { title, description, typing = {} } = Astro.props;
 ---
 
 <header class="page-header page-grid">
@@ -30,10 +33,15 @@ const { title, description } = Astro.props;
       } catch {}
     })();
   </script>
-  {description?.trim() && <p data-reveal="lead">{description.trim()}</p>}
+  {description?.trim() && (
+    <p data-reveal="lead" data-page-intro data-typing-rhythm={JSON.stringify(typing)}>
+      <TypedText text={description.trim()} />
+    </p>
+  )}
 </header>
 
 <script>
+  import './page-intro';
   import './title-decode';
   import './title-signal';
 </script>

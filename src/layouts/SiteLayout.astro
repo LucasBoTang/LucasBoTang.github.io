@@ -119,7 +119,7 @@ const shareImage =
           const to = new URL(link.href, location.href);
           if (
             to.origin !== location.origin ||
-            to.pathname + to.search === location.pathname + location.search
+            (to.pathname + to.search === location.pathname + location.search && to.hash)
           )
             return;
           keep(to.href);

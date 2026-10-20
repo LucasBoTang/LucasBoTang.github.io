@@ -2,6 +2,7 @@
 import { Image } from 'astro:assets';
 import '@fontsource-variable/bodoni-moda/opsz.css';
 import ArrowLink from '../../ui/ArrowLink.astro';
+import TypedText from '../../ui/TypedText/TypedText.astro';
 import ResearchNavigator from '../ResearchNavigator/ResearchNavigator.astro';
 import ContactLinks from '../../ui/ContactLinks.astro';
 import { routes } from '../../../data/navigation';
@@ -82,13 +83,7 @@ const [inkRed, inkGreen, inkBlue] = blueInk.dark.map((dark, i) => `${dark} ${blu
     </div>
     <ResearchNavigator />
     <p class="hero-intro">
-      <span class="intro-copy">
-        I develop machine learning methods and scalable algorithms for mathematical optimization.
-      </span>
-      <span class="intro-typing" aria-hidden="true">
-        <span data-intro-typed></span>
-        <span class="intro-cursor"></span>
-      </span>
+      <TypedText text="I develop machine learning methods and scalable algorithms for mathematical optimization." />
     </p>
     <div class="hero-actions">
       <ArrowLink href={routes.research} direction="forward">
@@ -269,47 +264,6 @@ const [inkRed, inkGreen, inkBlue] = blueInk.dark.map((dark, i) => `${dark} ${blu
     margin: var(--step-64) 0 0;
     color: var(--muted);
   }
-  .intro-typing {
-    display: none;
-  }
-  [data-typing-ready] .intro-copy {
-    color: transparent;
-  }
-  /* The typed letters lie over the sentence, which carries its text for reading and copying; the
-     letters are not selectable, so a copy holds the sentence once. */
-  [data-typing-ready] .intro-typing {
-    inset: 0;
-    position: absolute;
-    display: block;
-    user-select: none;
-  }
-  .intro-cursor {
-    left: 100%;
-    position: absolute;
-    top: 0.12em;
-    display: inline-block;
-    height: 1em;
-    margin-left: 3px; /* optical: the cursor just clear of the last letter */
-    width: 2px;
-    vertical-align: -0.14em;
-    background: var(--blue);
-  }
-  [data-intro-waiting] .intro-cursor {
-    visibility: hidden;
-  }
-  .intro-cursor[data-at-start] {
-    left: 0;
-  }
-  /* Letters laid out by intro-typing.ts, revealed one by one. */
-  .intro-typing :global(.intro-word) {
-    white-space: nowrap;
-  }
-  .intro-typing :global(.intro-letter) {
-    position: relative;
-  }
-  .intro-typing :global(.intro-letter[data-unseen]) {
-    visibility: hidden;
-  }
   .hero-actions {
     align-items: center;
     display: flex;
@@ -343,28 +297,6 @@ const [inkRed, inkGreen, inkBlue] = blueInk.dark.map((dark, i) => `${dark} ${blu
     }
     [data-slip] h1::after {
       animation: signal-name-slip-lower var(--signal-burst) steps(1, end) both;
-    }
-  }
-  @media (prefers-reduced-motion: no-preference) {
-    .intro-cursor {
-      animation: intro-cursor-blink 1.1s step-end infinite;
-    }
-    [data-motion-suspended] .intro-cursor {
-      animation-play-state: paused;
-    }
-    [data-typing] .intro-cursor {
-      animation: none;
-    }
-  }
-  @keyframes intro-cursor-blink {
-    0%,
-    55%,
-    100% {
-      opacity: 1;
-    }
-    56%,
-    99% {
-      opacity: 0;
     }
   }
   /* Between tablet and desktop the portrait's three columns are too narrow for four labels in a

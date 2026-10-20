@@ -128,6 +128,23 @@ test('moving between pages, the page title rewrites itself in place', async ({ p
   await expect(page.locator('h1')).toHaveAccessibleName('Software');
 });
 
+for (const title of ['Research', 'Software', 'About']) {
+  test(`selecting ${title} on its own page replays the title decode`, async ({ page }) => {
+    await page.goto(`/${title.toLowerCase()}/`);
+    await expect(page.locator('h1')).toHaveCSS('opacity', '1');
+    await Promise.all([
+      page.waitForEvent('domcontentloaded'),
+      page
+        .getByRole('navigation', { name: 'Main navigation' })
+        .getByRole('link', { name: title })
+        .click(),
+    ]);
+    await expect(page.locator('h1 .title-decode-glyph').first()).toBeAttached();
+    await expect(page.locator('h1')).not.toHaveAttribute('data-title-from', /.*/);
+    await expect(page.locator('h1 .title-signal')).toHaveText(title);
+  });
+}
+
 test('motion resumes after going Back through the back-forward cache', async ({ page }) => {
   // Regression: scripts that stopped on `pagehide` stayed stopped once the page was restored.
   await recordRestores(page);

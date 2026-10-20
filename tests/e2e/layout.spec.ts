@@ -525,7 +525,7 @@ test('the Research lead says what the page holds, in one line', async ({ page })
   await page.goto('/research/');
   const lead = page.locator('.page-header p');
   await expect(lead).toHaveText('The questions I study, and the papers that answer them.');
-  const [extent] = await textExtent(page, '.page-header p');
+  const [extent] = await textExtent(page, '.page-header .intro-copy');
   expect(extent.lines).toBe(1);
 });
 

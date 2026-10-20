@@ -39,7 +39,10 @@ test('the name decodes over its own text, then hands over to it', async ({ page 
 
 test('the introduction types its sentence in full', async ({ page }) => {
   await page.goto('/');
-  await expect(page.locator('[data-home-motion]')).toHaveAttribute('data-typing-ready', '');
+  await expect(page.locator('[data-home-motion] [data-typed-text]')).toHaveAttribute(
+    'data-typing-ready',
+    '',
+  );
   await expect(page.locator('.intro-letter[data-unseen]')).toHaveCount(0, { timeout: 12000 });
   const typed = await page.locator('[data-intro-typed]').textContent();
   const sentence = await page.locator('.intro-copy').textContent();
