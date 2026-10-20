@@ -44,13 +44,14 @@ export function whenIdle(work: () => void, timeout = 400): void {
 }
 
 /**
- * Calls `update` at most once a frame while the page scrolls or the window resizes. Returns the
- * function that asks for an update, for other events that should prompt one.
+ * Calls `update` at most once a frame while the page scrolls or the window resizes.
+ * `request` schedules an update for other events; `stop` removes listeners and cancels pending work.
  */
-export function onScrollFrame(update: () => void): () => void {
+export function onScrollFrame(update: () => void): { request(): void; stop(): void } {
   let frame = 0;
+  let stopped = false;
   const request = () => {
-    if (frame) return;
+    if (stopped || frame) return;
     frame = requestAnimationFrame(() => {
       frame = 0;
       update();
@@ -58,5 +59,15 @@ export function onScrollFrame(update: () => void): () => void {
   };
   addEventListener('scroll', request, { passive: true });
   addEventListener('resize', request);
-  return request;
+  return {
+    request,
+    stop() {
+      if (stopped) return;
+      stopped = true;
+      removeEventListener('scroll', request);
+      removeEventListener('resize', request);
+      cancelAnimationFrame(frame);
+      frame = 0;
+    },
+  };
 }

@@ -1,4 +1,4 @@
-import { enhance } from '../../../lib/lifecycle';
+import { enhance, onScrollFrame } from '../../../lib/lifecycle';
 import { reducedMotionQuery, watchActivity } from '../../../lib/motion';
 import { openingEvents } from '../opening/opening';
 import { createIntroTyping } from './intro-typing';
@@ -23,20 +23,8 @@ function setupHero(hero: HTMLElement) {
       );
   }
   // A fast scroll can jump over the introText without changing either observer's state.
-  let scrollFrame = 0;
-  const onScroll = () => {
-    if (scrollFrame) return;
-    scrollFrame = requestAnimationFrame(() => {
-      scrollFrame = 0;
-      updateMotion();
-    });
-  };
-  const stopScrollWatch = () => {
-    window.removeEventListener('scroll', onScroll);
-    cancelAnimationFrame(scrollFrame);
-  };
-  window.addEventListener('scroll', onScroll, { passive: true });
-  hero.addEventListener(openingEvents.introComplete, stopScrollWatch, { once: true });
+  const scrollWatch = onScrollFrame(updateMotion);
+  hero.addEventListener(openingEvents.introComplete, scrollWatch.stop, { once: true });
   hero.addEventListener(openingEvents.skip, () => typing.finish(), { once: true });
   watchActivity(introText ? [hero, introText] : [hero], (activity) => {
     if (activity.reason === 'viewport') {

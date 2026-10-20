@@ -33,7 +33,8 @@ enhance('body', () => {
     }
     focus(nearest);
   };
-  hoverQuery.addEventListener('change', onScrollFrame(update));
+  const scrollWatch = onScrollFrame(update);
+  hoverQuery.addEventListener('change', scrollWatch.request);
   addEventListener('pointerup', (event) => {
     if (event.pointerType !== 'touch' || hoverQuery.matches) return;
     const unit =
