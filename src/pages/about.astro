@@ -72,18 +72,9 @@ import { profile } from '../data/profile';
           learning-based correction methods for mixed-integer nonlinear optimization.
         </p>
       </div>
-    </section>
-    <section
-      class="about-row about-section page-grid"
-      aria-labelledby="cv-heading"
-      data-reveal="unit"
-    >
-      <h2 class="section-label" id="cv-heading">
-        CV
-      </h2>
-      <div class="about-prose">
-        <ArrowLink href={profile.cv} download>
-          Download <span class="about-cv-file-type">(PDF)</span>
+      <div class="about-navigation">
+        <ArrowLink href={profile.cv} download direction="down">
+          Download CV
         </ArrowLink>
       </div>
     </section>
@@ -114,8 +105,12 @@ import { profile } from '../data/profile';
   .about-prose p + p {
     margin-top: var(--step-24);
   }
-  .about-cv-file-type {
-    color: var(--muted);
+  /* The CV reads flush right under the last section, as the home page's ways on do. */
+  .about-navigation {
+    display: flex;
+    grid-column: var(--zone-main-wide);
+    justify-content: flex-end;
+    padding-top: var(--step-16);
   }
   @media (max-width: 720px) {
     .about-section {
@@ -123,6 +118,10 @@ import { profile } from '../data/profile';
     }
     .about-section + .about-section {
       margin-top: var(--step-96);
+    }
+    .about-navigation {
+      justify-content: flex-start;
+      padding-top: 0;
     }
   }
 </style>

@@ -27,8 +27,7 @@ test('the header sets the name on column 1 and the pages flush right', async ({ 
 
 test('the CV is offered on the About page', async ({ page }) => {
   await page.goto('/about/');
-  await expect(page.locator('#cv-heading')).toHaveText('CV');
-  await expect(page.locator('main a[download]')).toHaveText(/Download/);
+  await expect(page.locator('main a[download]')).toHaveText('Download CV');
 });
 
 test('every link and button shares one label style', async ({ page }) => {

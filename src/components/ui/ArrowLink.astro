@@ -2,8 +2,12 @@
 interface Props {
   href: string;
   download?: boolean;
+  /* A download points down; every other link points up and out. */
+  direction?: 'out' | 'down';
 }
-const { href, download } = Astro.props;
+const { href, download, direction = 'out' } = Astro.props;
+const arrow =
+  direction === 'down' ? 'M15 7.93v14.14M7.93 15 15 22.07 22.07 15' : 'M10 20 20 10M10 10h10v10';
 ---
 
 <a href={href} download={download} class="arrow-link text-link">
@@ -19,7 +23,7 @@ const { href, download } = Astro.props;
     focusable="false"
   >
     <circle class="arrow-link-orbit" cx="15" cy="15" r="13" pathLength="1" />
-    <path d="M10 20 20 10M10 10h10v10" />
+    <path d={arrow} />
   </svg>
 </a>
 
