@@ -525,3 +525,11 @@ test('text is set in Geist and labels in Geist Mono, beside the Bodoni names', a
   });
   expect(loaded).toEqual([true, true]);
 });
+
+test('the Research lead says what the page holds, in one line', async ({ page }) => {
+  await page.goto('/research/');
+  const lead = page.locator('.page-header p');
+  await expect(lead).toHaveText('The questions I study, and the papers that answer them.');
+  const [extent] = await textExtent(page, '.page-header p');
+  expect(extent.lines).toBe(1);
+});
