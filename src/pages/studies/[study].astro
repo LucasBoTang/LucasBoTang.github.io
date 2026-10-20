@@ -10,7 +10,10 @@ export function getStaticPaths() {
   }));
 }
 
-const studies = import.meta.glob<{ default: AstroComponentFactory }>('../../studies/*.astro');
+// Only `npm run dev` gathers the studies, so a build leaves their scripts and fonts out of dist.
+const studies = import.meta.env.DEV
+  ? import.meta.glob<{ default: AstroComponentFactory }>('../../studies/*.astro')
+  : {};
 const { default: Study } = await studies[`../../studies/${Astro.params.study}.astro`]();
 ---
 
