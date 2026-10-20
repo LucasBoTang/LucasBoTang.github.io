@@ -34,12 +34,14 @@ function setupHomeOpening(page: HTMLElement) {
     }
   };
   const hero = addHeroOpening(timeline, heroElement);
-  timeline.appear(
-    document.querySelector('.site-header'),
-    time.frameAt,
-    'identity',
-    time.headerFade,
-  );
+  if (!document.documentElement.hasAttribute('data-header-persistent')) {
+    timeline.appear(
+      document.querySelector('.site-header'),
+      time.frameAt,
+      'identity',
+      time.headerFade,
+    );
+  }
   const navigator = page.querySelector<HTMLElement>(part('topics'));
   const lanes = navigator ? addLaneOpening(timeline, navigator) : undefined;
 

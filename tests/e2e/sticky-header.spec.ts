@@ -69,3 +69,42 @@ test('links under the fading edge still receive clicks', async ({ page }) => {
   await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
   await expect(link).toHaveAttribute('data-clicked', '');
 });
+
+for (const width of [1280, 375]) {
+  test(`returning home keeps the header visible throughout its opening at ${width}px`, async ({
+    page,
+  }) => {
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    await page.setViewportSize({ width, height: 900 });
+    await page.addInitScript(() => {
+      document.addEventListener('DOMContentLoaded', () => {
+        if (document.documentElement.dataset.page !== 'home') return;
+        const header = document.querySelector<HTMLElement>('.site-header')!;
+        const start = performance.now();
+        const sample = () => {
+          const style = getComputedStyle(header);
+          if (style.visibility !== 'visible' || Number(style.opacity) < 0.99)
+            header.setAttribute('data-hidden-during-return', '');
+          if (performance.now() - start < 2600) requestAnimationFrame(sample);
+          else header.setAttribute('data-return-sampled', '');
+        };
+        sample();
+      });
+    });
+    for (const route of ['/research/', '/software/', '/about/']) {
+      await page.goto(route);
+      await page.evaluate(() => scrollTo(0, 700));
+      await page.locator('.site-header-name').click();
+      await expect(page).toHaveURL(/\/$/);
+      await expect(page.locator('html')).toHaveAttribute('data-header-persistent', '');
+      await expect(page.locator('.site-header')).toHaveAttribute('data-return-sampled', '');
+      await expect(page.locator('.site-header')).not.toHaveAttribute(
+        'data-hidden-during-return',
+        '',
+      );
+    }
+    // The return marker is consumed; an ordinary fresh load keeps the original home opening.
+    await page.reload();
+    await expect(page.locator('html')).not.toHaveAttribute('data-header-persistent', '');
+  });
+}

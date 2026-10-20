@@ -603,18 +603,24 @@ test.describe('hover and wrapping rules', () => {
   };
   const blue = 'rgb(110, 141, 184)';
 
-  test('header labels stay muted while contact labels turn blue when pointed at', async ({
+  test('only the current header page is blue, and hover and focus preserve each colour', async ({
     page,
   }) => {
-    await page.goto('/research/');
     const muted = 'rgb(163, 167, 173)';
-    for (const link of await page.locator('.site-header nav a').all()) {
-      await expect(link).toHaveCSS('color', muted);
-      await link.hover();
-      await expect(link.locator('.roll')).toHaveCSS('color', muted);
-      await page.mouse.move(0, 0);
-      await link.focus();
-      await expect(link.locator('.roll')).toHaveCSS('color', muted);
+    for (const width of [1280, 375]) {
+      await page.setViewportSize({ width, height: 900 });
+      for (const route of ['/', '/research/', '/software/', '/about/']) {
+        await page.goto(route);
+        for (const link of await page.locator('.site-header nav a').all()) {
+          const color = (await link.getAttribute('href')) === route ? blue : muted;
+          await expect(link).toHaveCSS('color', color);
+          await link.hover();
+          await expect(link.locator('.roll')).toHaveCSS('color', color);
+          await page.mouse.move(0, 0);
+          await link.focus();
+          await expect(link.locator('.roll')).toHaveCSS('color', color);
+        }
+      }
     }
     await page.goto('/');
     expect((await hoverLook(page, '.contact-links a', '[data-contact-label]')).color).toBe(blue);

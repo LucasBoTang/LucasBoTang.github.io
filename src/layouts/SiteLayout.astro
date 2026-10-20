@@ -131,6 +131,16 @@ const shareImage =
       })();
     </script>
     {opening && <script is:inline>
+      // Returning through a site link keeps the header already on screen. Consume the saved
+      // hand-over here on home, which has no PageHeader to consume it itself.
+      if (document.documentElement.dataset.page === 'home') {
+        try {
+          const entry = JSON.parse(sessionStorage.getItem('page-title-from') ?? 'null');
+          sessionStorage.removeItem('page-title-from');
+          if (entry?.to === location.href.split('#')[0] && Date.now() - entry.at < 4000)
+            document.documentElement.setAttribute('data-header-persistent', '');
+        } catch {}
+      }
       if (!matchMedia('(prefers-reduced-motion: reduce)').matches && Element.prototype.animate) {
         document.documentElement.setAttribute('data-opening-pending', '');
         setTimeout(() => document.documentElement.removeAttribute('data-opening-pending'), 2500);

@@ -2,9 +2,10 @@
 
 /* While a page with an opening waits for its script, its footer and any section marked
    `data-opening-content` stay hidden, and on the home page, whose opening brings the header in
-   too, the header. SiteLayout sets the attribute from a script, so pages without JavaScript never
+   too, the header unless it is already visible from a previous page. SiteLayout sets the attribute
+   from a script, so pages without JavaScript never
    hide; the page's script lifts it, or SiteLayout does after 2.5 seconds. */
-html[data-opening-pending][data-opening='custom'] .site-header,
+html[data-opening-pending][data-opening='custom']:not([data-header-persistent]) .site-header,
 html[data-opening-pending] [data-opening-content],
 html[data-opening-pending] .site-footer {
   visibility: hidden;

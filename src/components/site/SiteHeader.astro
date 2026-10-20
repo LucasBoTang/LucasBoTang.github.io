@@ -124,10 +124,13 @@ const { page } = Astro.props;
     font-size: var(--type-body);
     line-height: var(--line-body);
   }
-  /* Header labels keep their colour in every state; HeaderRoll supplies the feedback. */
+  /* Blue identifies the current page. Hover and focus only roll the labels, keeping their colour. */
   nav a {
     text-decoration: none;
     color: var(--muted);
+  }
+  nav a[aria-current='page'] {
+    color: var(--blue);
   }
   @media (max-width: 720px) {
     .site-header {
