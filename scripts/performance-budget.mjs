@@ -11,16 +11,51 @@ export const BUDGET = {
 };
 /** Fonts every page fetches early: the serif, the mono and the sans of its first screen. */
 export const PRELOADED_FONTS = 3;
+/** Letters the extended Latin font set draws, after its unicode-range: text with any of them needs
+ * that set from the start, and a page without them fetches it while idle instead. */
+const EXTENDED_LETTERS = new RegExp(
+  `[${[
+    [0x100, 0x2ba],
+    [0x1e00, 0x1eff],
+    [0x2c60, 0x2c7f],
+    [0xa720, 0xa7ff],
+  ]
+    .map(([from, to]) => `${String.fromCodePoint(from)}-${String.fromCodePoint(to)}`)
+    .join('')}]`,
+);
+const EXTENDED_FONT = /latin-ext/;
 /** Drawing coordinates carry at most this many decimals: a hundredth of a unit is already finer
  * than a pixel on every drawing on the site. */
 export const COORDINATE_DECIMALS = 2;
+
+/** The text a reader sees in `html`: no tags, scripts or styles, and character references read. */
+function textOf(html) {
+  return html
+    .replace(/<(script|style)\b[\s\S]*?<\/\1>/g, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&#x([\da-f]+);/gi, (_, hex) => String.fromCodePoint(parseInt(hex, 16)))
+    .replace(/&#(\d+);/g, (_, decimal) => String.fromCodePoint(Number(decimal)));
+}
 
 /** Why the page's own markup breaks the budget, one message per problem. */
 export function checkMarkup(file, html) {
   const problems = [];
   const fonts = html.match(/<link rel="preload"[^>]*as="font"[^>]*>/g) ?? [];
-  if (fonts.length !== PRELOADED_FONTS)
-    problems.push(`${file}: preloads ${fonts.length} fonts, not ${PRELOADED_FONTS}`);
+  const basic = fonts.filter((font) => !EXTENDED_FONT.test(font));
+  if (basic.length !== PRELOADED_FONTS)
+    problems.push(`${file}: preloads ${basic.length} fonts, not ${PRELOADED_FONTS}`);
+  const letter = textOf(html).match(EXTENDED_LETTERS)?.[0];
+  const preloadsExtended = fonts.some((font) => EXTENDED_FONT.test(font));
+  if (letter && !preloadsExtended)
+    problems.push(
+      `${file}: its text has "${letter}", so it must preload the extended Latin font (add the page to extendedPages in SiteLayout.astro)`,
+    );
+  if (!letter && preloadsExtended)
+    problems.push(
+      `${file}: preloads the extended Latin font, which its text never needs (remove the page from extendedPages)`,
+    );
+  if (!letter && !/<link rel="prefetch"[^>]*latin-ext[^>]*>/.test(html))
+    problems.push(`${file}: must fetch the extended Latin font while idle`);
   const precise = new RegExp(`\\d\\.\\d{${COORDINATE_DECIMALS + 1},}`);
   for (const [, path] of html.matchAll(/\sd="([^"]*)"/g)) {
     const number = path.match(precise);

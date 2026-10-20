@@ -15,6 +15,9 @@ const [inkRed, inkGreen, inkBlue] = blueInk.dark.map((dark, i) => `${dark} ${blu
 ---
 
 <section class="hero shell page-grid" aria-labelledby="hero-name" data-home-motion>
+  {/* The pixel picture is named only in a data attribute, which the browser would find only once the
+      opening's script reads it; fetched from the start, it is in hand as the portrait is. */}
+  <link rel="preload" as="image" href={portraitPixels.src} fetchpriority="high" />
   <div class="identity">
     <div class="portrait-block">
       <Image

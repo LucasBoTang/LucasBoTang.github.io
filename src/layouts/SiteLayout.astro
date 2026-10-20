@@ -5,6 +5,7 @@ import '@fontsource-variable/geist-mono';
 import serifFont from '@fontsource-variable/bodoni-moda/files/bodoni-moda-latin-opsz-normal.woff2?url';
 import monoFont from '@fontsource-variable/geist-mono/files/geist-mono-latin-wght-normal.woff2?url';
 import sansFont from '@fontsource-variable/geist/files/geist-latin-wght-normal.woff2?url';
+import sansExtendedFont from '@fontsource-variable/geist/files/geist-latin-ext-wght-normal.woff2?url';
 import '../styles/global.css';
 import '../styles/links.css';
 import '../styles/motion.css';
@@ -32,6 +33,11 @@ const { title, description, page, opening } = Astro.props;
 // Every page sets its first screen in all three voices, so each font is fetched before the
 // stylesheet asks for it, and no text swaps its face once shown.
 const preloadFonts = [serifFont, monoFont, sansFont];
+// The sans's extended Latin set, for names such as Drgoňa. A page whose text needs it fetches it
+// with the others; every other page fetches it while the browser is idle, so it is in hand before
+// the reader reaches such a page. `npm run check:budget` finds the pages that need it.
+const extendedPages: PageId[] = ['research'];
+const extendedFont = page && extendedPages.includes(page) ? 'preload' : 'prefetch';
 
 // Absolute URLs need the public origin; without SITE_URL the build omits them.
 const canonical = page && Astro.site && new URL(Astro.url.pathname, Astro.site).href;
@@ -53,6 +59,7 @@ const shareImage =
     {preloadFonts.map((font) => (
       <link rel="preload" href={font} as="font" type="font/woff2" crossorigin />
     ))}
+    <link rel={extendedFont} href={sansExtendedFont} as="font" type="font/woff2" crossorigin />
     <meta property="og:type" content="website" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />

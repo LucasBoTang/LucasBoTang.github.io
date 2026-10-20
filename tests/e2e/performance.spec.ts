@@ -41,7 +41,8 @@ test('at rest, the portrait replays its snow rather than drawing it', async ({ p
 
 test('a wordmark trembles without laying the page out again', async ({ page }) => {
   await page.goto('/software/');
-  await page.waitForTimeout(4000);
+  // Past the entries' arrivals and the wordmarks' power-on, which place their beams once.
+  await page.waitForTimeout(8000);
   const read = await metrics(page);
   const tremors = page.evaluate(
     () =>
@@ -60,6 +61,34 @@ test('a wordmark trembles without laying the page out again', async ({ page }) =
   expect(torn, 'the wordmarks trembled while measured').toBeGreaterThan(0);
   // A page title's glitch may lay out its own line once.
   expect(after.LayoutCount - before.LayoutCount).toBeLessThanOrEqual(2);
+});
+
+test('every other page is fetched ahead, so moving to it waits for no network', async ({
+  page,
+}) => {
+  const fetched = new Set<string>();
+  page.on('requestfinished', (request) => fetched.add(new URL(request.url()).pathname));
+  await page.goto('/research/');
+  await expect
+    .poll(() => ['/', '/software/', '/about/'].filter((path) => !fetched.has(path)))
+    .toEqual([]);
+  await page.locator('nav a[href="/software/"]').click();
+  await page.waitForURL('**/software/');
+  const { transferSize, encodedBodySize } = await page.evaluate(() => {
+    const entry = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+    return { transferSize: entry.transferSize, encodedBodySize: entry.encodedBodySize };
+  });
+  // The page's body comes from the cache; at most its headers cross the network, where the
+  // server asks the browser to check that its copy is still current.
+  expect(transferSize, 'the page came from the cache').toBeLessThan(encodedBodySize);
+});
+
+test('the pixel picture is fetched from the start, not once the opening asks for it', async ({
+  page,
+}) => {
+  await page.goto('/');
+  const pixels = await page.locator('[data-portrait-develop]').getAttribute('data-portrait-pixels');
+  await expect(page.locator(`link[rel="preload"][as="image"][href="${pixels}"]`)).toHaveCount(1);
 });
 
 test.describe('on a slowed CPU', () => {

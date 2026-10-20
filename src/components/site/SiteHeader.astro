@@ -14,6 +14,7 @@ const { page } = Astro.props;
   <a
     class="site-header-name"
     href={routes.home}
+    data-astro-prefetch
     aria-label={`${profile.name} — home`}
     aria-current={page === 'home' ? 'page' : undefined}
   >
@@ -26,7 +27,11 @@ const { page } = Astro.props;
   </a>
   <nav aria-label="Main navigation">
     {primaryNavigation.map((item, index) => (
-      <a href={routes[item.page]} aria-current={item.page === page ? 'page' : undefined}>
+      <a
+        href={routes[item.page]}
+        aria-current={item.page === page ? 'page' : undefined}
+        data-astro-prefetch
+      >
         <HeaderRoll direction={index % 2 ? 'up' : 'down'}>{item.label}</HeaderRoll>
       </a>
     ))}
