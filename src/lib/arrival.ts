@@ -16,7 +16,7 @@ export const arrival = {
   /** How long a unit takes to arrive, in milliseconds. */
   duration: 1100,
   /** The least time between the starts of two units. */
-  beat: 400,
+  beat: 520,
   /** Units scrolled into view while others are still waiting more than `backlog` close up to
    * `catchUp` apart, and none waits more than `maxWait`, so a reader moving quickly is never kept
    * waiting. The first screen is never hurried: it keeps the beat however long it is. */

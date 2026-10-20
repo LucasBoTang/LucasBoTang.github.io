@@ -14,6 +14,7 @@ test('the portrait develops, then the photograph takes over with nothing left on
 }) => {
   await page.goto('/');
   const hero = page.locator('[data-home-motion]');
+  await expect(hero).toHaveAttribute('data-opening-started', /.+/);
   await expect(hero).toHaveAttribute('data-motion-ready', '');
   await expect(hero).not.toHaveAttribute('data-opening', /.*/, { timeout: 6000 });
   await expect(page.locator('.portrait')).toHaveCSS('opacity', '1');
@@ -48,6 +49,7 @@ test('the introduction types its sentence in full', async ({ page }) => {
 test('the introduction waits for the research lanes to open', async ({ page }) => {
   await recordAttribute(page, 'data-intro-waiting');
   await page.goto('/');
+  await expect(page.locator('[data-home-motion]')).toHaveAttribute('data-opening-started', /.+/);
   await expect(page.locator('[data-home-motion]')).not.toHaveAttribute('data-intro-waiting', /.*/, {
     timeout: 6000,
   });

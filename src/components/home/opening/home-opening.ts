@@ -3,6 +3,7 @@ import { phonePace } from '../../../lib/breakpoints';
 import { enhance } from '../../../lib/lifecycle';
 import { onKeyboardFocus, reducedMotionQuery } from '../../../lib/motion';
 import { liftOpeningGate, openingPending } from '../../../lib/opening-gate';
+import { waitForPageReady } from '../../../lib/page-ready';
 import { createTimeline } from '../../../lib/timeline';
 import { addHeroOpening } from '../HomeHero/hero-opening';
 import { addLaneOpening } from '../ResearchNavigator/lane-opening';
@@ -97,6 +98,7 @@ function setupHomeOpening(page: HTMLElement) {
   heroElement.addEventListener(openingEvents.introComplete, revealActions, { once: true });
   const startOpening = () => {
     if (timeline.finished || !page.isConnected) return;
+    if (!openingPending()) return skipOpening();
     hero.start();
     timeline.start('identity');
     // The introduction starts typing as the research lanes open, whatever the portrait is doing,
@@ -108,6 +110,9 @@ function setupHomeOpening(page: HTMLElement) {
       hero.startTyping();
     }
     hero.scheduleEnd();
+    // The visitor may already have scrolled while resources were loading.
+    onScroll();
+    liftOpeningGate();
   };
   const skipOpening = () => {
     timeline.finish();
@@ -120,11 +125,15 @@ function setupHomeOpening(page: HTMLElement) {
     if (reducedMotion.matches) skipOpening();
   });
   onKeyboardFocus(skipOpening);
-  liftOpeningGate();
   void Promise.race([
     hero.ready,
     new Promise<void>((resolve) => window.setTimeout(resolve, time.readyTimeout)),
-  ]).then(() => safely(startOpening));
+  ]).then(() => {
+    // Let the browser paint after the pixel preparation, then start every opening clock together.
+    requestAnimationFrame(() => requestAnimationFrame(() => safely(startOpening)));
+  });
 }
 
-enhance('[data-opening-content]', setupHomeOpening);
+enhance('[data-opening-content]', (page) => {
+  void waitForPageReady().then(() => setupHomeOpening(page));
+});

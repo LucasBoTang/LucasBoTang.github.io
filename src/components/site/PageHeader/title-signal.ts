@@ -1,5 +1,6 @@
 import { enhance } from '../../../lib/lifecycle';
 import { reducedMotionQuery, watchActivity } from '../../../lib/motion';
+import { waitForPageReady } from '../../../lib/page-ready';
 import { slipDuration, titleInterval } from '../../../lib/signal';
 
 // Page titles keep the home name's signal: its slice glitch comes a moment after the title first
@@ -41,4 +42,6 @@ function setupTitleSignal(title: HTMLElement) {
   reducedMotion.addEventListener('change', () => title.removeAttribute('data-slip'));
 }
 
-enhance('.title-signal', setupTitleSignal);
+enhance('.title-signal', (title) => {
+  void waitForPageReady().then(() => setupTitleSignal(title));
+});

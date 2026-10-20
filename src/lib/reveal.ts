@@ -3,6 +3,7 @@ import { phonePace } from './breakpoints';
 import { enhance } from './lifecycle';
 import { onKeyboardFocus, reducedMotionQuery } from './motion';
 import { liftOpeningGate, openingPending } from './opening-gate';
+import { waitForPageReady } from './page-ready';
 
 // Inner-page opening: the element marked `data-reveal="title"` wipes in, then the `lead` and each
 // `unit` arrive (see arrival.ts) as they enter the viewport, in document order, through the page's
@@ -19,7 +20,7 @@ const TITLE_DURATION = 1000;
 /** Arriving from another page, the first unit starts this long after the page shows. */
 const HAND_OVER = 120;
 
-enhance('[data-reveal-root]', (page) => {
+function setupReveal(page: HTMLElement) {
   const reducedMotion = reducedMotionQuery();
   // If the gate has already timed out, the page is showing: leave it as it is.
   if (reducedMotion.matches || !Element.prototype.animate || !openingPending()) {
@@ -104,4 +105,8 @@ enhance('[data-reveal-root]', (page) => {
   onKeyboardFocus(finish);
   reducedMotion.addEventListener('change', finish);
   liftOpeningGate();
+}
+
+enhance('[data-reveal-root]', (page) => {
+  void waitForPageReady().then(() => setupReveal(page));
 });

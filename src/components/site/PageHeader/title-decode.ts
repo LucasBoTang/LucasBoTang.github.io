@@ -1,6 +1,7 @@
 import { CALM_STEPS, DECODE_ECHO, decodeNoise, seeded } from '../../../lib/decode';
 import { enhance } from '../../../lib/lifecycle';
 import { reducedMotionQuery } from '../../../lib/motion';
+import { waitForPageReady } from '../../../lib/page-ready';
 import { slipDuration } from '../../../lib/signal';
 
 // Moving between pages, the page title rewrites itself in place, the way the home name decodes.
@@ -122,4 +123,6 @@ function setupTitleDecode(title: HTMLElement) {
   requestAnimationFrame(draw);
 }
 
-enhance('[data-title-from]', setupTitleDecode);
+enhance('[data-title-from]', (title) => {
+  void waitForPageReady().then(() => setupTitleDecode(title));
+});

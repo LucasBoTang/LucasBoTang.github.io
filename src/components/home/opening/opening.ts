@@ -27,7 +27,7 @@ export const openingTiming = {
    * their `laneOffsets` later. A lane's dim field opens from its centre over `laneField`, its
    * words drifting from `laneDrift`; its light swells in `laneLightDelay` after it starts, over
    * `laneLight`. The introduction starts typing as the first lane opens. */
-  laneDelay: 1400,
+  laneDelay: 1600,
   laneOffsets: [0, 140, 280],
   laneField: 1100,
   laneDrift: 220,

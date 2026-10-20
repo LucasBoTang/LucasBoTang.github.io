@@ -81,6 +81,9 @@ html[data-opening-pending] .site-footer {
   main {
     animation: page-arrive 280ms ease-out;
   }
+  html[data-opening-pending] main {
+    animation-play-state: paused;
+  }
   @keyframes page-arrive {
     from {
       opacity: 0.9;
