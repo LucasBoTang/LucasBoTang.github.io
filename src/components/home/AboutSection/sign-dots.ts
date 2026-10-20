@@ -68,29 +68,51 @@ function bounceIn(x: number, y: number, launch: number) {
  */
 function rolling(dot: SVGPathElement, cx: number, cy: number, reach: number, spin: number) {
   const length = dot.getTotalLength();
-  const contour = Array.from({ length: CONTOUR_POINTS }, (_, point) => {
+  const xs = new Float64Array(CONTOUR_POINTS);
+  const ys = new Float64Array(CONTOUR_POINTS);
+  for (let point = 0; point < CONTOUR_POINTS; point++) {
     const p = dot.getPointAtLength((length * point) / CONTOUR_POINTS);
-    return [p.x - cx, p.y - cy];
-  });
+    xs[point] = p.x - cx;
+    ys[point] = p.y - cy;
+  }
   /** How far below the centre the dot reaches when turned through `angle`. */
-  const support = (angle: number) =>
-    Math.max(...contour.map(([x, y]) => x * Math.sin(angle) + y * Math.cos(angle)));
-  const turns = [{ distance: 0, angle: 0 }];
-  for (let distance = 0, angle = 0; distance < reach;) {
-    distance += ((support(angle) + support(angle + spin * TURN_STEP)) / 2) * TURN_STEP;
+  const support = (angle: number) => {
+    const sin = Math.sin(angle);
+    const cos = Math.cos(angle);
+    let lowest = -Infinity;
+    for (let point = 0; point < CONTOUR_POINTS; point++)
+      lowest = Math.max(lowest, xs[point] * sin + ys[point] * cos);
+    return lowest;
+  };
+  // The distance covered by each step of the turn, worked out once; each step's far end is the
+  // next step's near end.
+  const distances = [0];
+  const angles = [0];
+  for (let distance = 0, angle = 0, near = support(0); distance < reach;) {
+    const far = support(angle + spin * TURN_STEP);
+    distance += ((near + far) / 2) * TURN_STEP;
     angle += spin * TURN_STEP;
-    turns.push({ distance, angle });
+    near = far;
+    distances.push(distance);
+    angles.push(angle);
   }
   return {
     support,
     /** The angle the dot has turned through with `distance` left to cover. */
     turnAt(distance: number) {
-      const next = turns.findIndex((entry) => entry.distance >= distance);
-      if (next < 0) return turns[turns.length - 1].angle;
-      if (next === 0) return 0;
-      const a = turns[next - 1];
-      const b = turns[next];
-      return a.angle + ((b.angle - a.angle) * (distance - a.distance)) / (b.distance - a.distance);
+      if (distance <= 0) return 0;
+      const last = distances.length - 1;
+      if (distance >= distances[last]) return angles[last];
+      // The first step that reaches `distance`, found by halving.
+      let low = 1;
+      let high = last;
+      while (low < high) {
+        const middle = (low + high) >> 1;
+        if (distances[middle] >= distance) high = middle;
+        else low = middle + 1;
+      }
+      const share = (distance - distances[low - 1]) / (distances[low] - distances[low - 1]);
+      return angles[low - 1] + (angles[low] - angles[low - 1]) * share;
     },
   };
 }

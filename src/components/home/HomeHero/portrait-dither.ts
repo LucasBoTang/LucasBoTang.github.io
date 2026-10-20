@@ -37,9 +37,17 @@ const bayer = (column: number, row: number) => {
 /** Smooth value noise in [0, 1], a few octaves deep, freshly seeded. */
 function organicNoise() {
   const seed = Math.random() * 1000;
+  // The layers sample only a few hundred lattice points, each many times, so each is hashed once.
+  const hashed = new Map<number, number>();
   const hash = (x: number, y: number) => {
-    const value = Math.sin(x * 127.1 + y * 311.7 + seed) * 43758.5453;
-    return value - Math.floor(value);
+    const key = x * 4096 + y;
+    let value = hashed.get(key);
+    if (value === undefined) {
+      const wave = Math.sin(x * 127.1 + y * 311.7 + seed) * 43758.5453;
+      value = wave - Math.floor(wave);
+      hashed.set(key, value);
+    }
+    return value;
   };
   const smooth = (t: number) => t * t * (3 - 2 * t);
   const layer = (x: number, y: number) => {

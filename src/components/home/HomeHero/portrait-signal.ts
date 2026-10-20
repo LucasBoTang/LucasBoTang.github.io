@@ -66,6 +66,10 @@ const SNOW = {
   resting: 1600,
   restingStrength: 0.5,
 };
+/** The snow changes every `SNOW_STEP` milliseconds. At rest it replays a cycle of `RESTING_FRAMES`
+ * frames, each drawn once, too quick for the cycle to be seen; thicker snow is drawn live. */
+const SNOW_STEP = 42;
+const RESTING_FRAMES = 12;
 /** Canvas colours: snow's light and dark specks, and the gap behind a displaced row. */
 const SNOW_LIGHT = 'rgb(166,193,224)';
 const SNOW_DARK = 'rgb(3,8,16)';
@@ -196,8 +200,13 @@ export function createPortraitSignal(hero: HTMLElement) {
       // The blue image drawn by HomeHero's SVG filter remains as the fallback.
     });
 
-  const drawSnow = (clock: number, strength: number, count: number) => {
-    let seed = Math.floor(clock / 42) + 71;
+  /** Scatters `count` specks of snow over `target`, from `seed`. */
+  const speckle = (
+    target: CanvasRenderingContext2D,
+    seed: number,
+    strength: number,
+    count: number,
+  ) => {
     const noise = () => {
       seed = (seed * 16807) % 2147483647;
       return (seed - 1) / 2147483646;
@@ -206,11 +215,28 @@ export function createPortraitSignal(hero: HTMLElement) {
       const x = noise() * width;
       const y = noise() * height;
       const light = noise() > 0.35;
-      context.fillStyle = light ? SNOW_LIGHT : SNOW_DARK;
-      context.globalAlpha = light ? strength * (0.18 + noise() * 0.38) : strength * 0.4;
-      context.fillRect(x, y, 0.5 + noise() * 0.7, 0.5 + noise() * 0.4);
+      target.fillStyle = light ? SNOW_LIGHT : SNOW_DARK;
+      target.globalAlpha = light ? strength * (0.18 + noise() * 0.38) : strength * 0.4;
+      target.fillRect(x, y, 0.5 + noise() * 0.7, 0.5 + noise() * 0.4);
     }
-    context.globalAlpha = 1;
+    target.globalAlpha = 1;
+  };
+  const drawSnow = (clock: number, strength: number, count: number) =>
+    speckle(context, Math.floor(clock / SNOW_STEP) + 71, strength, count);
+  // The resting snow runs whenever the hero is on screen, so its frames are drawn once each, as
+  // they are first needed, and then only copied.
+  const restingFrames: HTMLCanvasElement[] = [];
+  const drawRestingSnow = (clock: number) => {
+    const index = Math.floor(clock / SNOW_STEP) % RESTING_FRAMES;
+    if (!restingFrames[index]) {
+      const frame = canvasOf(width * SCALE, height * SCALE);
+      const frameContext = frame.getContext('2d');
+      if (!frameContext) return drawSnow(clock, SNOW.restingStrength, SNOW.resting);
+      frameContext.scale(SCALE, SCALE);
+      speckle(frameContext, index + 71, SNOW.restingStrength, SNOW.resting);
+      restingFrames[index] = frame;
+    }
+    context.drawImage(restingFrames[index], 0, 0, width, height);
   };
 
   /** Draws the frame at `clock`, the loop's time in milliseconds. */
@@ -252,7 +278,7 @@ export function createPortraitSignal(hero: HTMLElement) {
     const strength = tearing ? stepAt(decoding ? OPENING_STRENGTH : BURST_STRENGTH, phase) : 0;
     if (!strength) {
       if (hoverSnow) drawSnow(clock, SNOW.hoveredStrength, SNOW.hovered);
-      else if (restingSnow) drawSnow(clock, SNOW.restingStrength, SNOW.resting);
+      else if (restingSnow) drawRestingSnow(clock);
       return;
     }
     const rebound = !decoding && phase >= REBOUND;
