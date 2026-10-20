@@ -218,13 +218,16 @@ import { researchAreas } from '../data/research';
     .research-index nav a {
       color: var(--blue);
     }
-    /* On phones the index is a plain list: no tag, every theme in blue. */
+    /* On phones the index is a plain list above the page, gone once scrolled past, so it marks
+       nothing: no tag, no tear, every theme in blue. */
     .research-index nav a::before,
-    .research-index nav a::after {
+    .research-index nav a::after,
+    .research-index nav a :global(.link-label)::before {
       display: none;
     }
     .research-index nav a[aria-current='location'] {
       color: var(--blue);
+      animation: none;
     }
   }
 </style>

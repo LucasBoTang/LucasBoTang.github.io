@@ -330,6 +330,25 @@ test.describe('on a phone', () => {
     }
   });
 
+  test('the Research index is a plain list, with no mark on the theme being read', async ({
+    page,
+  }) => {
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    await page.goto('/research/');
+    const current = page.locator('.research-index nav a[aria-current="location"]');
+    await expect(current).toHaveCount(1);
+    const state = await current.evaluate((link) => ({
+      animations: link.getAnimations({ subtree: true }).length,
+      tear: getComputedStyle(link.querySelector('.link-label')!, '::before').display,
+      color: getComputedStyle(link).color,
+    }));
+    const other = await page
+      .locator('.research-index nav a:not([aria-current])')
+      .first()
+      .evaluate((link) => getComputedStyle(link).color);
+    expect(state).toEqual({ animations: 0, tear: 'none', color: other });
+  });
+
   test('labels that can wrap get room between their lines', async ({ page }) => {
     for (const [route, selector] of [
       ['/', '.work-note'],
