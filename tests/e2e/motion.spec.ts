@@ -97,7 +97,7 @@ test('the About sign writes the research fields, then switches to the slogan', a
     await expect(dot).toHaveAttribute('transform', /^translate\(0 0\) rotate\(0 /);
 });
 
-test('a page title glitches a moment after the page opens, rests, and glitches when pointed at', async ({
+test('a page title glitches a moment after the page opens, rests, and pointing at it starts nothing', async ({
   page,
 }) => {
   await recordAttribute(page, 'data-slip');
@@ -105,11 +105,10 @@ test('a page title glitches a moment after the page opens, rests, and glitches w
   const bursts = async () =>
     (await attributeChanges(page, 'data-slip')).filter(({ on }) => on).length;
   await expect.poll(bursts, { timeout: 5000 }).toBe(1);
-  // The next glitch waits the home name's interval.
+  // The next glitch waits seven seconds at least, and a pointer does not hurry it.
+  await page.locator('h1').hover();
   await page.waitForTimeout(3000);
   expect(await bursts()).toBe(1);
-  await page.locator('h1').hover();
-  await expect.poll(bursts).toBe(2);
 });
 
 test('moving between pages, the page title rewrites itself in place', async ({ page }) => {

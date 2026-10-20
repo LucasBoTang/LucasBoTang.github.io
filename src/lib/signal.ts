@@ -1,8 +1,14 @@
 // The timing of the signal glitch, which src/styles/signal.css sets as `--signal-burst`.
 
-/** At rest, a name glitches this often, in milliseconds: the home name with the portrait's bursts,
- * and page titles on their own, in the same rhythm. */
+/** At rest, the home name glitches this often, in milliseconds, with the portrait's bursts. */
 export const SIGNAL_INTERVAL = 8000;
+
+/** Page titles glitch again after a pause between these, in milliseconds, never twice alike. */
+const TITLE_INTERVAL = { min: 7000, max: 12000 };
+
+/** The pause before a page title's next glitch, for a random number between 0 and 1. */
+export const titleInterval = (random = Math.random()) =>
+  TITLE_INTERVAL.min + random * (TITLE_INTERVAL.max - TITLE_INTERVAL.min);
 
 /** An element stays marked `data-slip` this much longer than its burst plays, about a frame, so
  * the burst always completes. */
