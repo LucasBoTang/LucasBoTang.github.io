@@ -22,7 +22,7 @@ export const selectedWork: SelectedWork[] = [
   ),
   selectWork(
     projects.reins,
-    'Learns to solve parametric mixed-integer nonlinear programs without an optimization solver at training and inference time, using differentiable integer correction and feasibility projection with theoretical guarantees. Produces feasible, high-quality solutions within milliseconds.',
+    'Learns to solve parametric mixed-integer nonlinear programs without an optimization solver at training and inference time, using differentiable integer correction and feasibility projection with theoretical guarantees. Produces feasible, high-quality solutions efficiently.',
   ),
   selectWork(
     projects.pyepo,

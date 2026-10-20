@@ -27,7 +27,8 @@ test('shows the venue unless a confirmed review stage exists', () => {
 
 test('summarizes a publication by venue, preprint year or review stage', () => {
   assert.equal(formatVenueWithYear(published), 'Example Journal, 2024');
-  assert.equal(formatVenueWithYear(preprint), 'Preprint, 2026');
+  // A citation names where the paper is before the year: a preprint names its server.
+  assert.equal(formatVenueWithYear(preprint), 'arXiv preprint, 2026');
   assert.equal(formatVenueWithYear(underReview), 'Example Journal (Under review)');
 });
 

@@ -212,5 +212,5 @@ export function formatVenueWithYear(publication: Publication): string {
   }
   return publication.status === 'Published'
     ? `${publication.venue}, ${publication.year}`
-    : `Preprint, ${publication.year}`;
+    : `${publication.venue} preprint, ${publication.year}`;
 }

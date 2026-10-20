@@ -37,7 +37,7 @@ const description = 'Open-source libraries for learning and optimization.';
 </SiteLayout>
 
 <style>
-  /* Each group opens with a rule and its label under it. */
+  /* Each group opens with a rule and its label under it, 64px above its first entry. */
   .software-group {
     scroll-margin-top: 2.5rem;
   }
@@ -46,11 +46,15 @@ const description = 'Open-source libraries for learning and optimization.';
   }
   h2 {
     border-top: var(--rule-line);
+    margin-bottom: var(--step-64);
     padding-top: var(--step-24);
   }
   @media (max-width: 720px) {
     .software-group + .software-group {
       margin-top: var(--step-96);
+    }
+    h2 {
+      margin-bottom: var(--step-32);
     }
   }
 </style>

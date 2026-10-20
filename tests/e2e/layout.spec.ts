@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import sharp from 'sharp';
 import { firstBaseline, gridColumns, textExtent, textLeft } from './helpers';
 
 // Every page hangs on one grid: text starts on column 1 or column 6, and every link reads in one
@@ -245,14 +246,15 @@ test('headings are set at weight 400, wordmarks aside', async ({ page }) => {
   }
 });
 
-test('software hangs names on column 1 and text on column 6', async ({ page }) => {
+test('software hangs names on column 1 and project text on column 5', async ({ page }) => {
   await page.goto('/software/');
   const cols = await gridColumns(page);
   const entries = await page.locator('.software-entry').count();
-  for (let index = 0; index < entries; index++) {
+  const projects = await page.locator('.software-entry:not(.software-entry--compact)').count();
+  for (let index = 0; index < entries; index++)
     near(await textLeft(page, '.entry-identity', index), cols[0].left, 3);
-    near(await textLeft(page, '.entry-description', index), cols[5].left);
-  }
+  for (let index = 0; index < projects; index++)
+    near(await textLeft(page, '.entry-description', index), cols[4].left);
 });
 
 test('roles are not uppercased', async ({ page }) => {
@@ -550,4 +552,199 @@ test('the Research lead says what the page holds, in one line', async ({ page })
   await expect(lead).toHaveText('The questions I study, and the papers that answer them.');
   const [extent] = await textExtent(page, '.page-header p');
   expect(extent.lines).toBe(1);
+});
+
+test.describe('section openings', () => {
+  // Every section label stands 64px above the first thing in its section.
+  test('a section label stands 64px above its content on every page', async ({ page }) => {
+    const checks: [string, string, string][] = [
+      ['/', '#work-heading', '.work-entry .work-details'],
+      ['/', '#about-title', '.about-copy'],
+      ['/software/', '#projects-title', '.software-entry .entry-identity'],
+      ['/software/', '#contributions-title', '.software-entry--compact .entry-identity'],
+    ];
+    for (const [route, label, content] of checks) {
+      await page.goto(route);
+      const gap = await page.evaluate(
+        ([label, content]) =>
+          Math.round(
+            document.querySelector(content)!.getBoundingClientRect().top -
+              document.querySelector(label)!.getBoundingClientRect().bottom,
+          ),
+        [label, content],
+      );
+      expect(gap, `${route} ${label}`).toBe(64);
+    }
+  });
+
+  test('Research opens its content with a section rule, as Software and About do', async ({
+    page,
+  }) => {
+    await page.goto('/research/');
+    const rule = await page
+      .locator('.research-layout')
+      .evaluate((layout) => getComputedStyle(layout).borderTopWidth);
+    expect(rule).toBe('1px');
+  });
+
+  test('contributions are named in the sans and link from column 12', async ({ page }) => {
+    await page.goto('/software/');
+    const cols = await gridColumns(page);
+    const name = await page
+      .locator('.software-entry--compact h3')
+      .first()
+      .evaluate((title) => {
+        const style = getComputedStyle(title);
+        return [style.fontFamily.split(',')[0], style.fontSize];
+      });
+    expect(name).toEqual(['"Geist Variable"', '24px']);
+    const color = await page
+      .locator('.software-entry--compact h3')
+      .first()
+      .evaluate((title) => getComputedStyle(title).color);
+    expect(color).toBe('rgb(238, 238, 240)');
+    const lefts = await page
+      .locator('.software-entry--compact .resource-links')
+      .evaluateAll((all) => all.map((links) => links.getBoundingClientRect().left));
+    for (const left of lefts) near(left, cols[11].left);
+  });
+});
+
+test.describe('hover and wrapping rules', () => {
+  // Words answer a pointer by turning blue; words already blue draw a line under themselves.
+  const hoverLook = async (
+    page: import('@playwright/test').Page,
+    selector: string,
+    labelSelector: string,
+  ) => {
+    const link = page.locator(selector).first();
+    await link.hover();
+    await page.waitForTimeout(600);
+    return link.evaluate((element, labelSelector) => {
+      const label = element.querySelector(labelSelector) ?? element;
+      const style = getComputedStyle(label);
+      return { color: style.color, underline: style.backgroundSize };
+    }, labelSelector);
+  };
+  const blue = 'rgb(110, 141, 184)';
+
+  test('the header pages and the contact labels turn blue when pointed at', async ({ page }) => {
+    await page.goto('/research/');
+    expect((await hoverLook(page, '.site-header nav a[href*="software"]', '.roll')).color).toBe(
+      blue,
+    );
+    await page.goto('/');
+    expect((await hoverLook(page, '.contact-links a', '[data-contact-label]')).color).toBe(blue);
+  });
+
+  test('the Research index turns blue without an underline', async ({ page }) => {
+    await page.goto('/research/');
+    const look = await hoverLook(page, '.research-index nav a:nth-child(2)', '.link-label');
+    expect(look.color).toBe(blue);
+    expect(look.underline.startsWith('0px')).toBe(true);
+  });
+
+  test('a preprint is cited by its server', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('.work-note').first()).toHaveText('arXiv preprint, 2026');
+  });
+
+  test('a research question never leaves one word alone on its last line', async ({ page }) => {
+    await page.goto('/research/');
+    const words = await page
+      .locator('.research-question')
+      .first()
+      .evaluate((question) => {
+        const walker = document.createTreeWalker(question, NodeFilter.SHOW_TEXT);
+        const tops: number[] = [];
+        let node: Node | null;
+        while ((node = walker.nextNode()))
+          for (const match of node.textContent!.matchAll(/\S+/g)) {
+            const range = document.createRange();
+            range.setStart(node, match.index!);
+            range.setEnd(node, match.index! + match[0].length);
+            tops.push(Math.round(range.getClientRects()[0].top));
+          }
+        const last = Math.max(...tops);
+        return tops.filter((top) => top === last).length;
+      });
+    expect(words).toBeGreaterThan(1);
+  });
+});
+
+test('contribution descriptions run over columns 5 to 10 in one line', async ({ page }) => {
+  for (const width of [1280, 1024]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto('/software/');
+    const cols = await gridColumns(page);
+    const lefts = await page
+      .locator('.software-entry--compact .entry-description')
+      .evaluateAll((all) => all.map((text) => text.getBoundingClientRect().left));
+    for (const left of lefts) near(left, cols[4].left);
+    const rights = await page
+      .locator('.software-entry--compact .entry-description')
+      .evaluateAll((all) => all.map((text) => text.getBoundingClientRect().right));
+    for (const right of rights) near(right, cols[9].right);
+    for (const { lines } of await textExtent(page, '.software-entry--compact .entry-description'))
+      expect(lines, `${width}px`).toBe(1);
+  }
+});
+
+test('a project wordmark and its description start level, capital to capital', async ({ page }) => {
+  for (const width of [1280, 900]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto('/software/');
+    const tops = await page
+      .locator('.software-entry:not(.software-entry--compact)')
+      .evaluateAll((entries) =>
+        entries.map((entry) => {
+          // The top of a capital H in an element's first line, from its font's own metrics.
+          const capTop = (element: Element, text: Element) => {
+            const style = getComputedStyle(element);
+            const context = document.createElement('canvas').getContext('2d')!;
+            context.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+            const metrics = context.measureText('H');
+            const range = document.createRange();
+            range.setStart(text.firstChild!, 0);
+            range.setEnd(text.firstChild!, 1);
+            return (
+              range.getClientRects()[0].top +
+              metrics.fontBoundingBoxAscent -
+              metrics.actualBoundingBoxAscent
+            );
+          };
+          const face = entry.querySelector('.project-face')!;
+          const text = entry.querySelector('.entry-description')!;
+          return Math.abs(capTop(face, face) - capTop(text, text));
+        }),
+      );
+    // Within 4px: some wordmarks are optically scaled down a little, and the canvas cannot see
+    // the serif's optical-size axis, about 2px of its own.
+    for (const gap of tops) expect(gap, `${width}px`).toBeLessThanOrEqual(4);
+  }
+});
+
+test('an item rule starts where the text it parts starts', async ({ page }) => {
+  for (const [route, entry, text] of [
+    ['/', '.work-entry + .work-entry', '.work-details'],
+    ['/software/', '.software-entry + .software-entry', '.entry-description'],
+  ]) {
+    await page.goto(route);
+    const target = page.locator(entry).first();
+    await target.scrollIntoViewIfNeeded();
+    const box = (await target.boundingBox())!;
+    const textBox = (await target.locator(text).first().boundingBox())!;
+    // The rule is the entry's top row of pixels: find where it starts.
+    const row = await page.screenshot({
+      clip: { x: 0, y: Math.round(box.y), width: Math.floor(box.x + box.width), height: 1 },
+    });
+    const { data, info } = await sharp(row).raw().toBuffer({ resolveWithObject: true });
+    const ink = [data[0], data[1], data[2]];
+    let start = -1;
+    for (let x = 0; x < info.width && start < 0; x++) {
+      const at = x * info.channels;
+      if ([0, 1, 2].some((c) => Math.abs(data[at + c] - ink[c]) > 4)) start = x;
+    }
+    near(start, textBox.x, 1);
+  }
 });

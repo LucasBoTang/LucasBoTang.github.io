@@ -101,10 +101,10 @@ const { page } = Astro.props;
     text-decoration: none;
     color: var(--muted);
   }
-  /* Hover only rolls the label (HeaderRoll), alternately down and up from link to link; the
-     colour stays, and blue marks the current page alone. */
+  /* Pointed at, a page's label turns blue, as every word does, and rolls (HeaderRoll),
+     alternately down and up from link to link. */
   nav a:is(:hover, :focus-visible) {
-    color: var(--muted);
+    color: var(--blue);
   }
   nav a[aria-current='page'] {
     color: var(--blue);

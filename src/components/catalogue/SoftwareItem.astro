@@ -42,22 +42,26 @@ const { entry, variant } = item;
 </article>
 
 <style>
-  /* The name and role on column 1, the description and links on column 6; the wordmark and the
-     description share a first baseline. Rules part the entries, not the label from the first. */
+  /* On Software every description starts on column 5: the name and role take columns 1 to 4,
+     a project's description and links columns 5 to 11. The two start level,
+     the wordmark's capitals with the description's: the tops of their line boxes, as both faces
+     set their capitals the same depth below them. Rules part the entries. */
   .software-entry {
     --project-align: flex-start;
     --project-height: 0px;
     --project-origin: left center;
     --project-padding: 0px;
-    align-items: baseline;
+    align-items: start;
     padding-block: var(--step-48);
     scroll-margin-top: 2.5rem;
   }
+  /* The rule parting the entries starts with their text, on column 5. */
   .software-entry + .software-entry {
-    background: var(--item-rule);
+    background: linear-gradient(var(--rule-item), var(--rule-item)) right top /
+      calc(100% - 4 * ((100% - 11 * var(--column-gap)) / 12 + var(--column-gap))) 1px no-repeat;
   }
   .entry-identity {
-    grid-column: var(--zone-side);
+    grid-column: var(--zone-name);
   }
   .entry-role {
     margin: 0;
@@ -65,34 +69,58 @@ const { entry, variant } = item;
     color: var(--muted);
   }
   .entry-details {
-    grid-column: var(--zone-main);
+    grid-column: var(--zone-entry);
   }
   .entry-description {
     margin: 0 0 var(--step-24);
     color: var(--body-copy);
   }
   /* Contributions are a short list read at a glance: space parts them, not rules. */
+  /* A contribution's name and description are one line each, so they share a baseline. */
   .software-entry.software-entry--compact {
+    align-items: baseline;
     padding-block: var(--step-16);
   }
   .software-entry--compact + .software-entry--compact {
     background: none;
   }
+  /* The group's label holds the space above its first entry (software.astro). */
+  .software-entry.software-entry:first-of-type {
+    padding-top: 0;
+  }
+  /* A contribution is a short list read at a glance: its name is set as a heading in the sans. */
   .software-entry--compact h3 {
     margin: 0;
+    font-size: var(--type-heading);
+    letter-spacing: var(--tracking-heading);
+    line-height: var(--line-heading);
     color: var(--paper);
+  }
+  /* The name takes columns 1 to 4 and the one-line description columns 5 to 10; column 11 stays
+     open, and the links sit at the far edge, on column 12. */
+  .software-entry--compact .entry-identity {
+    grid-column: var(--zone-name);
   }
   .software-entry--compact .entry-details {
     align-items: baseline;
     display: grid;
-    gap: var(--step-24);
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-column: var(--zone-line);
+    grid-template-columns: subgrid;
+  }
+  .software-entry--compact .entry-description {
+    grid-column: 1 / -3;
+  }
+  .software-entry--compact .entry-details :global(.resource-links) {
+    grid-column: -2 / -1;
   }
   .software-entry--compact .entry-description {
     margin: 0;
     color: var(--muted);
   }
   @media (max-width: 720px) {
+    .software-entry + .software-entry {
+      background: var(--item-rule);
+    }
     .software-entry {
       row-gap: var(--step-16);
       padding-block: var(--step-32);
@@ -101,8 +129,10 @@ const { entry, variant } = item;
       row-gap: var(--step-8);
     }
     .software-entry--compact .entry-details {
-      gap: var(--step-8);
-      grid-template-columns: minmax(0, 1fr);
+      display: block;
+    }
+    .software-entry--compact .entry-description {
+      margin-bottom: var(--step-8);
     }
   }
 </style>

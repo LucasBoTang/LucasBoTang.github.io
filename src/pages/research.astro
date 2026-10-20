@@ -44,6 +44,11 @@ import { researchAreas } from '../data/research';
 <style>
   /* The theme index holds columns 1 to 4. The content takes columns 5 to 11 as a subgrid: each
      publication hangs its year in column 5, and everything else starts on column 6. */
+  /* As on every page, a section rule opens the content beneath the page header. */
+  .research-layout {
+    border-top: var(--rule-line);
+    padding-top: var(--step-64);
+  }
   .research-index {
     position: sticky;
     top: 2rem;
@@ -70,8 +75,12 @@ import { researchAreas } from '../data/research';
     grid-column: var(--zone-hanging);
     grid-template-columns: subgrid;
   }
+  /* A theme pointed at turns blue, as every word does; the underline is for words already blue. */
   .research-index nav a:is(:hover, :focus-visible) {
     color: var(--blue);
+  }
+  .research-index nav a:is(:hover, :focus-visible) :global(.link-label) {
+    background-size: 0 1px;
   }
   /* The theme being read (reading-index.ts) is cut out of a blue tag: a plate with two corners
      clipped off reaches a step past the words on either side, and the words take the page's ink.
