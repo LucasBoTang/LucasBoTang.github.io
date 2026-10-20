@@ -18,7 +18,7 @@ const TIMING = {
 
 /** Prints `text` into `code` line by line, and restores the plain text once it is all in, or when
  * the returned function is called. */
-function print(code: HTMLElement, text: string) {
+function printBibtex(code: HTMLElement, text: string) {
   const lines = text.split('\n');
   const spans = lines.map(() => document.createElement('span'));
   code.replaceChildren(
@@ -58,35 +58,58 @@ function print(code: HTMLElement, text: string) {
 }
 
 function setupBibtex(item: HTMLElement) {
-  const open = item.querySelector<HTMLButtonElement>('[aria-controls]');
+  const openButton = item.querySelector<HTMLButtonElement>('[aria-controls]');
   const dialog = item.querySelector('dialog');
   const code = dialog?.querySelector('code');
-  if (!open || !dialog || !code || typeof dialog.showModal !== 'function') return;
+  if (!openButton || !dialog || !code || typeof dialog.showModal !== 'function') return;
   const text = code.textContent ?? '';
   const reducedMotion = reducedMotionQuery();
   item.hidden = false;
 
   let stopPrinting: (() => void) | undefined;
-  open.addEventListener('click', () => {
+  let session = 0;
+  const finishPrinting = () => {
+    stopPrinting?.();
+    stopPrinting = undefined;
+  };
+  openButton.addEventListener('click', () => {
+    session++;
+    finishPrinting();
     dialog.removeAttribute('data-closing');
     dialog.showModal();
-    if (!reducedMotion.matches) stopPrinting = print(code, text);
+    if (!reducedMotion.matches) stopPrinting = printBibtex(code, text);
+  });
+  dialog.addEventListener('close', () => {
+    session++;
+    finishPrinting();
+    dialog.removeAttribute('data-closing');
+  });
+  reducedMotion.addEventListener('change', () => {
+    if (!reducedMotion.matches) return;
+    finishPrinting();
+    if (dialog.hasAttribute('data-closing')) dialog.close();
   });
 
   /** Folds the box away, then closes it. */
   const close = () => {
     if (!dialog.open || dialog.hasAttribute('data-closing')) return;
-    stopPrinting?.();
+    finishPrinting();
     if (reducedMotion.matches) return dialog.close();
     dialog.setAttribute('data-closing', '');
-    const closed = (event: AnimationEvent) => {
-      // The light over the box ends its own animation at the same moment; wait for the box's.
-      if (event.target !== dialog || event.pseudoElement) return;
-      dialog.removeEventListener('animationend', closed);
-      dialog.removeAttribute('data-closing');
-      dialog.close();
+    const closingSession = session;
+    const finishClosing = () => {
+      if (session === closingSession && dialog.hasAttribute('data-closing')) dialog.close();
     };
-    dialog.addEventListener('animationend', closed);
+    // The box may have no animation, or lose it when the motion preference changes.
+    // Unlike animationend, `finished` also settles (by rejecting) when it is cancelled.
+    const animation = dialog
+      .getAnimations()
+      .find(
+        (animation) =>
+          animation instanceof CSSAnimation && animation.animationName === 'bibtex-off',
+      );
+    if (animation) void animation.finished.then(finishClosing, finishClosing);
+    else finishClosing();
   };
   // Escape folds the box away too, instead of closing it at once.
   dialog.addEventListener('cancel', (event) => {
@@ -107,23 +130,28 @@ function setupBibtex(item: HTMLElement) {
     copy.remove();
     return;
   }
-  let reset = 0;
+  let resetCopyTimer = 0;
+  const resetCopy = () => {
+    window.clearTimeout(resetCopyTimer);
+    copy.removeAttribute('data-copied');
+    copy.setAttribute('aria-label', 'Copy BibTeX');
+    if (status) status.textContent = '';
+  };
+  dialog.addEventListener('close', resetCopy);
   copy.addEventListener('click', async () => {
+    const copyingSession = session;
     try {
       await navigator.clipboard.writeText(text);
     } catch {
       return;
     }
-    stopPrinting?.();
+    if (!dialog.open || session !== copyingSession) return;
+    finishPrinting();
     copy.setAttribute('data-copied', '');
     copy.setAttribute('aria-label', 'Copied');
     if (status) status.textContent = 'BibTeX copied';
-    window.clearTimeout(reset);
-    reset = window.setTimeout(() => {
-      copy.removeAttribute('data-copied');
-      copy.setAttribute('aria-label', 'Copy BibTeX');
-      if (status) status.textContent = '';
-    }, TIMING.copied);
+    window.clearTimeout(resetCopyTimer);
+    resetCopyTimer = window.setTimeout(resetCopy, TIMING.copied);
   });
 }
 

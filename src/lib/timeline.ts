@@ -22,7 +22,7 @@ export interface Timeline<Group extends string> {
   later(callback: () => void, delay: number): void;
   /** Runs `callback` once `element` is (or comes) on screen. */
   whenVisible(element: Element | null, callback: () => void): void;
-  /** Cancels every animation, timer and viewport wait. */
+  /** Cancels every animation, timer and viewport wait. Further work is ignored. */
   finish(): void;
   readonly finished: boolean;
 }
@@ -37,7 +37,7 @@ export function createTimeline<Group extends string>(): Timeline<Group> {
 
   const timeline: Timeline<Group> = {
     animate(element, frames, { duration, delay = 0, easing = 'ease' }, group) {
-      if (!element) return;
+      if (finished || !element) return;
       // Held at its first frame through the delay, so nothing shows before it starts.
       const animation = element.animate(frames, { duration, delay, easing, fill: 'backwards' });
       animation.pause();
@@ -59,6 +59,7 @@ export function createTimeline<Group extends string>(): Timeline<Group> {
       groups.get(group)?.forEach((animation) => animation.play());
     },
     later(callback, delay) {
+      if (finished) return;
       timers.push(
         window.setTimeout(() => {
           if (!finished) callback();
@@ -66,7 +67,7 @@ export function createTimeline<Group extends string>(): Timeline<Group> {
       );
     },
     whenVisible(element, callback) {
-      if (!element) return;
+      if (finished || !element) return;
       if (
         element.getBoundingClientRect().top < window.innerHeight ||
         !('IntersectionObserver' in window)
@@ -78,7 +79,7 @@ export function createTimeline<Group extends string>(): Timeline<Group> {
       // as seen, even if a jump carried it past without it ever crossing the screen.
       const observer = new IntersectionObserver(
         ([entry]) => {
-          if (!entry.isIntersecting) return;
+          if (finished || !entry?.isIntersecting) return;
           observer.disconnect();
           callback();
         },
@@ -88,10 +89,16 @@ export function createTimeline<Group extends string>(): Timeline<Group> {
       observer.observe(element);
     },
     finish() {
+      if (finished) return;
       finished = true;
-      timers.forEach(window.clearTimeout);
+      timers.forEach((timer) => window.clearTimeout(timer));
       animations.forEach((animation) => animation.cancel());
       observers.forEach((observer) => observer.disconnect());
+      timers.length = 0;
+      animations.length = 0;
+      observers.length = 0;
+      groups.clear();
+      startedGroups.clear();
     },
     get finished() {
       return finished;

@@ -13,6 +13,7 @@ enhance('[data-reading-index]', (index) => {
   const sections = links.map((link) =>
     document.getElementById(decodeURIComponent(link.hash.slice(1))),
   );
+  let activeIndex = -1;
 
   const update = () => {
     const line = innerHeight * READING_LINE;
@@ -22,6 +23,8 @@ enhance('[data-reading-index]', (index) => {
     });
     const root = document.documentElement;
     if (innerHeight + scrollY >= root.scrollHeight - 2) current = sections.length - 1;
+    if (current === activeIndex) return;
+    activeIndex = current;
     links.forEach((link, i) =>
       i === current
         ? link.setAttribute('aria-current', 'location')

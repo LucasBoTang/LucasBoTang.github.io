@@ -1,10 +1,11 @@
 import { expect, test } from '@playwright/test';
+import { routes as siteRoutes } from '../../src/data/navigation';
 import { watchErrors } from './helpers';
 
 // What every page must do, whatever its motion: load cleanly, fit narrow screens, read whole
 // without motion, and show keyboard focus.
 
-const routes = ['/', '/about/', '/research/', '/software/'];
+const routes = Object.values(siteRoutes);
 const viewports = [
   { width: 1280, reducedMotion: 'no-preference' },
   { width: 800, reducedMotion: 'reduce' },
@@ -84,6 +85,12 @@ test("a paper's Bib opens its BibTeX in a dialog, which copies whole", async ({
   expect(copied.replace(/\r\n/g, '\n')).toBe(await bib.locator('code').textContent());
   await page.keyboard.press('Escape');
   await expect(bib).toBeHidden();
+  await page
+    .locator('#h-pdlp')
+    .getByRole('button', { name: /^BibTeX:/ })
+    .click();
+  await expect(bib.getByRole('button', { name: 'Copy BibTeX', exact: true })).toBeVisible();
+  await expect(bib.locator('[data-bibtex-status]')).toHaveText('');
 });
 
 test.describe('on a touch screen', () => {

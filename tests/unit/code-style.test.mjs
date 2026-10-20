@@ -62,3 +62,14 @@ test('separates markup from the component stylesheet with one blank line', () =>
     '---\n---\n\n<p>Text</p>\n\n<style>\n  p {\n    margin: 0;\n  }\n</style>\n',
   );
 });
+
+test('puts Node built-ins before packages and local imports in scripts', () => {
+  const code = "import z from 'zod';\nimport fs from 'node:fs';\nimport a from './a.mjs';\n";
+  const expected = "import fs from 'node:fs';\nimport z from 'zod';\nimport a from './a.mjs';\n";
+  assert.equal(orderImports(code), expected);
+  assert.equal(styleFile('check.mjs', code), expected);
+  assert.equal(
+    styleFile('check.mjs', `// Check content.\n${code}`),
+    `// Check content.\n${expected}`,
+  );
+});

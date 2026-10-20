@@ -1,6 +1,6 @@
 // Enforces the import and CSS ordering rules that Prettier does not handle.
 // `node scripts/code-style.mjs` reports problems; `--write` fixes them in place.
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { filesUnder } from './files.mjs';
@@ -10,7 +10,8 @@ const compareText = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
 
 /** 0 astro: · 1 packages · 2 stylesheets · 3 layouts · 4 components · 5 local modules · 6 assets */
 function importGroup(source) {
-  if (source.startsWith('astro')) return 0;
+  if (source.startsWith('node:')) return -1;
+  if (source.startsWith('astro:') || source.startsWith('astro/')) return 0;
   if (!source.startsWith('.')) return 1;
   if (source.endsWith('.css')) return 2;
   if (source.includes('/layouts/')) return 3;
@@ -23,6 +24,8 @@ const IMPORT = /^import\s[^;]*?(?:from\s+)?'([^']+)';[^\n]*\n/gm;
 
 /** Sorts the leading block of imports; local modules are alphabetical, everything else keeps its order. */
 export function orderImports(code) {
+  const prefix = /^(?:(?:\/\/[^\n]*\n|\/\*[\s\S]*?\*\/)\s*)+/.exec(code)?.[0] ?? '';
+  if (prefix) return prefix + orderImports(code.slice(prefix.length));
   const block = /^(?:import\s[^;]*?;[^\n]*\n)+/.exec(code);
   if (!block) return code;
   const imports = [...block[0].matchAll(IMPORT)].map(([text, source]) => ({ text, source }));
@@ -176,7 +179,7 @@ export const orderDeclarations = (css) =>
 // ------------------------------------------------------------------ files
 export function styleFile(path, text) {
   if (path.endsWith('.css')) return orderDeclarations(text);
-  if (path.endsWith('.ts')) return orderImports(text);
+  if (/\.(?:ts|mjs)$/.test(path)) return orderImports(text);
   let result = text.replace(/^---\n([\s\S]*?)\n---\n/, (_, frontmatter) => {
     const ordered = orderImports(`${frontmatter}\n`).replace(/\n$/, '');
     return `---\n${ordered}\n---\n`;
@@ -192,7 +195,15 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const root = fileURLToPath(new URL('..', import.meta.url));
   const write = process.argv.includes('--write');
   const changed = [];
-  for (const path of filesUnder(join(root, 'src'), /\.(astro|ts|css)$/)) {
+  const paths = [
+    ...filesUnder(join(root, 'src'), /\.(astro|ts|css)$/),
+    ...filesUnder(join(root, 'scripts'), /\.mjs$/),
+    ...filesUnder(join(root, 'tests'), /\.(ts|mjs)$/),
+    ...readdirSync(root)
+      .filter((name) => /\.(ts|mjs)$/.test(name))
+      .map((name) => join(root, name)),
+  ];
+  for (const path of paths) {
     const text = readFileSync(path, 'utf8').replace(/\r\n/g, '\n');
     const styled = styleFile(path, text);
     if (styled === text) continue;

@@ -8,10 +8,10 @@ import { enhance, onScrollFrame } from './lifecycle';
 const hoverQuery = matchMedia('(hover: hover) and (pointer: fine)');
 const REACH = 0.25;
 
-const units = () => [...document.querySelectorAll<HTMLElement>('[data-lit]')];
-
 enhance('body', () => {
-  if (!units().length) return;
+  // Full-page navigation keeps these targets stable for this document's lifetime.
+  const units = [...document.querySelectorAll<HTMLElement>('[data-lit]')];
+  if (!units.length) return;
   let focused: HTMLElement | undefined;
 
   const focus = (unit?: HTMLElement) => {
@@ -26,7 +26,7 @@ enhance('body', () => {
     const middle = innerHeight / 2;
     let nearest: HTMLElement | undefined;
     let distance = innerHeight * REACH;
-    for (const unit of units()) {
+    for (const unit of units) {
       const { top, bottom } = unit.getBoundingClientRect();
       const away = top > middle ? top - middle : bottom < middle ? middle - bottom : 0;
       if (away < distance) [nearest, distance] = [unit, away];
@@ -36,7 +36,8 @@ enhance('body', () => {
   hoverQuery.addEventListener('change', onScrollFrame(update));
   addEventListener('pointerup', (event) => {
     if (event.pointerType !== 'touch' || hoverQuery.matches) return;
-    const unit = (event.target as Element | null)?.closest<HTMLElement>('[data-lit]');
+    const unit =
+      event.target instanceof Element ? event.target.closest<HTMLElement>('[data-lit]') : null;
     if (unit) focus(unit);
   });
   update();
