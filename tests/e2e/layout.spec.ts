@@ -586,7 +586,7 @@ test.describe('section openings', () => {
 });
 
 test.describe('hover and wrapping rules', () => {
-  // Words answer a pointer by turning blue; words already blue draw a line under themselves.
+  // Header labels keep their colour; other links answer with blue or an underline.
   const hoverLook = async (
     page: import('@playwright/test').Page,
     selector: string,
@@ -603,11 +603,19 @@ test.describe('hover and wrapping rules', () => {
   };
   const blue = 'rgb(110, 141, 184)';
 
-  test('the header pages and the contact labels turn blue when pointed at', async ({ page }) => {
+  test('header labels stay muted while contact labels turn blue when pointed at', async ({
+    page,
+  }) => {
     await page.goto('/research/');
-    expect((await hoverLook(page, '.site-header nav a[href*="software"]', '.roll')).color).toBe(
-      blue,
-    );
+    const muted = 'rgb(163, 167, 173)';
+    for (const link of await page.locator('.site-header nav a').all()) {
+      await expect(link).toHaveCSS('color', muted);
+      await link.hover();
+      await expect(link.locator('.roll')).toHaveCSS('color', muted);
+      await page.mouse.move(0, 0);
+      await link.focus();
+      await expect(link.locator('.roll')).toHaveCSS('color', muted);
+    }
     await page.goto('/');
     expect((await hoverLook(page, '.contact-links a', '[data-contact-label]')).color).toBe(blue);
   });

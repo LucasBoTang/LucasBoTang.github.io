@@ -124,14 +124,10 @@ const { page } = Astro.props;
     font-size: var(--type-body);
     line-height: var(--line-body);
   }
+  /* Header labels keep their colour in every state; HeaderRoll supplies the feedback. */
   nav a {
     text-decoration: none;
     color: var(--muted);
-  }
-  /* Pointed at, a page's label turns blue, as every word does, and rolls (HeaderRoll),
-     alternately down and up from link to link. */
-  nav a:is(:hover, :focus-visible) {
-    color: var(--blue);
   }
   @media (max-width: 720px) {
     .site-header {
