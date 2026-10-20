@@ -48,6 +48,10 @@ const OPENING_PHRASE = [600, 900];
  * it after which the beam has become the word. */
 const POWER_ON_DELAY = 800;
 const POWER_ON = 650;
+/** A word that arrives out of sight waits dark until this share of it can be seen, and powers on
+ * `IN_VIEW_BEAT` milliseconds after, so it is never switched on where no one is looking. */
+const IN_VIEW_SHARE = 0.6;
+const IN_VIEW_BEAT = 300;
 const HANDOVER = 0.3;
 const BEAM_FRAMES: Keyframe[] = [
   { opacity: 0, transform: 'scaleX(0.03)' },
@@ -288,21 +292,63 @@ function setupWordmark(node: HTMLElement) {
   host.addEventListener('focusin', tune);
   host.addEventListener('focusout', () => requestAnimationFrame(tune));
 
+  /** The power-on waiting for the word to come into view: its animations, held dark, and the
+   * earliest moment it may start. */
+  let waiting: { animations: Animation[]; earliest: number } | undefined;
+  let seen = false;
+  /** The share of the word inside the window right now, read directly rather than waiting for the
+   * observer's first report, which may come after the word's arrival. */
+  const shareInView = () => {
+    const box = node.getBoundingClientRect();
+    const visible = Math.min(box.bottom, innerHeight) - Math.max(box.top, 0);
+    return box.height > 0 ? Math.max(0, visible) / box.height : 0;
+  };
+  /** Starts the power-on `delay` milliseconds from now; the word trembles once it is open. */
+  const powerOn = (animations: Animation[], delay: number) => {
+    poweredAt = performance.now() + delay + POWER_ON * (HANDOVER + 0.05);
+    phrase = { from: poweredAt, to: poweredAt + between(OPENING_PHRASE), rise: 0 };
+    animations.forEach((animation) => {
+      animation.effect?.updateTiming({ delay });
+      animation.currentTime = 0;
+      animation.play();
+    });
+  };
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(
+      ([entry]) => {
+        seen = entry.intersectionRatio >= IN_VIEW_SHARE;
+        if (!seen || !waiting) return;
+        const { animations, earliest } = waiting;
+        waiting = undefined;
+        powerOn(animations, Math.max(earliest - performance.now(), IN_VIEW_BEAT));
+      },
+      { threshold: [0, IN_VIEW_SHARE] },
+    ).observe(node);
+  } else seen = true;
+
   host.addEventListener(ARRIVAL_EVENT, (event) => {
     if (reducedMotion.matches || !Element.prototype.animate) return;
     const delay = (event as CustomEvent<{ delay: number }>).detail.delay + POWER_ON_DELAY;
-    // The word springs open just after the beam hands over, and trembles from then on.
-    poweredAt = performance.now() + delay + POWER_ON * (HANDOVER + 0.05);
-    phrase = { from: poweredAt, to: poweredAt + between(OPENING_PHRASE), rise: 0 };
+    const earliest = performance.now() + delay;
     due = 0;
     settle();
     const { top: inkTop, bottom: inkBottom } = ink();
     const middle = `${(((inkTop + inkBottom) / 2) * 100).toFixed(1)}%`;
     beam.style.top = middle;
     face.style.transformOrigin = `center ${middle}`;
-    beam.animate(BEAM_FRAMES, { duration: POWER_ON, delay, fill: 'backwards' });
-    face.animate(PICTURE_FRAMES, { duration: POWER_ON, delay, fill: 'backwards' });
-    echo.animate(ECHO_FRAMES, { duration: POWER_ON, delay, fill: 'backwards' });
+    const animations = [
+      beam.animate(BEAM_FRAMES, { duration: POWER_ON, delay, fill: 'backwards' }),
+      face.animate(PICTURE_FRAMES, { duration: POWER_ON, delay, fill: 'backwards' }),
+      echo.animate(ECHO_FRAMES, { duration: POWER_ON, delay, fill: 'backwards' }),
+    ];
+    if (shareInView() >= IN_VIEW_SHARE) {
+      powerOn(animations, delay);
+      return;
+    }
+    // Out of sight: held at their start, the word stays dark until it is seen.
+    animations.forEach((animation) => animation.pause());
+    poweredAt = Infinity;
+    waiting = { animations, earliest };
   });
 
   watchActivity(node, (activity) => {

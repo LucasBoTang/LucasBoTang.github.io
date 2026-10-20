@@ -194,3 +194,25 @@ test('a wordmark powers on once its entry has landed, 800ms after the entry sets
   });
   expect(gap).toBe(800);
 });
+
+test('a wordmark waits to power on until it has come into view', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 700 });
+  await page.goto('/');
+  const entry = page.locator('.work-entry').first();
+  const beamState = () =>
+    entry.evaluate(
+      (element) => element.querySelector('.project-beam')!.getAnimations()[0]?.playState ?? 'none',
+    );
+  // The top of the entry comes into view, its title arriving; the wordmark, centred lower, does not.
+  await page.evaluate(() => {
+    const top = document.querySelector('.work-entry')!.getBoundingClientRect().top + scrollY;
+    scrollTo(0, top - innerHeight + 150);
+  });
+  await expect
+    .poll(() => entry.evaluate((element) => element.getAnimations().length), { timeout: 5000 })
+    .toBeGreaterThan(0);
+  await page.waitForTimeout(2500);
+  expect(await beamState()).toBe('paused');
+  await entry.locator('.project-wordmark').scrollIntoViewIfNeeded();
+  await expect.poll(beamState, { timeout: 3000 }).not.toBe('paused');
+});
