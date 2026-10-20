@@ -3,7 +3,7 @@ import sharp from 'sharp';
 import { firstBaseline, gridColumns, textExtent, textLeft } from './helpers';
 
 // Every page hangs on one grid: text starts on column 1 or column 6, and every link reads in one
-// label style. Measured at 1280px with motion reduced, so nothing is mid-flight.
+// label style. Measured with motion reduced, so nothing is mid-flight.
 
 test.beforeEach(async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -31,7 +31,7 @@ test('the CV is offered on the About page', async ({ page }) => {
   await expect(page.locator('main a[download]')).toHaveText('Download CV');
 });
 
-test('every link and button shares one label style', async ({ page }) => {
+test('utility links and buttons share one label style', async ({ page }) => {
   await page.goto('/');
   const styles = await page.evaluate(() =>
     ['.arrow-link', '.resource-links a', '.contact-links a', '.contact-links--footer a'].map(
@@ -275,13 +275,6 @@ test('about prose starts on column 6', async ({ page }) => {
   }
 });
 
-test('the ways on from Selected work sit flush right', async ({ page }) => {
-  await page.goto('/');
-  const cols = await gridColumns(page);
-  const last = await page.locator('.work-navigation .arrow-link').last().boundingBox();
-  near(last!.x + last!.width, cols[11].right);
-});
-
 test('contributions read as one list, parted by space alone', async ({ page }) => {
   await page.goto('/software/');
   const borders = await page
@@ -364,16 +357,6 @@ test.describe('on a phone', () => {
     }
   });
 
-  test('the ways on from Selected work stay together', async ({ page }) => {
-    await page.goto('/');
-    // One link's height between the two lines of text, and no more: an arrow link is 46px tall
-    // (its 30px arrow and a step of padding above and below), more than a fingertip's 44px.
-    const tops = await page
-      .locator('.work-navigation .arrow-link .link-label')
-      .evaluateAll((all) => all.map((label) => label.getBoundingClientRect().top));
-    expect(tops[1] - tops[0]).toBeLessThanOrEqual(48);
-  });
-
   test('the about sign runs the width of the text', async ({ page }) => {
     await page.goto('/');
     const sign = await page.locator('.about-fields').boundingBox();
@@ -448,14 +431,6 @@ test.describe('dividers', () => {
     const hex = await quieter(page);
     const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
     expect(color).toBe(`rgb(${r}, ${g}, ${b})`);
-  });
-
-  test('the ways on from Selected work stand on space alone', async ({ page }) => {
-    await page.goto('/');
-    const border = await page
-      .locator('.work-navigation')
-      .evaluate((links) => getComputedStyle(links).borderTopWidth);
-    expect(border).toBe('0px');
   });
 });
 

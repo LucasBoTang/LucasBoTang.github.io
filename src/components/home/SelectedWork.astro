@@ -1,8 +1,6 @@
 ---
 import ProjectWordmark from '../catalogue/ProjectWordmark/ProjectWordmark.astro';
-import ArrowLink from '../ui/ArrowLink.astro';
 import ResourceLinks from '../ui/ResourceLinks.astro';
-import { routes } from '../../data/navigation';
 import { selectedWork } from '../../data/selected-work';
 ---
 
@@ -37,12 +35,6 @@ import { selectedWork } from '../../data/selected-work';
         </div>
       </article>
     ))}
-  </div>
-  <div class="work-navigation page-grid" data-opening-part="work-navigation">
-    <div class="work-navigation-links">
-      <ArrowLink href={routes.research}>All publications</ArrowLink>
-      <ArrowLink href={routes.software}>All software</ArrowLink>
-    </div>
   </div>
 </section>
 
@@ -102,25 +94,9 @@ import { selectedWork } from '../../data/selected-work';
     margin: var(--step-24) 0;
     color: var(--body-copy);
   }
-  .work-navigation {
-    padding-top: var(--step-16);
-  }
-  /* The ways on read flush right, as the header's pages do. */
-  .work-navigation-links {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--step-8) var(--step-48);
-    grid-column: var(--zone-main-wide);
-    justify-content: flex-end;
-  }
   @media (max-width: 720px) {
     .selected-work {
       margin-top: var(--step-96);
-    }
-    /* Stacked, the two ways on keep a fingertip apart and no more. */
-    .work-navigation-links {
-      gap: 0 var(--step-48);
-      justify-content: flex-start;
     }
     /* In one column the wordmark stays a centred plate above its text, as on a wide screen. */
     .work-entry {

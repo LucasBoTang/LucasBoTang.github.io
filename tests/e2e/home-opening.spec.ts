@@ -72,7 +72,7 @@ test('the research lanes drift once connected', async ({ page }) => {
 test('the reading units arrive after the research lanes open', async ({ page }) => {
   // Regression: a lost reading cue once left everything below the hero transparent.
   await page.goto('/');
-  for (const selector of ['.work-entry', '.work-navigation', '.about', '.site-footer']) {
+  for (const selector of ['.work-entry', '.about', '.site-footer']) {
     const unit = page.locator(selector).first();
     await unit.scrollIntoViewIfNeeded();
     await expect(unit, selector).toHaveCSS('opacity', '1', { timeout: 10000 });

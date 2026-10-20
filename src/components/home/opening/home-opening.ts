@@ -62,7 +62,6 @@ function setupHomeOpening(page: HTMLElement) {
   page
     .querySelectorAll(part('work-entry'))
     .forEach((entry, i) => readingUnit(entry, `work-entry-${i}`));
-  readingUnit(page.querySelector(part('work-navigation')), 'work-navigation');
   readingUnit(page.querySelector(part('about')), 'about');
   readingUnit(document.querySelector('.site-footer'), 'footer');
 

@@ -62,14 +62,7 @@ export const openingEvents = {
 
 // Elements the page-level opening reaches into across components, marked with `data-opening-part`.
 // Each component animates its own internals; the output check confirms these markers exist.
-export const openingParts = [
-  'contacts',
-  'topics',
-  'work-heading',
-  'work-entry',
-  'work-navigation',
-  'about',
-] as const;
+export const openingParts = ['contacts', 'topics', 'work-heading', 'work-entry', 'about'] as const;
 
 type OpeningPart = (typeof openingParts)[number];
 
@@ -77,11 +70,4 @@ export const part = (name: OpeningPart) => `[data-opening-part="${name}"]`;
 
 /** Animation groups the home opening starts at different moments. */
 export type HomeOpeningGroup =
-  | 'identity'
-  | 'actions'
-  | 'work'
-  | 'work-navigation'
-  | 'about'
-  | 'footer'
-  | `lane-${number}`
-  | `work-entry-${number}`;
+  'identity' | 'actions' | 'work' | 'about' | 'footer' | `lane-${number}` | `work-entry-${number}`;
