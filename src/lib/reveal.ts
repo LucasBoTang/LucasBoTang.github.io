@@ -35,12 +35,12 @@ enhance('[data-reveal-root]', (page) => {
 
   /** Starts `element`'s arrival: in its turn if it is on screen, at once if already scrolled past,
    * so units in view are never kept waiting behind ones the reader has left. */
-  const play = (element: Element, firstScreen = false) => {
+  const play = (element: Element, firstScreen = false, box = element.getBoundingClientRect()) => {
     const animation = pending.get(element);
     if (!animation) return;
     pending.delete(element);
     observer.unobserve(element);
-    const scrolledPast = element.getBoundingClientRect().bottom <= 0;
+    const scrolledPast = box.bottom <= 0;
     const delay = scrolledPast ? 0 : nextArrival(firstScreen);
     animation.effect?.updateTiming({ delay });
     animation.play();
@@ -59,10 +59,9 @@ enhance('[data-reveal-root]', (page) => {
     { threshold: 0, rootMargin: '100000px 0px -16px 0px' },
   );
 
-  /** Whether the reader has reached `element`: it is on screen, or already scrolled past. */
-  const reached = (element: Element) => element.getBoundingClientRect().top < innerHeight;
-  /** Prepares `element`'s arrival, which starts now if the reader has reached it, or once they do. */
-  const prepare = (element: Element, frames: Keyframe[], duration: number) => {
+  /** Prepares `element`, last measured at `box`, to arrive: now if the reader has reached it (it is
+   * on screen, or already scrolled past), or once they do. */
+  const prepare = (element: Element, box: DOMRect, frames: Keyframe[], duration: number) => {
     const animation = element.animate(frames, {
       duration: duration * pace,
       easing: arrival.easing,
@@ -75,16 +74,24 @@ enhance('[data-reveal-root]', (page) => {
       animation.cancel();
       animations.delete(element);
     };
-    if (reached(element)) play(element, true);
+    if (box.top < innerHeight) play(element, true, box);
     else observer.observe(element);
   };
 
-  if (title && !handedOver) prepare(title, TITLE_WIPE, TITLE_DURATION);
-  const arrive = (element: Element) => prepare(element, arrivalFrames(element), arrival.duration);
-  page.querySelectorAll('[data-reveal="lead"]').forEach(arrive);
-  page.querySelectorAll('[data-reveal="unit"]').forEach(arrive);
-  const footer = document.querySelector('.site-footer');
-  if (footer) arrive(footer);
+  // Every unit is measured before any is prepared: measuring between preparations would make the
+  // browser work out the page's style again for each unit.
+  const units = [
+    ...page.querySelectorAll('[data-reveal="lead"]'),
+    ...page.querySelectorAll('[data-reveal="unit"]'),
+    ...document.querySelectorAll('.site-footer'),
+  ];
+  const wipesTitle = title && !handedOver;
+  const titleBox = wipesTitle ? title.getBoundingClientRect() : undefined;
+  const boxes = units.map((element) => element.getBoundingClientRect());
+  if (wipesTitle && titleBox) prepare(title, titleBox, TITLE_WIPE, TITLE_DURATION);
+  units.forEach((element, i) =>
+    prepare(element, boxes[i], arrivalFrames(element), arrival.duration),
+  );
 
   const finish = () => {
     observer.disconnect();
