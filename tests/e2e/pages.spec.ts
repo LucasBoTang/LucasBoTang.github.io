@@ -85,3 +85,26 @@ test("a paper's Bib opens its BibTeX in a dialog, which copies whole", async ({
   await page.keyboard.press('Escape');
   await expect(bib).toBeHidden();
 });
+
+test.describe('on a touch screen', () => {
+  test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+
+  test("a paper's links and its Bib share one line, each with room for a fingertip", async ({
+    page,
+  }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('/research/');
+    const items = page.locator('#h-pdlp .resource-links > li > :is(a, button)');
+    const boxes = await items.evaluateAll((elements) =>
+      elements.map((element) => ({
+        label: element.querySelector('.link-label')!.getBoundingClientRect().top,
+        height: element.getBoundingClientRect().height,
+      })),
+    );
+    expect(boxes.length).toBeGreaterThan(1);
+    for (const box of boxes) {
+      expect(Math.abs(box.label - boxes[0].label)).toBeLessThan(1);
+      expect(box.height).toBeGreaterThanOrEqual(28);
+    }
+  });
+});

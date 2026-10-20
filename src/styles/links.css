@@ -38,8 +38,14 @@
    without moving anything around it. Inline links grow through vertical padding, which takes no
    room in the line; links laid out as boxes give the room back through negative margins. */
 @media (pointer: coarse) {
-  .resource-links > li > :is(a, button),
+  .resource-links > li > a,
   .site-footer-name {
+    padding-block: var(--step-8);
+  }
+  /* A button, such as a paper's Bib, is laid out as a box, so it gives its room back and keeps
+     its label on the line of the links beside it. */
+  .resource-links > li > button {
+    margin-block: calc(-1 * var(--step-8));
     padding-block: var(--step-8);
   }
   .site-header nav a {
