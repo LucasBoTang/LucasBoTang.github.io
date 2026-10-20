@@ -9,3 +9,19 @@ export const openingPending = () => document.documentElement.hasAttribute(PENDIN
 
 /** Lifts the gate, showing the page. */
 export const liftOpeningGate = () => document.documentElement.removeAttribute(PENDING);
+
+let visible: Promise<void> | undefined;
+
+/** Resolves after the opening's first frames are committed, or the bounded fallback shows them. */
+export function waitForOpeningVisible(): Promise<void> {
+  if (!openingPending()) return Promise.resolve();
+  visible ??= new Promise<void>((resolve) => {
+    const observer = new MutationObserver(() => {
+      if (openingPending()) return;
+      observer.disconnect();
+      resolve();
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: [PENDING] });
+  });
+  return visible;
+}

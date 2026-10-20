@@ -1,5 +1,5 @@
 ---
-// A header link's label that rolls while its link is hovered or focused: the label rolls out and
+// A ready header link's label rolls while hovered or focused: the label rolls out and
 // its copy rolls in behind it, `down` or `up`. The colour stays; only the label moves.
 interface Props {
   direction?: 'down' | 'up';
@@ -19,6 +19,7 @@ const label = await Astro.slots.render('default');
 
 <style>
   .roll {
+    --roll-direction: 100%;
     display: inline-grid;
     overflow: hidden;
     vertical-align: bottom;
@@ -26,25 +27,31 @@ const label = await Astro.slots.render('default');
   .roll-face {
     grid-area: 1 / 1;
   }
+  .roll[data-direction='up'] {
+    --roll-direction: -100%;
+  }
+  .roll-face:first-child {
+    transform: var(--roll-front, none);
+  }
   /* The copy waits on the side the label rolls towards it from. */
   .roll-face + .roll-face {
-    transform: translateY(-100%);
-  }
-  .roll[data-direction='up'] .roll-face + .roll-face {
-    transform: translateY(100%);
+    transform: var(--roll-back, translateY(calc(-1 * var(--roll-direction))));
   }
   @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
-    .roll-face {
+    :global([data-hover-ready]) .roll-face {
       transition: transform 480ms cubic-bezier(0.16, 1, 0.3, 1);
     }
-    :global(a:is(:hover, :focus-visible)) .roll .roll-face:first-child {
-      transform: translateY(100%);
+    :global(
+        [data-hover-ready]
+          a:not([data-nav-connect]):is(:hover:not([data-hover-hold]), :focus-visible)
+      )
+      .roll {
+      --roll-back: none;
+      --roll-front: translateY(var(--roll-direction));
     }
-    :global(a:is(:hover, :focus-visible)) .roll[data-direction='up'] .roll-face:first-child {
-      transform: translateY(-100%);
-    }
-    :global(a:is(:hover, :focus-visible)) .roll .roll-face + .roll-face {
-      transform: none;
+    /* Clicking locks one clean word in place until the destination receives a fresh hover. */
+    :global(a:is([data-nav-connect], [data-hover-hold]:not(:focus-visible))) .roll-face {
+      transition: none;
     }
   }
 </style>

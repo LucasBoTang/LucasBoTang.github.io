@@ -19,6 +19,47 @@
   pointer-events: none;
 }
 
+@property --signal-connect-progress {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: -20%;
+}
+
+/* A narrow light front carries blue across the letters, quickly landing on a steady colour. */
+@keyframes signal-nav-connect {
+  from {
+    --signal-connect-progress: -20%;
+    transform: translateX(-0.5px);
+  }
+  25% {
+    transform: none;
+  }
+  to {
+    --signal-connect-progress: 120%;
+    transform: none;
+  }
+}
+
+@keyframes signal-nav-echo {
+  0%,
+  12% {
+    clip-path: inset(38% 0 48%);
+    opacity: 0.7;
+    transform: translateX(2px);
+  }
+  13%,
+  26% {
+    clip-path: inset(61% 0 29%);
+    opacity: 0.35;
+    transform: translateX(-1px);
+  }
+  27%,
+  100% {
+    opacity: 0;
+    transform: none;
+  }
+}
+
 /* Home hero: the marks beside the name, and the name tearing apart. */
 @keyframes signal-marks-hop {
   0%,
