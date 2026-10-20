@@ -18,7 +18,7 @@ html[data-opening-pending] .site-footer {
    coming from home, comes out of noise once home has nearly gone. Browsers without
    cross-document view transitions simply change page. */
 @media (prefers-reduced-motion: no-preference) {
-  .site-header {
+  .site-header-wrap {
     view-transition-name: site-header;
   }
   /* The next page shows at first as its bare background, waiting for its opening, so the leaving

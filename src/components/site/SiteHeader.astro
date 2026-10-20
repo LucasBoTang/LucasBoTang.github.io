@@ -10,39 +10,66 @@ interface Props {
 const { page } = Astro.props;
 ---
 
-<header class="site-header shell page-grid">
-  <a
-    class="site-header-name"
-    href={routes.home}
-    data-astro-prefetch
-    aria-label={`${profile.name} — home`}
-    aria-current={page === 'home' ? 'page' : undefined}
-  >
-    <span class="site-header-signal signal-slices" data-signal-text={profile.name}>
-      {profile.name}
-    </span>
-    <span class="site-header-dot" aria-hidden="true">
-      .
-    </span>
-  </a>
-  <nav aria-label="Main navigation">
-    {primaryNavigation.map((item, index) => (
-      <a
-        href={routes[item.page]}
-        aria-current={item.page === page ? 'page' : undefined}
-        data-astro-prefetch
-      >
-        <HeaderRoll direction={index % 2 ? 'up' : 'down'}>{item.label}</HeaderRoll>
-      </a>
-    ))}
-  </nav>
-</header>
+<div class="site-header-wrap">
+  <header class="site-header shell page-grid">
+    <a
+      class="site-header-name"
+      href={routes.home}
+      data-astro-prefetch
+      aria-label={`${profile.name} — home`}
+      aria-current={page === 'home' ? 'page' : undefined}
+    >
+      <span class="site-header-signal signal-slices" data-signal-text={profile.name}>
+        {profile.name}
+      </span>
+      <span class="site-header-dot" aria-hidden="true">
+        .
+      </span>
+    </a>
+    <nav aria-label="Main navigation">
+      {primaryNavigation.map((item, index) => (
+        <a
+          href={routes[item.page]}
+          aria-current={item.page === page ? 'page' : undefined}
+          data-astro-prefetch
+        >
+          <HeaderRoll direction={index % 2 ? 'up' : 'down'}>{item.label}</HeaderRoll>
+        </a>
+      ))}
+    </nav>
+  </header>
+</div>
 
 <style>
+  /* The header stays at one position; breathing room belongs to the content below it. */
+  .site-header-wrap {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    margin-bottom: var(--step-32);
+    padding-top: var(--site-header-safe-area);
+    background: var(--ink);
+  }
+  .site-header-wrap::after {
+    content: '';
+    inset: 100% 0 auto;
+    position: absolute;
+    height: var(--site-header-fade);
+    background: linear-gradient(
+      to bottom,
+      var(--ink),
+      color-mix(in srgb, var(--ink) 94%, transparent) 20%,
+      color-mix(in srgb, var(--ink) 72%, transparent) 42%,
+      color-mix(in srgb, var(--ink) 34%, transparent) 70%,
+      color-mix(in srgb, var(--ink) 8%, transparent) 90%,
+      transparent
+    );
+    pointer-events: none;
+  }
   /* The name on column 1, and the pages flush right from column 6. */
   .site-header {
     align-items: baseline;
-    padding-block: var(--step-32);
+    padding-block: var(--step-16);
   }
   .site-header-name {
     grid-column: var(--zone-side);
@@ -108,13 +135,17 @@ const { page } = Astro.props;
   }
   @media (max-width: 720px) {
     .site-header {
-      row-gap: var(--step-8);
-      padding-block: var(--step-24);
+      row-gap: 0;
+      padding-block: var(--step-8) 0;
     }
     nav {
+      align-items: center;
       flex-wrap: wrap;
       gap: 0 var(--step-24);
       justify-content: flex-start;
+    }
+    nav a {
+      padding-block: var(--step-8);
     }
   }
 </style>

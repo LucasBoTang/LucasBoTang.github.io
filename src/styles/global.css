@@ -49,6 +49,9 @@
     --line-title: 3.5rem;
     --page-width: 75rem;
     --rule-line: 1px solid var(--rule);
+    --site-header-fade: 2rem;
+    --site-header-height: 4rem;
+    --site-header-safe-area: env(safe-area-inset-top, 0px);
     --step-16: 1rem;
     --step-160: 10rem;
     --step-24: 1.5rem;
@@ -87,6 +90,9 @@
     --zone-portrait: 2 / 5;
     --zone-side: 1 / 6;
     color-scheme: dark;
+    scroll-padding-top: calc(
+      var(--site-header-height) + var(--site-header-safe-area) + var(--site-header-fade)
+    );
   }
   /* Below 900px the columns narrow, so Display and Title step down. */
   @media (max-width: 900px) {
@@ -102,6 +108,8 @@
     :root {
       --item-rule: linear-gradient(var(--rule-item), var(--rule-item)) left top / 100% 1px no-repeat;
       --line-heading: 1.75rem;
+      --site-header-fade: 1.25rem;
+      --site-header-height: 5rem;
       --type-display: 3.5rem;
       --type-heading: 1.25rem;
       --zone-entry: 1 / -1;

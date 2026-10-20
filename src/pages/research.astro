@@ -51,7 +51,10 @@ import { researchAreas } from '../data/research';
   }
   .research-index {
     position: sticky;
-    top: 2rem;
+    top: calc(
+      var(--site-header-height) + var(--site-header-safe-area) + var(--site-header-fade) +
+        var(--step-16)
+    );
     align-self: start;
     grid-column: var(--zone-index);
   }
