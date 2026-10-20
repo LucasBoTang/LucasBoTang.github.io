@@ -113,10 +113,15 @@ const glyphClasses = [
     pointer-events: none;
   }
   /* The bands a disturbance tears out of the word and slides sideways (wordmark-motion.ts). */
+  /* A band shows only while torn; hiding it never moves anything, so it costs no layout. */
   .project-glyphs :global(.project-band) {
     inset: 0;
     position: absolute;
+    visibility: hidden;
     pointer-events: none;
+  }
+  .project-glyphs :global(.project-band[data-torn]) {
+    visibility: visible;
   }
   @media (max-width: 720px) {
     .project-wordmark {

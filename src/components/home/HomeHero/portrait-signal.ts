@@ -108,6 +108,8 @@ export function createPortraitSignal(hero: HTMLElement) {
   let nextBurstAt = burst.first;
   let wasOpening = false;
   let lastPaint = -Infinity;
+  /** The untorn picture the canvas shows, if it shows one. */
+  let shownStill: string | undefined;
   const loop = createLoop((clock) => {
     // Frame times are coarse, so a millisecond's slack keeps the frames evenly spaced.
     if (hero.hasAttribute('data-opening') || clock - lastPaint >= PAINT_INTERVAL - 1) {
@@ -266,7 +268,6 @@ export function createPortraitSignal(hero: HTMLElement) {
     const tearing = loop.running && (decoding || (!opening && burstStarted !== null));
     hero.toggleAttribute('data-slip', tearing && !decoding);
     const originalColour = opening && openingTime < time.blueEnd && !!naturalContext;
-    context.drawImage(originalColour ? natural : tinted, 0, 0);
     const hoverSnow = loop.running && !opening && identityHovered;
     // A light snow always falls on the blue once it has come up; pointing thickens it.
     const restingSnow = loop.running && !originalColour;
@@ -276,6 +277,14 @@ export function createPortraitSignal(hero: HTMLElement) {
       ? (openingTime - time.tearStart) / (decodeEnd - time.tearStart)
       : (clock - (burstStarted ?? clock)) / burst.pattern;
     const strength = tearing ? stepAt(decoding ? OPENING_STRENGTH : BURST_STRENGTH, phase) : 0;
+    // Untorn, the canvas changes only with the snow's step, so a frame that would show the same
+    // picture again is not painted.
+    const still = strength
+      ? undefined
+      : `${originalColour} ${hoverSnow} ${restingSnow} ${Math.floor(clock / SNOW_STEP)}`;
+    if (still !== undefined && still === shownStill) return;
+    shownStill = still;
+    context.drawImage(originalColour ? natural : tinted, 0, 0);
     if (!strength) {
       if (hoverSnow) drawSnow(clock, SNOW.hoveredStrength, SNOW.hovered);
       else if (restingSnow) drawRestingSnow(clock);

@@ -42,7 +42,7 @@ const OPENING_PHRASE = [600, 900];
 /** The word switches on this long after its entry starts to arrive, once the entry can be seen
  * clearly, and takes `POWER_ON` milliseconds; `HANDOVER` is the share of it after which the beam
  * has become the word. */
-const POWER_ON_DELAY = 300;
+const POWER_ON_DELAY = 800;
 const POWER_ON = 600;
 const HANDOVER = 0.22;
 const BEAM_FRAMES: Keyframe[] = [
@@ -100,7 +100,6 @@ function setupWordmark(node: HTMLElement) {
     band.className = 'project-band';
     band.setAttribute('aria-hidden', 'true');
     band.textContent = face.textContent;
-    band.hidden = true;
     glyphs.append(band);
     return band;
   });
@@ -129,7 +128,7 @@ function setupWordmark(node: HTMLElement) {
     face.style.maskImage = '';
     echo.removeAttribute('style');
     bands.forEach((band) => {
-      band.hidden = true;
+      band.removeAttribute('data-torn');
       band.removeAttribute('style');
     });
   };
@@ -163,7 +162,7 @@ function setupWordmark(node: HTMLElement) {
     face.style.maskImage = stops.length ? `linear-gradient(to bottom, ${stops.join(', ')})` : '';
     bands.forEach((band, index) => {
       const tear = torn[index];
-      band.hidden = !tear;
+      band.toggleAttribute('data-torn', !!tear);
       if (!tear) return;
       const shift = between(SHIFT) * Math.max(0.3, strength) * sign();
       band.style.clipPath = `inset(${percent(tear[0])} -40px ${percent(1 - tear[1])} -40px)`;
