@@ -66,8 +66,12 @@ const glyphClasses = [
     font-size: 0.94em;
     letter-spacing: 0.055em;
   }
+  /* The tremor masks torn bands out of the word and slides copies of them sideways. The mask, the
+     slide and the band's clip are always set, at rest to values that change nothing, so a tremor
+     only changes values, which the browser repaints without laying the page out again. */
   .project-face {
     display: inline-block;
+    mask-image: linear-gradient(black, black);
   }
   .project-echo {
     inset: 0;
@@ -112,12 +116,14 @@ const glyphClasses = [
     opacity: 0;
     pointer-events: none;
   }
-  /* The bands a disturbance tears out of the word and slides sideways (wordmark-motion.ts). */
-  /* A band shows only while torn; hiding it never moves anything, so it costs no layout. */
+  /* The bands a disturbance tears out of the word and slides sideways (wordmark-motion.ts). A band
+     shows only while torn. */
   .project-glyphs :global(.project-band) {
     inset: 0;
     position: absolute;
+    clip-path: inset(50% 0);
     visibility: hidden;
+    transform: translateX(0);
     pointer-events: none;
   }
   .project-glyphs :global(.project-band[data-torn]) {
