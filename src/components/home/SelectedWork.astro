@@ -13,7 +13,7 @@ import { selectedWork } from '../../data/selected-work';
   <div class="work-list">
     {selectedWork.map((work) => (
       <article
-        class="work-entry"
+        class="work-entry page-grid"
         aria-labelledby={`selected-${work.project.id}`}
         data-opening-part="work-entry"
         data-arrival="cascade"
@@ -26,62 +26,61 @@ import { selectedWork } from '../../data/selected-work';
           wordmark={work.project.wordmark}
         />
         <div class="work-details">
-          <p class="work-title">
+          <p class="work-title heading-text">
             <a class="work-title-link" href={work.href}>
               {work.title}
             </a>
           </p>
-          <p class="work-note">{work.note}</p>
+          <p class="work-note label-text">{work.note}</p>
           <p class="work-description">{work.description}</p>
           <ResourceLinks links={work.links} context={work.title} />
         </div>
       </article>
     ))}
   </div>
-  <div class="work-navigation" data-opening-part="work-navigation">
-    <ArrowLink href={routes.research}>All publications</ArrowLink>
-    <ArrowLink href={routes.software}>All software</ArrowLink>
+  <div class="work-navigation page-grid" data-opening-part="work-navigation">
+    <div class="work-navigation-links">
+      <ArrowLink href={routes.research}>All publications</ArrowLink>
+      <ArrowLink href={routes.software}>All software</ArrowLink>
+    </div>
   </div>
 </section>
 
 <style>
+  /* A rule opens the section and the label sits under it. Each entry sets its wordmark like a
+     plate in the middle of columns 1 to 5, and its details from column 6. */
   .selected-work {
-    margin-top: 6.5rem;
+    margin-top: var(--step-160);
     scroll-margin-top: 2rem;
   }
   .work-heading {
-    padding-bottom: var(--space-6);
+    border-top: var(--rule-line);
+    padding-top: var(--step-24);
   }
   .work-list {
     isolation: isolate;
     position: relative;
-    border-top: 1px solid var(--rule-accent);
   }
   .work-entry {
-    column-gap: var(--reading-column-gap);
-    display: grid;
-    grid-template-columns: var(--reading-label-column) minmax(0, 1fr);
-    padding-block: 2.25rem var(--space-10);
+    --project-align: center;
+    --project-height: 0px;
+    --project-origin: center;
+    align-items: start;
+    padding-block: var(--step-64);
+  }
+  .work-entry + .work-entry {
+    background: var(--item-rule);
+  }
+  .work-entry :global(.project-wordmark) {
+    align-self: center;
+    grid-column: var(--zone-side);
   }
   .work-details {
     position: relative;
-    padding-right: clamp(1.5rem, 3vw, 3rem);
-  }
-  .work-entry + .work-entry .work-details::before {
-    content: '';
-    left: 0;
-    position: absolute;
-    right: 0;
-    top: -2.25rem;
-    height: 1px;
-    background: var(--rule-accent);
+    grid-column: var(--zone-main);
   }
   .work-title {
     margin: 0;
-    font-size: var(--text-lg);
-    font-weight: 500;
-    letter-spacing: -0.02em;
-    line-height: var(--leading-compact);
     text-wrap: pretty;
   }
   .work-title-link {
@@ -93,53 +92,42 @@ import { selectedWork } from '../../data/selected-work';
   .work-title-link:is(:hover, :focus-visible) {
     color: var(--blue);
   }
+  /* A venue can run to two lines, so it takes the label's leading for blocks. */
   .work-note {
-    margin: 0.65rem 0 0;
-    font-family: var(--font-mono);
-    font-size: var(--text-label);
-    letter-spacing: var(--tracking-label);
-    line-height: var(--leading-body);
-    text-transform: uppercase;
+    margin: var(--step-16) 0 0;
+    line-height: var(--line-label-block);
     color: var(--muted);
   }
   .work-description {
-    margin: var(--space-4) 0 0.85rem;
-    max-width: 60ch;
-    font-size: var(--text-sm);
-    line-height: var(--leading-prose);
+    margin: var(--step-24) 0;
     color: var(--body-copy);
   }
   .work-navigation {
+    padding-top: var(--step-16);
+  }
+  /* The ways on read flush right, as the header's pages do. */
+  .work-navigation-links {
     display: flex;
     flex-wrap: wrap;
-    /* The two ways on read as one group, at the start of the line like the heading above. */
-    gap: var(--space-2) var(--space-10);
-    border-top: var(--rule-line);
-    padding-top: var(--space-4);
+    gap: var(--step-8) var(--step-48);
+    grid-column: var(--zone-main-wide);
+    justify-content: flex-end;
   }
   @media (max-width: 720px) {
     .selected-work {
-      margin-top: 3.5rem;
+      margin-top: var(--step-96);
     }
-    .work-heading {
-      padding-bottom: 1.1rem;
+    /* Stacked, the two ways on keep a fingertip apart and no more. */
+    .work-navigation-links {
+      gap: 0 var(--step-48);
+      justify-content: flex-start;
     }
+    /* In one column the wordmark leads the entry from its left edge, as the text does. */
     .work-entry {
-      gap: var(--space-4);
-      grid-template-columns: 1fr;
-      padding-block: var(--space-6) var(--space-7);
-    }
-    .work-entry + .work-entry {
-      border-top: 1px solid var(--rule-accent);
-    }
-    .work-entry + .work-entry .work-details::before {
-      display: none;
-    }
-    .work-details {
-      padding-right: 0;
-    }
-    .work-title {
-      font-size: var(--text-base);
+      --project-align: flex-start;
+      --project-origin: left center;
+      row-gap: var(--step-16);
+      padding-block: var(--step-32);
     }
   }
 </style>

@@ -9,7 +9,7 @@ const { id = 'about-decision-sign' } = Astro.props;
 
 <div class="decision-sign" data-decision-sign>
   <svg
-    viewBox="0 0 300 121"
+    viewBox="0 0 300 134"
     role="img"
     aria-label="Mathematical Optimization, Machine Learning, GPU Computing. Scalable + Reliable Decisions."
   >
@@ -17,11 +17,11 @@ const { id = 'about-decision-sign' } = Astro.props;
       <pattern id={`${id}-pixels`} width="3.05" height="3.05" patternUnits="userSpaceOnUse">
         <rect x=".35" y=".35" width="2.35" height="2.35" fill={theme['sign-pixel']} />
       </pattern>
-      <mask id={`${id}-lettering`} maskUnits="userSpaceOnUse" x="0" y="0" width="300" height="121">
-        <path
-          d="M0 0H300V111.925L292.5 117.975H196.5L165 110.836H13.5C5.4 110.836 .3 105.633 0 96.8Z"
-          fill="white"
-        />
+      <mask id={`${id}-lettering`} maskUnits="userSpaceOnUse" x="0" y="0" width="300" height="134">
+        {/* The sign's outline: the lettering runs off its top, left and right and the left of its
+            foot; under the right of the lettering a tab hangs, cut in from a slant, and both lower
+            corners are clipped, as the Research index's tag is. */}
+        <path d="M0 0H300V125L292 133H175L153 110.836H12L0 98.8Z" fill="white" />
         <g class="research-lettering">
           <path
             class="research-lines"
@@ -104,7 +104,7 @@ const { id = 'about-decision-sign' } = Astro.props;
         </g>
       </mask>
     </defs>
-    <rect width="300" height="121" fill={`url(#${id}-pixels)`} mask={`url(#${id}-lettering)`} />
+    <rect width="300" height="134" fill={`url(#${id}-pixels)`} mask={`url(#${id}-lettering)`} />
   </svg>
 </div>
 

@@ -7,15 +7,9 @@ import { softwareGroups } from '../data/software';
 const description = 'Open-source libraries for learning and optimization.';
 ---
 
-<SiteLayout
-  title="Software — Bo Tang"
-  description={description}
-  page="software"
-  shell="reading"
-  opening="reveal"
->
+<SiteLayout title="Software — Bo Tang" description={description} page="software" opening="reveal">
   <div class="shell software-page">
-    <PageHeader title="Software" description={description} variant="editorial" />
+    <PageHeader title="Software" description={description} />
     {softwareGroups.map((group) => (
       // Each project is lit on its own; the contributions, a short list, are lit as one.
       <section
@@ -43,26 +37,20 @@ const description = 'Open-source libraries for learning and optimization.';
 </SiteLayout>
 
 <style>
-  .software-page {
-    --software-columns: var(--reading-label-column) minmax(0, 1fr);
-    --software-gap: var(--reading-column-gap);
-  }
+  /* Each group opens with a rule and its label under it. */
   .software-group {
     scroll-margin-top: 2.5rem;
   }
   .software-group + .software-group {
-    margin-top: var(--space-8);
+    margin-top: var(--step-160);
   }
   h2 {
-    margin-bottom: var(--space-3);
-    line-height: var(--leading-compact);
+    border-top: var(--rule-line);
+    padding-top: var(--step-24);
   }
   @media (max-width: 720px) {
-    .software-page {
-      --software-columns: minmax(0, 1fr);
-    }
     .software-group + .software-group {
-      margin-top: var(--space-6);
+      margin-top: var(--step-96);
     }
   }
 </style>

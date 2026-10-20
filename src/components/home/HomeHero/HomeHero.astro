@@ -14,13 +14,13 @@ import portraitPixels from '../../../assets/portrait-pixels.png';
 const [inkRed, inkGreen, inkBlue] = blueInk.dark.map((dark, i) => `${dark} ${blueInk.light[i]}`);
 ---
 
-<section class="hero shell" aria-labelledby="hero-name" data-home-motion>
+<section class="hero shell page-grid" aria-labelledby="hero-name" data-home-motion>
   <div class="identity">
     <div class="portrait-block">
       <Image
         src={portrait}
         widths={[256, 480, 640]}
-        sizes="(max-width: 900px) 240px, 256px"
+        sizes="(max-width: 720px) 240px, 280px"
         width={640}
         alt="Bo Tang, seated at a table against a dark background."
         loading="eager"
@@ -30,7 +30,7 @@ const [inkRed, inkGreen, inkBlue] = blueInk.dark.map((dark, i) => `${dark} ${blu
       <Image
         src={portrait}
         widths={[256, 480, 640]}
-        sizes="(max-width: 900px) 240px, 256px"
+        sizes="(max-width: 720px) 240px, 280px"
         width={640}
         alt=""
         aria-hidden="true"
@@ -72,7 +72,7 @@ const [inkRed, inkGreen, inkBlue] = blueInk.dark.map((dark, i) => `${dark} ${blu
   </div>
   <div class="hero-copy">
     <div class="affiliation">
-      <p>{profile.role}</p>
+      <p class="label-text">{profile.role}</p>
       <a class="text-link" href={profile.institutionUrl}>
         <span class="link-label">{profile.institution}</span>
       </a>
@@ -98,31 +98,35 @@ const [inkRed, inkGreen, inkBlue] = blueInk.dark.map((dark, i) => `${dark} ${blu
 </script>
 
 <style>
+  /* The portrait fills columns 2 to 4 and splits two thirds of the way down: the photograph
+     above, and below it the blue third, shifted right by --ink-shift. The name starts on column 1,
+     reaching across the portrait; ContactLinks sits under the blue third. The copy starts on
+     column 6, level with the portrait's top. */
   .hero {
-    /* The portrait splits two thirds of the way down: the photograph above, and below it the blue
-       third, shifted right by --ink-shift. ContactLinks sits under the portrait, aligned with it. */
-    --contact-links-offset: calc(var(--name-offset) + var(--ink-shift));
-    --contact-links-width: var(--portrait-width);
+    --contact-links-offset: var(--ink-shift);
+    --contact-links-width: 100%;
     --ink-height: 33.334%;
     --ink-shift: 18px;
     --ink-top: 66.666%;
-    --name-offset: 2.75rem;
-    --portrait-width: 16rem;
     align-items: start;
-    column-gap: var(--reading-column-gap);
-    display: grid;
-    grid-template-columns: var(--reading-label-column) minmax(0, 1fr);
-    padding-top: clamp(2.5rem, 4.3vw, 4rem);
+    padding-top: var(--step-64);
   }
   .identity {
+    display: grid;
+    grid-column: var(--zone-side);
+    grid-template-columns: subgrid;
     min-width: 0;
   }
+  /* The name and its marks start one column and one gap left of the portrait: column 1's edge. */
   .portrait-block {
+    --name-offset: calc((100% - 2 * var(--column-gap)) / 3 + var(--column-gap));
     isolation: isolate;
     position: relative;
+    grid-column: var(--zone-portrait);
     aspect-ratio: 2 / 3;
-    margin-left: var(--name-offset);
-    width: var(--portrait-width);
+  }
+  .identity :global(.contact-links) {
+    grid-column: var(--zone-portrait);
   }
   .portrait-block :global(.portrait) {
     clip-path: inset(0 0 var(--ink-height));
@@ -169,14 +173,13 @@ const [inkRed, inkGreen, inkBlue] = blueInk.dark.map((dark, i) => `${dark} ${blu
     position: absolute;
     top: var(--ink-top);
     z-index: 1;
-    margin: -0.1em 0 0;
+    margin: -0.04em 0 0; /* optical: the capitals' tops on the split */
     font-family: var(--font-serif);
     font-optical-sizing: none;
-    font-size: 4.5rem;
+    font-size: var(--type-name);
     font-variation-settings: 'opsz' 96;
-    font-weight: 400;
-    letter-spacing: -0.055em;
-    line-height: 1.12;
+    letter-spacing: var(--tracking-display);
+    line-height: var(--line-name);
     white-space: nowrap;
     color: var(--paper);
   }
@@ -210,11 +213,11 @@ const [inkRed, inkGreen, inkBlue] = blueInk.dark.map((dark, i) => `${dark} ${blu
   .name-marks {
     left: calc(-1 * var(--name-offset));
     position: absolute;
-    top: calc(var(--ink-top) + 5.25rem);
+    top: calc(var(--ink-top) + var(--line-name));
     z-index: 2;
     align-items: center;
     display: flex;
-    gap: 5px;
+    gap: 5px; /* optical: the marks' own spacing, part of the signal */
     height: 12px;
     pointer-events: none;
   }
@@ -234,29 +237,31 @@ const [inkRed, inkGreen, inkBlue] = blueInk.dark.map((dark, i) => `${dark} ${blu
     clip-path: inset(61% 0 27%);
     color: var(--signal-light);
   }
+  /* The copy runs from column 6 to 11, leaving column 12 empty; only the drifting research
+     lanes reach across it. */
   .hero-copy {
+    align-content: start;
+    display: grid;
+    grid-column: var(--zone-main-wide);
+    grid-template-columns: subgrid;
     min-width: 0;
-    padding-top: 2.8rem;
+  }
+  .hero-copy > * {
+    grid-column: 1 / -2;
+  }
+  .hero-copy > :global(.research-navigator) {
+    grid-column: 1 / -1;
   }
   .affiliation {
-    margin-bottom: 2.3rem;
-    font-size: var(--text-sm);
-    line-height: var(--leading-prose);
+    margin-bottom: var(--step-64);
   }
   .affiliation p {
-    margin: 0 0 0.3rem;
-    font-family: var(--font-mono);
-    font-size: var(--text-label);
-    letter-spacing: var(--tracking-label);
-    text-transform: uppercase;
+    margin: 0 0 var(--step-8);
     color: var(--muted);
   }
   .hero-intro {
     position: relative;
-    margin: 2.2rem 0 0;
-    max-width: 60ch;
-    font-size: var(--text-base);
-    line-height: var(--leading-prose);
+    margin: var(--step-64) 0 0;
     color: var(--muted);
   }
   .intro-typing {
@@ -279,7 +284,7 @@ const [inkRed, inkGreen, inkBlue] = blueInk.dark.map((dark, i) => `${dark} ${blu
     top: 0.12em;
     display: inline-block;
     height: 1em;
-    margin-left: 3px;
+    margin-left: 3px; /* optical: the cursor just clear of the last letter */
     width: 2px;
     vertical-align: -0.14em;
     background: var(--blue);
@@ -304,10 +309,9 @@ const [inkRed, inkGreen, inkBlue] = blueInk.dark.map((dark, i) => `${dark} ${blu
     align-items: center;
     display: flex;
     flex-wrap: wrap;
-    gap: 0.65rem var(--space-8);
+    gap: var(--step-8) var(--step-32);
     justify-content: space-between;
-    margin-top: 1.2rem;
-    max-width: 29rem;
+    margin-top: var(--step-32);
   }
   @media (prefers-reduced-motion: no-preference) {
     .name-marks span {
@@ -358,22 +362,11 @@ const [inkRed, inkGreen, inkBlue] = blueInk.dark.map((dark, i) => `${dark} ${blu
       opacity: 0;
     }
   }
-  @media (max-width: 900px) {
-    .hero {
-      --name-offset: 2rem;
-      --portrait-width: 15rem;
-    }
-    h1 {
-      font-size: 4rem;
-    }
-    .name-marks {
-      top: calc(var(--ink-top) + 4.75rem);
-    }
-    .hero-copy {
-      padding-top: 1.8rem;
-    }
-    .hero-intro {
-      font-size: var(--text-sm);
+  /* Between tablet and desktop the portrait's three columns are too narrow for four labels in a
+     row, so the links take two rows. */
+  @media (max-width: 900px) and (min-width: 721px) {
+    .identity :global(.contact-links) {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
   @media (max-width: 720px) {
@@ -382,25 +375,34 @@ const [inkRed, inkGreen, inkBlue] = blueInk.dark.map((dark, i) => `${dark} ${blu
        below follow the blue third. */
     .hero {
       --contact-links-offset: calc(var(--portrait-inset) + var(--ink-shift));
-      --portrait-inset: calc((100% - var(--portrait-width) - var(--ink-shift)) / 2);
-      grid-template-columns: minmax(0, 1fr);
-      row-gap: var(--space-7);
-      padding-top: var(--space-6);
+      --contact-links-width: var(--portrait-width);
+      --portrait-inset: calc((100cqw - var(--portrait-width) - var(--ink-shift)) / 2);
+      --portrait-width: 15rem;
+      row-gap: var(--step-32);
+      padding-top: var(--step-24);
     }
+    /* The column is the container, so the inset reads the same wherever it is used. */
+    .identity {
+      display: block;
+      container-type: inline-size;
+    }
+    /* The name reaches out to the text's left edge, whatever the phone's width. */
     .portrait-block {
+      --name-offset: var(--portrait-inset);
       margin-left: var(--portrait-inset);
+      width: var(--portrait-width);
     }
     .hero-copy {
-      padding-top: 0;
+      display: block;
     }
     .affiliation {
-      margin-bottom: 1.4rem;
+      margin-bottom: var(--step-48);
     }
     .hero-intro {
-      margin-top: var(--space-6);
+      margin-top: var(--step-48);
     }
     .hero-actions {
-      margin-top: 0.9rem;
+      margin-top: var(--step-24);
     }
   }
 </style>

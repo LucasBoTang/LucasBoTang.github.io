@@ -39,8 +39,9 @@ function blend(base: string, top: string, percent: number): string {
 
 export const theme = {
   ...palette,
-  // Quiet dividers in the home work list.
-  'rule-accent': withAlpha(palette.blue, 12),
+  // The item rule, which parts the entries inside a section: the section rule at 60% on the
+  // page, a step quieter than the full-width rule that opens each section.
+  'rule-item': blend(palette.ink, palette.rule, 60),
   // The research lanes' unlit words: the blue at 22% on the page, made solid so it can cover
   // what lies beneath it.
   'blue-dim': blend(palette.ink, palette.blue, 22),

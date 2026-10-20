@@ -57,3 +57,65 @@ export const openingStartedAt = (page: Page) =>
   page.evaluate(() =>
     Number(document.querySelector<HTMLElement>('[data-home-motion]')?.dataset.openingStarted),
   );
+
+/** The left and right edges of the page grid's columns, read from the site header's grid. */
+export const gridColumns = (page: Page) =>
+  page.evaluate(() => {
+    const grid = document.querySelector<HTMLElement>('.site-header')!;
+    const style = getComputedStyle(grid);
+    const gap = parseFloat(style.columnGap);
+    let left = grid.getBoundingClientRect().left + parseFloat(style.paddingLeft);
+    return style.gridTemplateColumns.split(' ').map((width) => {
+      const column = { left, right: left + parseFloat(width) };
+      left = column.right + gap;
+      return column;
+    });
+  });
+
+/** The left edge of an element's first line of text, padding and borders aside. */
+export const textLeft = (page: Page, selector: string, index = 0) =>
+  page.evaluate(
+    ([selector, index]) => {
+      const element = document.querySelectorAll(selector)[index];
+      if (!element) throw new Error(`No element for ${selector} [${index}]`);
+      const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+      let node: Node | null;
+      while ((node = walker.nextNode()) && !node.textContent?.trim());
+      if (!node) throw new Error(`No text in ${selector}`);
+      const range = document.createRange();
+      const start = node.textContent!.search(/\S/);
+      range.setStart(node, start);
+      range.setEnd(node, start + 1);
+      return range.getClientRects()[0].left;
+    },
+    [selector, index] as const,
+  );
+
+/** The first baseline of an element's text, found by a zero-size probe set on that baseline. */
+export const firstBaseline = (page: Page, selector: string, index = 0) =>
+  page.evaluate(
+    ([selector, index]) => {
+      const element = document.querySelectorAll(selector)[index];
+      const probe = document.createElement('span');
+      probe.style.cssText = 'display:inline-block;width:0;height:0;vertical-align:baseline';
+      element.prepend(probe);
+      const baseline = probe.getBoundingClientRect().top;
+      probe.remove();
+      return baseline;
+    },
+    [selector, index] as const,
+  );
+
+/** The lines an element's text takes and the right edge of its widest line, from its text itself. */
+export const textExtent = (page: Page, selector: string) =>
+  page.evaluate((selector) => {
+    return [...document.querySelectorAll(selector)].map((element) => {
+      const range = document.createRange();
+      range.selectNodeContents(element);
+      const rects = [...range.getClientRects()].filter((rect) => rect.width > 0);
+      return {
+        lines: new Set(rects.map((rect) => Math.round(rect.top))).size,
+        right: Math.max(...rects.map((rect) => rect.right)),
+      };
+    });
+  }, selector);

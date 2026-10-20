@@ -27,14 +27,13 @@ const { href, download } = Astro.props;
   .arrow-link {
     align-items: center;
     display: inline-flex;
-    gap: var(--space-6);
+    gap: var(--step-24);
     justify-content: space-between;
     min-height: 2.75rem;
-    padding-block: 0.4rem;
+    padding-block: var(--step-8);
     font-family: var(--font-mono);
-    font-size: var(--text-label);
-    letter-spacing: var(--tracking-label);
-    text-transform: uppercase;
+    font-size: var(--type-label);
+    line-height: var(--line-label);
     color: var(--blue);
   }
   .arrow-link-symbol {
@@ -43,6 +42,9 @@ const { href, download } = Astro.props;
     fill: none;
     stroke: currentColor;
     stroke-width: 1;
+  }
+  .arrow-link-symbol path {
+    vector-effect: non-scaling-stroke;
   }
   .arrow-link-orbit {
     opacity: 0;

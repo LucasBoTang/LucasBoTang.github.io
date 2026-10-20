@@ -15,7 +15,6 @@ const frames = [
 <SiteLayout
   title="About — decision sign study"
   description="Static comparison of the pixel sign and its proposed second frame."
-  shell="reading"
 >
   <div class="frame-studies shell">
     {frames.map((frame) => (
@@ -137,37 +136,37 @@ const frames = [
 
 <style>
   .frame-studies {
-    padding-block: var(--space-8) var(--space-16);
+    padding-block: var(--step-32) var(--step-64);
   }
   .frame-study + .frame-study {
     margin-top: 5rem;
   }
   .frame-caption {
-    margin: 0 0 var(--space-8);
-    font-size: var(--text-xs);
+    margin: 0 0 var(--step-32);
+    font-size: var(--type-label);
     color: var(--type-dim);
   }
   .frame-study h2 {
-    margin-bottom: var(--space-6);
+    margin-bottom: var(--step-24);
   }
   .frame-composition {
     display: grid;
     gap: clamp(1.25rem, 1.7vw, 1.75rem);
-    grid-template-columns: minmax(0, 1fr) var(--reading-label-column);
+    grid-template-columns: minmax(0, 1fr) 18.75rem;
     padding-right: clamp(0.75rem, 1.5vw, 1.5rem);
   }
   .frame-copy {
     max-width: 72ch;
   }
   .frame-copy p {
-    margin: 0 0 var(--space-4);
-    font-size: var(--text-sm);
-    line-height: var(--leading-prose);
+    margin: 0 0 var(--step-16);
+    font-size: var(--type-body);
+    line-height: var(--line-body);
     color: var(--muted);
   }
   .frame-action {
     display: flex;
-    margin-top: var(--space-4);
+    margin-top: var(--step-16);
   }
   .frame-sign {
     display: block;
@@ -176,7 +175,7 @@ const frames = [
   }
   @media (max-width: 720px) {
     .frame-composition {
-      gap: var(--space-7);
+      gap: var(--step-32);
       grid-template-columns: 1fr;
       padding-right: 0;
     }
@@ -184,7 +183,7 @@ const frames = [
       width: 88%;
     }
     .frame-study + .frame-study {
-      margin-top: var(--space-16);
+      margin-top: var(--step-64);
     }
   }
 </style>

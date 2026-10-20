@@ -3,11 +3,7 @@ import SiteLayout from '../layouts/SiteLayout.astro';
 import AboutSectionStudy from './components/AboutSectionStudy.astro';
 ---
 
-<SiteLayout
-  title="About — material studies"
-  description="About typography and material studies"
-  shell="reading"
->
+<SiteLayout title="About — material studies" description="About typography and material studies">
   <div class="studies">
     <div class="study">
       <p class="caption shell">A · 蓝 / 白 / 灰</p>
@@ -30,7 +26,7 @@ import AboutSectionStudy from './components/AboutSectionStudy.astro';
 
 <style>
   .studies {
-    padding-block: var(--space-8) var(--space-16);
+    padding-block: var(--step-32) var(--step-64);
   }
   .study + .study {
     margin-top: 5rem;
@@ -41,6 +37,6 @@ import AboutSectionStudy from './components/AboutSectionStudy.astro';
     color: var(--type-dim);
   }
   .study :global(.about) {
-    margin-top: var(--space-5);
+    margin-top: var(--step-24);
   }
 </style>

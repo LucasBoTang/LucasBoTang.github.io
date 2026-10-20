@@ -10,7 +10,7 @@ interface Props {
 const { page } = Astro.props;
 ---
 
-<header class="site-header shell">
+<header class="site-header shell page-grid">
   <a
     class="site-header-name"
     href={routes.home}
@@ -30,27 +30,22 @@ const { page } = Astro.props;
         <HeaderRoll direction={index % 2 ? 'up' : 'down'}>{item.label}</HeaderRoll>
       </a>
     ))}
-    <a href={profile.cv} download aria-label="CV (PDF)">
-      <HeaderRoll direction={primaryNavigation.length % 2 ? 'up' : 'down'}>
-        CV <span class="site-header-file-type">(PDF)</span>
-      </HeaderRoll>
-    </a>
   </nav>
 </header>
 
 <style>
+  /* The name on column 1, and the pages flush right from column 6. */
   .site-header {
-    align-items: center;
-    display: flex;
-    gap: var(--space-8);
-    justify-content: space-between;
-    padding-block: var(--space-8);
+    align-items: baseline;
+    padding-block: var(--step-32);
   }
   .site-header-name {
+    grid-column: var(--zone-side);
+    justify-self: start;
     font-family: var(--font-serif);
-    font-size: var(--text-xl);
-    font-weight: 500;
-    letter-spacing: -0.03em;
+    font-size: var(--type-heading);
+    letter-spacing: var(--tracking-title);
+    line-height: var(--line-heading);
     text-decoration: none;
     color: var(--paper);
   }
@@ -86,17 +81,18 @@ const { page } = Astro.props;
   .site-header-dot {
     color: var(--blue);
   }
+  /* The pages read flush right, a size up from the labels: the header's one row of choices. */
   nav {
-    align-items: center;
+    align-items: baseline;
     display: flex;
-    gap: var(--space-8);
+    gap: var(--step-32);
+    grid-column: var(--zone-main-wide);
+    justify-content: flex-end;
     font-family: var(--font-mono);
-    font-size: var(--text-label);
-    letter-spacing: var(--tracking-label);
-    text-transform: uppercase;
+    font-size: var(--type-body);
+    line-height: var(--line-body);
   }
   nav a {
-    padding-block: 0.35rem;
     text-decoration: none;
     color: var(--muted);
   }
@@ -108,35 +104,14 @@ const { page } = Astro.props;
   nav a[aria-current='page'] {
     color: var(--blue);
   }
-  .site-header-file-type {
-    margin-left: 0.2rem;
-    color: var(--muted);
-  }
-  @media (max-width: 600px) {
+  @media (max-width: 720px) {
     .site-header {
-      align-items: flex-start;
-      gap: var(--space-4);
-      padding-block: 1.4rem;
+      row-gap: var(--step-8);
+      padding-block: var(--step-24);
     }
     nav {
       flex-wrap: wrap;
-      gap: var(--space-4);
-      justify-content: flex-end;
-    }
-    .site-header-name {
-      flex-shrink: 0;
-    }
-    .site-header-file-type {
-      display: none;
-    }
-  }
-  @media (max-width: 380px) {
-    .site-header {
-      flex-direction: column;
-      gap: var(--space-3);
-    }
-    nav {
-      gap: 0.65rem;
+      gap: 0 var(--step-24);
       justify-content: flex-start;
     }
   }

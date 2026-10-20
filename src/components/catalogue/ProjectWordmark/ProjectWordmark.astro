@@ -43,11 +43,11 @@ const glyphClasses = [
     min-height: var(--project-height, 112px);
     font-family: var(--font-serif);
     font-optical-sizing: none;
-    font-size: var(--project-size, clamp(2.5rem, 3.6vw, 3rem));
+    font-size: var(--project-size, var(--type-title));
     font-variation-settings: 'opsz' 11;
     font-weight: 450;
     letter-spacing: -0.025em;
-    line-height: 1.15;
+    line-height: var(--line-title);
     text-align: center;
     color: var(--blue);
   }
@@ -104,7 +104,7 @@ const glyphClasses = [
     position: absolute;
     right: -4%;
     height: 2px;
-    margin-top: -1px;
+    margin-top: -1px; /* optical: centres the 2px beam on its line */
     background: var(--signal-light);
     box-shadow:
       0 0 6px color-mix(in srgb, var(--signal-light) 70%, transparent),
@@ -121,8 +121,8 @@ const glyphClasses = [
   @media (max-width: 720px) {
     .project-wordmark {
       min-height: var(--project-height, 100px);
-      padding-block: var(--project-padding, 0.5rem);
-      font-size: var(--project-size, 2.5rem);
+      padding-block: var(--project-padding, var(--step-8));
+      font-size: var(--project-size, var(--type-title));
     }
   }
 </style>

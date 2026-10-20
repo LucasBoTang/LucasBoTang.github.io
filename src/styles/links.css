@@ -3,7 +3,7 @@
   text-decoration: none;
 }
 .link-label {
-  padding-bottom: 0.15rem;
+  padding-bottom: 0.15rem; /* optical: the underline's distance below the letters */
   background: linear-gradient(var(--blue), var(--blue)) 0 100% / 0 1px no-repeat;
   -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
@@ -40,14 +40,14 @@
 @media (pointer: coarse) {
   .resource-links > li > :is(a, button),
   .site-footer-name {
-    padding-block: 0.6rem;
+    padding-block: var(--step-8);
   }
   .site-header nav a {
-    margin-inline: -0.6rem;
-    padding-inline: 0.6rem;
+    margin-inline: calc(-1 * var(--step-8));
+    padding-inline: var(--step-8);
   }
   .research-index nav a {
-    margin-block: -0.35rem;
-    padding-block: 0.35rem;
+    margin-block: calc(-1 * var(--step-8));
+    padding-block: var(--step-8);
   }
 }

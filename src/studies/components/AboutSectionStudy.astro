@@ -75,12 +75,12 @@ const sectionId = study ? `about-${variant}-${texture}` : 'about';
     column-gap: clamp(1.75rem, 3.5vw, 2.75rem);
     display: grid;
     grid-template-columns: minmax(0, 34%) minmax(0, 1fr);
-    margin-top: var(--space-12);
+    margin-top: var(--step-48);
     scroll-margin-top: 2rem;
   }
   .about > h2 {
     grid-column: 1 / -1;
-    margin-bottom: var(--space-6);
+    margin-bottom: var(--step-24);
   }
   .about-fields {
     grid-column: 1;
@@ -127,8 +127,8 @@ const sectionId = study ? `about-${variant}-${texture}` : 'about';
     pointer-events: none;
   }
   .about--negative {
-    column-gap: var(--reading-column-gap);
-    grid-template-columns: var(--reading-label-column) minmax(0, 1fr);
+    column-gap: 4rem;
+    grid-template-columns: 18.75rem minmax(0, 1fr);
   }
   .about--negative .about-fields {
     isolation: isolate;
@@ -151,7 +151,7 @@ const sectionId = study ? `about-${variant}-${texture}` : 'about';
   }
   .about--pixel {
     column-gap: clamp(1.25rem, 1.7vw, 1.75rem);
-    grid-template-columns: minmax(0, 1fr) var(--reading-label-column);
+    grid-template-columns: minmax(0, 1fr) 18.75rem;
     padding-right: clamp(0.75rem, 1.5vw, 1.5rem);
   }
   .about--pixel .about-fields {
@@ -242,7 +242,7 @@ const sectionId = study ? `about-${variant}-${texture}` : 'about';
     padding-top: 0;
   }
   .about--negative .about-action {
-    margin-top: var(--space-4);
+    margin-top: var(--step-16);
   }
   .about-copy {
     grid-column: 2;
@@ -250,10 +250,10 @@ const sectionId = study ? `about-${variant}-${texture}` : 'about';
     padding-top: 0.35rem;
   }
   .about-copy p {
-    margin: 0 0 var(--space-4);
-    font-size: var(--text-sm);
+    margin: 0 0 var(--step-16);
+    font-size: var(--type-body);
     font-weight: 400;
-    line-height: var(--leading-prose);
+    line-height: var(--line-body);
     color: var(--muted);
   }
   .about-copy .text-link--inline {
@@ -262,7 +262,7 @@ const sectionId = study ? `about-${variant}-${texture}` : 'about';
   .about-action {
     display: flex;
     justify-content: flex-start;
-    margin-top: var(--space-5);
+    margin-top: var(--step-24);
   }
   @media (max-width: 720px) {
     .about,
@@ -272,7 +272,7 @@ const sectionId = study ? `about-${variant}-${texture}` : 'about';
       margin-top: 2.75rem;
     }
     .about-fields {
-      margin-bottom: var(--space-7);
+      margin-bottom: var(--step-32);
       width: 88%;
     }
     .about--negative .about-fields {
@@ -292,7 +292,7 @@ const sectionId = study ? `about-${variant}-${texture}` : 'about';
       grid-column: 1;
       grid-row: 3;
       margin-bottom: 0;
-      margin-top: var(--space-7);
+      margin-top: var(--step-32);
     }
   }
 </style>

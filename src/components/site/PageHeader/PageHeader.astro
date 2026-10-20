@@ -5,20 +5,11 @@ interface Props {
   title: string;
   /** One short line on what the page holds, in plain words. */
   description?: string;
-  variant?: 'default' | 'compact' | 'editorial';
 }
-const { title, description, variant = 'default' } = Astro.props;
+const { title, description } = Astro.props;
 ---
 
-<header
-  class:list={[
-    'page-header',
-    {
-      'page-header--compact': variant === 'compact',
-      'page-header--editorial': variant === 'editorial',
-    },
-  ]}
->
+<header class="page-header page-grid">
   <h1 data-reveal="title" aria-label={title}>
     <span class="title-signal signal-slices" data-signal-text={title} aria-hidden="true">
       {title}
@@ -48,50 +39,29 @@ const { title, description, variant = 'default' } = Astro.props;
 </script>
 
 <style>
+  /* The title in Display from column 1, and the lead right under it, free to run over seven
+     columns and wrap. */
   .page-header {
-    align-items: end;
-    display: grid;
-    gap: clamp(2rem, 6vw, 6rem);
-    grid-template-columns: 1.25fr 1fr;
-    padding-bottom: 4.5rem;
-    padding-top: 3.7rem;
+    row-gap: var(--step-32);
+    padding-block: var(--step-64) var(--step-96);
   }
   h1 {
+    grid-column: var(--zone-full);
     margin: 0;
     font-family: var(--font-serif);
     /* A sturdier cut than the display size: its hairlines hold up through the decode and glitch. */
     font-optical-sizing: none;
-    font-size: clamp(3.8rem, 8vw, 7rem);
+    font-size: var(--type-display);
     font-variation-settings: 'opsz' 32;
-    font-weight: 400;
-    letter-spacing: -0.045em;
-    line-height: 0.95;
+    letter-spacing: var(--tracking-display);
+    line-height: var(--line-display);
     color: var(--blue);
   }
   .page-header p {
-    margin: 0 0 0.15rem;
-    max-width: var(--page-header-measure, 45ch);
-    font-size: var(--text-base);
-    line-height: var(--leading-prose);
+    grid-column: var(--zone-lead);
+    margin: 0;
     text-wrap: balance;
     color: var(--muted);
-  }
-  .page-header--compact {
-    gap: var(--space-12);
-    padding-block: var(--space-8) var(--space-10);
-  }
-  .page-header--compact h1,
-  .page-header--editorial h1 {
-    font-size: clamp(3.5rem, 6.2vw, 4.75rem);
-  }
-  .page-header--editorial {
-    display: block;
-    padding-block: 3rem clamp(3.5rem, 6vw, 5.5rem);
-  }
-  .page-header--editorial p {
-    margin: 1.3rem 0 0;
-    max-width: var(--page-header-measure, 49ch);
-    line-height: var(--leading-body);
   }
   /* A title being rewritten stands through the opening gate, so it never leaves the screen. */
   h1[data-title-from] {
@@ -157,26 +127,9 @@ const { title, description, variant = 'default' } = Astro.props;
     }
   }
   @media (max-width: 720px) {
-    h1,
-    .page-header--compact h1,
-    .page-header--editorial h1 {
-      font-size: var(--text-page-mobile);
-    }
     .page-header {
-      gap: var(--space-4);
-      grid-template-columns: 1fr;
-      padding-block: var(--space-6) var(--space-8);
-    }
-    .page-header p {
-      max-width: 46ch;
-      font-size: var(--text-sm);
-    }
-    .page-header--editorial {
-      padding-block: var(--space-7) 2.75rem;
-    }
-    .page-header--editorial p {
-      margin-top: var(--space-4);
-      max-width: 35ch;
+      row-gap: var(--step-16);
+      padding-block: var(--step-24) var(--step-48);
     }
   }
 </style>

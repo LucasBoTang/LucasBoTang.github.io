@@ -16,8 +16,8 @@ const sortedPublications = publicationsByYear(area);
   </h2>
   {/* The question and its introduction read as one passage, so they arrive together. */}
   {(area.question || area.introduction) && (
-    <div data-reveal="unit">
-      {area.question && <p class="research-question">{area.question}</p>}
+    <div class="research-passage" data-reveal="unit">
+      {area.question && <p class="research-question heading-text">{area.question}</p>}
       {area.introduction && <p class="research-introduction">{area.introduction}</p>}
     </div>
   )}
@@ -31,47 +31,67 @@ const sortedPublications = publicationsByYear(area);
 </section>
 
 <style>
+  /* Inside Research's subgrid (columns 5 to 11): the heading and its passage hang from column 5
+     with the years, a column out from the entries, and run across the whole width. */
   .research-section {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
     scroll-margin-top: 2.5rem;
   }
   .research-section + .research-section {
-    margin-top: 6.5rem;
+    margin-top: var(--step-160);
+  }
+  h2,
+  .research-passage {
+    grid-column: 1 / -1;
+  }
+  /* The question may run the whole width; the introduction, running text, keeps six columns. */
+  .research-passage {
+    display: grid;
+    grid-template-columns: subgrid;
+  }
+  .research-question {
+    grid-column: 1 / -1;
+  }
+  .research-introduction {
+    grid-column: 1 / -2;
   }
   h2 {
-    margin: 0 0 var(--space-6);
-    max-width: 24ch;
+    margin: 0 0 var(--step-24);
     font-family: var(--font-serif);
     /* The text cut: at this size the display cut's hairlines, hyphens among them, nearly vanish. */
     font-optical-sizing: none;
-    font-size: clamp(1.9rem, 2.9vw, 2.5rem);
+    font-size: var(--type-title);
     font-variation-settings: 'opsz' 11;
-    font-weight: 400;
-    letter-spacing: -0.035em;
-    line-height: 1.2;
+    letter-spacing: var(--tracking-title);
+    line-height: var(--line-title);
     color: var(--blue);
   }
   .research-question {
-    margin: 0 0 0.8rem;
-    max-width: 58ch;
-    font-size: var(--text-base);
-    line-height: var(--leading-body);
+    margin: 0;
     color: var(--paper);
   }
   .research-introduction {
-    margin: 0 0 2.2rem;
-    max-width: 67ch;
-    font-size: var(--text-sm);
-    line-height: var(--leading-prose);
+    margin: var(--step-16) 0 0;
     color: var(--muted);
   }
   .publication-list {
-    margin: 0;
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
+    margin: var(--step-48) 0 0;
     padding: 0;
     list-style: none;
   }
-  @media (max-width: 600px) {
+  @media (max-width: 720px) {
+    .research-section,
+    .research-passage,
+    .publication-list {
+      display: block;
+    }
     .research-section + .research-section {
-      margin-top: var(--space-16);
+      margin-top: var(--step-96);
     }
   }
 </style>

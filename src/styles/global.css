@@ -25,59 +25,96 @@
 @layer base {
   :root {
     /* Three voices: the serif names things (the name, titles, projects), the mono speaks for the
-       machine (navigation, labels, dates, research topics), and the sans carries what is read. */
+       machine (navigation, labels, dates, research topics), and the sans carries what is read.
+       Five sizes (--type-*), each with its own leading (--line-*) on a 4px baseline; Label has a
+       second leading for blocks of several mono lines, and every text is weight 400. Spacing
+       steps (--step-N) are named by their size in pixels. The page grid has 12 columns in
+       --page-width; the zones (--zone-*) place things on it: text starts on column 1 or column 6,
+       and column 12 stays empty. */
+    --column-gap: 1.5rem;
     --font: 'Instrument Sans Variable', 'Helvetica Neue', sans-serif;
     --font-mono: 'Fragment Mono', ui-monospace, Menlo, Consolas, monospace;
     --font-serif: 'Bodoni Moda Variable', 'Bodoni MT', Didot, Georgia, serif;
-    --tracking-label: 0.06em; /* the mono's capital labels */
-    --rule-line: 1px solid var(--rule);
-    --text-label: 0.75rem; /* 12px: mono capital labels, navigation and metadata */
-    --text-xs: 0.8125rem; /* 13px: authors, venues and fine print */
-    --text-sm: 0.9375rem; /* 15px: secondary copy and section labels */
-    --text-base: 1rem;
-    --text-lg: 1.125rem;
-    --text-xl: 1.375rem; /* the site name in the header */
-    --text-page-mobile: clamp(2.5rem, 10vw, 3.5rem); /* page titles on phones */
-    --leading-compact: 1.5;
-    --leading-body: 1.65;
-    --leading-prose: 1.85;
-    /* Spacing on a 0.25rem grid: --space-N is N × 0.25rem. Values off this grid stay literal. */
-    --space-2: 0.5rem;
-    --space-3: 0.75rem;
-    --space-4: 1rem;
-    --space-5: 1.25rem;
-    --space-6: 1.5rem;
-    --space-7: 1.75rem;
-    --space-8: 2rem;
-    --space-10: 2.5rem;
-    --space-12: 3rem;
-    --space-16: 4rem;
-    --page-width-wide: 1200px;
-    --page-width-reading: 1040px;
-    --page-width: var(--page-width-wide);
     --gutter: clamp(1.4rem, 5.6vw, 6rem);
-    /* Label column and gap shared by the Home sections and the About page. */
-    --reading-label-column: 18.75rem;
-    --reading-column-gap: 4rem;
+    /* The item rule, drawn as a background on a full-width grid entry: a quiet line from column 6
+       to the right edge, so the column of names and wordmarks is never crossed. */
+    --item-rule: linear-gradient(var(--rule-item), var(--rule-item)) right top /
+      calc(100% - 5 * ((100% - 11 * var(--column-gap)) / 12 + var(--column-gap))) 1px no-repeat;
+    --line-body: 1.75rem;
+    --line-display: var(--type-display);
+    --line-heading: 2rem;
+    --line-label: 1rem;
+    --line-label-block: 1.25rem;
+    --line-name: var(--type-name);
+    --line-title: 3.5rem;
+    --page-width: 75rem;
+    --rule-line: 1px solid var(--rule);
+    --step-16: 1rem;
+    --step-160: 10rem;
+    --step-24: 1.5rem;
+    --step-32: 2rem;
+    --step-48: 3rem;
+    --step-64: 4rem;
+    --step-8: 0.5rem;
+    --step-96: 6rem;
+    --tracking-caps: 0.08em; /* section labels, the only uppercase */
+    --tracking-display: -0.05em;
+    --tracking-heading: -0.01em;
+    --tracking-mono-heading: -0.02em;
+    --tracking-title: -0.03em;
+    --type-body: 1rem;
+    --type-display: 6rem;
+    --type-heading: 1.5rem;
+    --type-label: 0.75rem;
+    /* The home name keeps its own size, a step under Display: the owner's call. */
+    --type-name: 4.5rem;
+    --type-title: 3rem;
+    --zone-full: 1 / -1;
+    /* The main zone with the margin column before it, where the Research years hang. */
+    --zone-hanging: 5 / 12;
+    --zone-index: 1 / 5;
+    /* Running text spans six columns, about 66 characters; Home's About copy keeps seven. */
+    --zone-lead: 1 / 7;
+    --zone-lead-wide: 1 / 8;
+    --zone-main: 6 / 12;
+    --zone-main-wide: 6 / 13;
+    --zone-plate: 9 / 12;
+    --zone-portrait: 2 / 5;
+    --zone-side: 1 / 6;
     color-scheme: dark;
   }
+  /* Below 900px the columns narrow, so Display and Title step down. */
   @media (max-width: 900px) {
     :root {
-      --reading-column-gap: 3rem;
-      --reading-label-column: 17rem;
+      --line-title: 2.5rem;
+      --type-display: 4.5rem;
+      --type-name: 4rem;
+      --type-title: 2rem;
     }
   }
-  /* Every page shares one left edge, the header's: a reading page keeps that edge and only
-     narrows its content to a reading measure, so moving between pages never shifts anything. */
-  body[data-shell='reading'] main .shell {
-    margin-left: max(var(--gutter), calc((100% - var(--page-width)) / 2));
-    width: min(calc(100% - var(--gutter) * 2), var(--page-width-reading));
+  /* Phones: one column, so every zone spans it, and Heading and Display step down again. */
+  @media (max-width: 720px) {
+    :root {
+      --item-rule: linear-gradient(var(--rule-item), var(--rule-item)) left top / 100% 1px no-repeat;
+      --line-heading: 1.75rem;
+      --type-display: 3.5rem;
+      --type-heading: 1.25rem;
+      --zone-hanging: 1 / -1;
+      --zone-index: 1 / -1;
+      --zone-lead: 1 / -1;
+      --zone-lead-wide: 1 / -1;
+      --zone-main: 1 / -1;
+      --zone-main-wide: 1 / -1;
+      --zone-plate: 1 / -1;
+      --zone-portrait: 1 / -1;
+      --zone-side: 1 / -1;
+    }
   }
   body {
     font-family: var(--font);
     -webkit-font-smoothing: antialiased;
     font-weight: 400;
-    line-height: var(--leading-body);
+    line-height: var(--line-body);
     background: var(--ink);
     color: var(--paper);
   }
@@ -103,24 +140,54 @@
   h3 {
     overflow-wrap: break-word;
   }
+  /* Hierarchy comes from size alone: headings and emphasis keep the text's weight. */
+  h1,
+  h2,
+  h3,
+  strong {
+    font-weight: 400;
+  }
   .shell {
     margin-inline: auto;
     width: min(calc(100% - var(--gutter) * 2), var(--page-width));
   }
+  .page-grid {
+    column-gap: var(--column-gap);
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+  }
+  /* The label voice: navigation, buttons, links, venues, dates and roles. */
+  .label-text {
+    font-family: var(--font-mono);
+    font-size: var(--type-label);
+    line-height: var(--line-label);
+  }
+  /* The heading voice: the titles of entries, and the questions the research areas ask. */
+  .heading-text {
+    font-size: var(--type-heading);
+    letter-spacing: var(--tracking-heading);
+    line-height: var(--line-heading);
+  }
+  /* Uppercase marks sections, and nothing else. */
   .section-label {
     margin: 0;
     font-family: var(--font-mono);
-    font-size: var(--text-label);
-    font-weight: 400;
-    letter-spacing: var(--tracking-label);
+    font-size: var(--type-label);
+    letter-spacing: var(--tracking-caps);
+    line-height: var(--line-label);
     text-transform: uppercase;
+  }
+  @media (max-width: 720px) {
+    .page-grid {
+      grid-template-columns: minmax(0, 1fr);
+    }
   }
   .skip-link {
     left: var(--gutter);
     position: absolute;
-    top: var(--space-4);
+    top: var(--step-16);
     z-index: 10;
-    padding: 0.6rem var(--space-4);
+    padding: var(--step-8) var(--step-16);
     background: var(--paper);
     color: var(--ink);
     transform: translateY(-200%);

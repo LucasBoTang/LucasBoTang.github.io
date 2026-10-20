@@ -5,7 +5,12 @@ import { routes } from '../../../data/navigation';
 import { profile } from '../../../data/profile';
 ---
 
-<section class="about shell" id="about" aria-labelledby="about-title" data-opening-part="about">
+<section
+  class="about shell page-grid"
+  id="about"
+  aria-labelledby="about-title"
+  data-opening-part="about"
+>
   <h2 class="section-label" id="about-title">
     About
   </h2>
@@ -24,64 +29,66 @@ import { profile } from '../../../data/profile';
       I develop machine learning methods and scalable algorithms for mathematical optimization, with
       a focus on GPU-accelerated optimization, learning to optimize, and decision-focused learning.
     </p>
-    <div class="about-action">
-      <ArrowLink href={routes.about}>More about me</ArrowLink>
-    </div>
+  </div>
+  <div class="about-action">
+    <ArrowLink href={routes.about}>More about me</ArrowLink>
   </div>
 </section>
 
 <style>
+  /* The copy runs over columns 1 to 7 and the sign hangs in columns 9 to 11, the mirror of the
+     portrait's columns, so the page ends turning the other way from the hero and the work. */
   .about {
-    column-gap: clamp(1.25rem, 1.7vw, 1.75rem);
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) var(--reading-label-column);
-    margin-top: var(--space-12);
-    padding-right: clamp(0.75rem, 1.5vw, 1.5rem);
+    align-items: start;
+    margin-top: var(--step-160);
     scroll-margin-top: 2rem;
   }
   .about > h2 {
-    grid-column: 1 / -1;
-    margin-bottom: var(--space-6);
+    grid-column: var(--zone-full);
+    border-top: var(--rule-line);
+    margin-bottom: var(--step-64);
+    padding-top: var(--step-24);
   }
+  /* Like the wordmarks above, the sign is set in the middle of its field: here, level with the
+     middle of the copy. */
   .about-fields {
-    align-self: start;
-    grid-column: 2;
+    align-self: center;
+    grid-column: var(--zone-plate);
     grid-row: 2;
-    width: 100%;
   }
   .about-copy {
-    grid-column: 1;
+    grid-column: var(--zone-lead-wide);
     grid-row: 2;
-    max-width: 72ch;
   }
   .about-copy p {
-    margin: 0 0 var(--space-4);
-    font-size: var(--text-sm);
-    font-weight: 400;
-    line-height: var(--leading-prose);
+    margin: 0;
     color: var(--muted);
+  }
+  .about-copy p + p {
+    margin-top: var(--step-24);
   }
   .about-copy .text-link--inline {
     white-space: nowrap;
   }
+  /* The link follows on a row of its own, so the sign centres on the two paragraphs alone. */
   .about-action {
     display: flex;
+    grid-column: var(--zone-lead-wide);
+    grid-row: 3;
     justify-content: flex-start;
-    margin-top: var(--space-4);
+    margin-top: var(--step-32);
   }
   @media (max-width: 720px) {
     .about {
-      gap: 0;
-      grid-template-columns: 1fr;
-      margin-top: 2.75rem;
-      padding-right: 0;
+      margin-top: var(--step-96);
     }
+    .about > h2 {
+      margin-bottom: var(--step-32);
+    }
+    /* In one column the sign runs the width of the text above it, edge to edge. */
     .about-fields {
-      grid-column: 1;
-      grid-row: 3;
-      margin-inline: auto;
-      margin-top: var(--space-7);
-      width: 88%;
+      grid-row: 4;
+      margin-top: var(--step-48);
     }
   }
 </style>

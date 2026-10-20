@@ -1,6 +1,7 @@
 ---
 import SiteLayout from '../layouts/SiteLayout.astro';
 import PageHeader from '../components/site/PageHeader/PageHeader.astro';
+import ArrowLink from '../components/ui/ArrowLink.astro';
 import { profile } from '../data/profile';
 ---
 
@@ -8,12 +9,15 @@ import { profile } from '../data/profile';
   title="About — Bo Tang"
   description="Bo Tang's research on machine learning and mathematical optimization, and his background at MIT, the University of Toronto, and PNNL."
   page="about"
-  shell="reading"
   opening="reveal"
 >
   <div class="shell about-page">
-    <PageHeader title="About" description="Who I am and what I work on." variant="editorial" />
-    <section class="about-row about-section" aria-labelledby="research-heading" data-reveal="unit">
+    <PageHeader title="About" description="Who I am and what I work on." />
+    <section
+      class="about-row about-section page-grid"
+      aria-labelledby="research-heading"
+      data-reveal="unit"
+    >
       <h2 class="section-label" id="research-heading">
         Research
       </h2>
@@ -40,7 +44,7 @@ import { profile } from '../data/profile';
       </div>
     </section>
     <section
-      class="about-row about-section"
+      class="about-row about-section page-grid"
       aria-labelledby="background-heading"
       data-reveal="unit"
     >
@@ -69,46 +73,56 @@ import { profile } from '../data/profile';
         </p>
       </div>
     </section>
+    <section
+      class="about-row about-section page-grid"
+      aria-labelledby="cv-heading"
+      data-reveal="unit"
+    >
+      <h2 class="section-label" id="cv-heading">
+        CV
+      </h2>
+      <div class="about-prose">
+        <ArrowLink href={profile.cv} download>
+          Download <span class="about-cv-file-type">(PDF)</span>
+        </ArrowLink>
+      </div>
+    </section>
   </div>
 </SiteLayout>
 
 <style>
-  .about-page {
-    --about-measure: 62ch;
-    --page-header-measure: var(--about-measure);
-  }
-  .about-row {
-    column-gap: var(--reading-column-gap);
-    display: grid;
-    grid-template-columns: var(--reading-label-column) minmax(0, 1fr);
-  }
+  /* Each section opens with a rule, the label a step under it on column 1 and the prose beside it
+     on column 6; sections stand 160px apart, as they do on every page. */
   .about-section {
+    align-items: baseline;
     border-top: var(--rule-line);
-    padding-block: var(--space-8);
+    padding-top: var(--step-24);
+  }
+  .about-section + .about-section {
+    margin-top: var(--step-160);
   }
   h2 {
-    line-height: var(--leading-prose);
+    grid-column: var(--zone-side);
+  }
+  .about-prose {
+    grid-column: var(--zone-main);
   }
   p {
     margin: 0;
-    max-width: var(--about-measure);
-    font-size: var(--text-base);
-    line-height: var(--leading-prose);
     color: var(--muted);
   }
   .about-prose p + p {
-    margin-top: var(--space-6);
+    margin-top: var(--step-24);
+  }
+  .about-cv-file-type {
+    color: var(--muted);
   }
   @media (max-width: 720px) {
-    .about-row {
-      gap: var(--space-6);
-      grid-template-columns: minmax(0, 1fr);
-    }
     .about-section {
-      padding-block: var(--space-7);
+      row-gap: var(--step-24);
     }
-    p {
-      font-size: var(--text-sm);
+    .about-section + .about-section {
+      margin-top: var(--step-96);
     }
   }
 </style>

@@ -22,7 +22,7 @@ const { id, title, bibtex } = Astro.props;
     <span class="link-label">Bib</span>
   </button>
   <dialog class="bibtex-dialog" id={id} aria-label={`BibTeX: ${title}`}>
-    <div class="bibtex-bar">
+    <div class="bibtex-bar label-text">
       <span class="bibtex-name">BibTeX</span>
       <button class="bibtex-action" type="button" aria-label="Copy BibTeX" data-bibtex-copy>
         <svg class="bibtex-icon bibtex-icon-copy" viewBox="0 0 16 16" aria-hidden="true">
@@ -49,13 +49,11 @@ const { id, title, bibtex } = Astro.props;
 </script>
 
 <style>
-  /* Bib is set as the links beside it; the dialog sets its own text. */
+  /* Bib is set as the links beside it. */
   button {
     border: 0;
     padding: 0;
     font: inherit;
-    letter-spacing: inherit;
-    text-transform: inherit;
     background: none;
     color: var(--blue);
     cursor: pointer;
@@ -67,8 +65,6 @@ const { id, title, bibtex } = Astro.props;
     max-height: calc(100dvh - 4rem);
     padding: 0;
     width: min(46rem, calc(100vw - 2rem));
-    letter-spacing: normal;
-    text-transform: none;
     background: var(--ink);
     color: var(--paper);
   }
@@ -83,13 +79,9 @@ const { id, title, bibtex } = Astro.props;
   .bibtex-bar {
     align-items: center;
     display: flex;
-    gap: 0.4rem;
+    gap: var(--step-8);
     border-bottom: var(--rule-line);
-    padding: 0.55rem 0.7rem 0.55rem 1.2rem;
-    font-family: var(--font-mono);
-    font-size: var(--text-label);
-    letter-spacing: var(--tracking-label);
-    text-transform: uppercase;
+    padding: var(--step-8) var(--step-8) var(--step-8) var(--step-24);
   }
   .bibtex-name {
     margin-right: auto;
@@ -111,7 +103,10 @@ const { id, title, bibtex } = Astro.props;
     width: 1rem;
     fill: none;
     stroke: currentColor;
-    stroke-width: 1.2;
+    stroke-width: 1;
+  }
+  .bibtex-icon :is(path, rect) {
+    vector-effect: non-scaling-stroke;
   }
   .bibtex-icon-copied,
   [data-copied] .bibtex-icon-copy {
@@ -132,18 +127,22 @@ const { id, title, bibtex } = Astro.props;
   pre {
     margin: 0;
     overflow: auto;
-    padding: 1.1rem 1.2rem 1.3rem;
+    padding: var(--step-24);
     font-family: var(--font-mono);
-    font-size: var(--text-xs);
-    line-height: 1.6;
+    font-size: var(--type-label);
+    line-height: var(--line-label-block);
     tab-size: 2;
     color: var(--body-copy);
+  }
+  /* The browser's own monospace would otherwise win on the code. */
+  code {
+    font: inherit;
   }
   /* The entry prints in as a terminal's output does (bibtex-dialog.ts), behind a block cursor. */
   code :global(.bibtex-cursor) {
     display: inline-block;
     height: 1.1em;
-    margin-left: 1px;
+    margin-left: 1px; /* optical: the cursor just clear of the last character */
     width: 0.55em;
     vertical-align: -0.2em;
     background: var(--body-copy);

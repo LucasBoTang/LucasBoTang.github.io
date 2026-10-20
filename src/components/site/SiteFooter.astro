@@ -7,53 +7,57 @@ import { profile } from '../../data/profile';
 const year = new Date().getFullYear();
 ---
 
-<footer class="site-footer shell">
-  <div>
+<footer class="site-footer shell page-grid">
+  <div class="site-footer-identity">
     <a class="site-footer-name" href={routes.home}>
       {profile.name}
     </a>
-    <p>{profile.location}</p>
-    <p>© {year}</p>
+    <p class="label-text">
+      {profile.location} · © {year}
+    </p>
   </div>
   <ContactLinks placement="footer" />
 </footer>
 
 <style>
+  /* The header's mirror: the name and place on column 1, the contact links flush right, both
+     resting on the line of the place. */
   .site-footer {
-    align-items: flex-end;
-    display: flex;
-    gap: var(--space-8);
-    justify-content: space-between;
+    align-items: last baseline;
     border-top: var(--rule-line);
-    margin-top: 6rem;
-    padding-block: 2.2rem 2.6rem;
-    font-size: var(--text-xs);
+    margin-top: var(--step-160);
+    padding-block: var(--step-32) var(--step-48);
+  }
+  .site-footer-identity {
+    grid-column: var(--zone-side);
   }
   .site-footer-name {
     font-family: var(--font-serif);
-    font-size: var(--text-base);
-    font-weight: 500;
-    letter-spacing: -0.02em;
+    font-size: var(--type-heading);
+    letter-spacing: var(--tracking-title);
+    line-height: var(--line-heading);
     text-decoration: none;
     color: var(--paper);
   }
   p {
-    margin: var(--space-2) 0 0;
-    font-family: var(--font-mono);
-    font-size: var(--text-label);
-    letter-spacing: var(--tracking-label);
-    text-transform: uppercase;
+    margin: var(--step-8) 0 0;
     color: var(--muted);
   }
-  @media (max-width: 600px) {
+  .site-footer :global(.contact-links--footer) {
+    grid-column: var(--zone-main-wide);
+    justify-content: flex-end;
+  }
+  @media (max-width: 720px) {
     .site-footer {
-      align-items: flex-start;
-      flex-direction: column;
-      margin-top: var(--space-16);
+      row-gap: var(--step-24);
+      margin-top: var(--step-96);
     }
-    /* In one column the links follow the name and address down the same left edge. */
+    /* Four links do not fit one phone row, so they take two even ones. */
     .site-footer :global(.contact-links--footer) {
-      justify-content: flex-start;
+      display: grid;
+      gap: var(--step-8) var(--step-32);
+      grid-template-columns: repeat(2, max-content);
+      justify-content: start;
     }
   }
 </style>

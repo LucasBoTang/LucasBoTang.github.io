@@ -14,7 +14,10 @@ const { entry, variant } = item;
 ---
 
 <article
-  class:list={['software-entry', { 'software-entry--compact': variant === 'contribution' }]}
+  class:list={[
+    'software-entry page-grid',
+    { 'software-entry--compact': variant === 'contribution' },
+  ]}
   id={entry.id}
   aria-labelledby={`${entry.id}-title`}
   data-reveal={reveal ? 'unit' : undefined}
@@ -26,9 +29,11 @@ const { entry, variant } = item;
     {item.variant === 'project' ? (
       <ProjectWordmark name={entry.name} id={`${entry.id}-title`} wordmark={item.entry.wordmark} />
     ) : (
-      <h3 id={`${entry.id}-title`}>{entry.name}</h3>
+      <h3 class="heading-text" id={`${entry.id}-title`}>
+        {entry.name}
+      </h3>
     )}
-    {entry.role && <p class="entry-role">{entry.role}</p>}
+    {entry.role && <p class="entry-role label-text">{entry.role}</p>}
   </div>
   <div class="entry-details">
     <p class="entry-description">{entry.description}</p>
@@ -37,52 +42,50 @@ const { entry, variant } = item;
 </article>
 
 <style>
+  /* The name and role on column 1, the description and links on column 6; the wordmark and the
+     description share a first baseline. Rules part the entries, not the label from the first. */
   .software-entry {
     --project-align: flex-start;
     --project-height: 0px;
     --project-origin: left center;
     --project-padding: 0px;
-    --project-size: clamp(2rem, 3.6vw, 2.5rem);
-    align-items: start;
-    column-gap: var(--software-gap);
-    display: grid;
-    grid-template-columns: var(--software-columns);
-    border-top: var(--rule-line);
-    padding-block: var(--space-7);
+    align-items: baseline;
+    padding-block: var(--step-48);
     scroll-margin-top: 2.5rem;
+  }
+  .software-entry + .software-entry {
+    background: var(--item-rule);
+  }
+  .entry-identity {
+    grid-column: var(--zone-side);
   }
   .entry-role {
     margin: 0;
-    padding-top: var(--space-3);
-    font-family: var(--font-mono);
-    font-size: var(--text-label);
-    letter-spacing: var(--tracking-label);
-    line-height: var(--leading-compact);
-    text-transform: uppercase;
+    padding-top: var(--step-16);
     color: var(--muted);
   }
+  .entry-details {
+    grid-column: var(--zone-main);
+  }
   .entry-description {
-    margin: 0 0 var(--space-4);
-    max-width: 60ch;
-    font-size: var(--text-sm);
-    line-height: var(--leading-prose);
+    margin: 0 0 var(--step-24);
     color: var(--body-copy);
   }
+  /* Contributions are a short list read at a glance: space parts them, not rules. */
   .software-entry.software-entry--compact {
-    padding-block: var(--space-5);
+    padding-block: var(--step-16);
+  }
+  .software-entry--compact + .software-entry--compact {
+    background: none;
   }
   .software-entry--compact h3 {
     margin: 0;
-    font-size: var(--text-lg);
-    font-weight: 500;
-    letter-spacing: -0.035em;
-    line-height: var(--leading-compact);
     color: var(--paper);
   }
   .software-entry--compact .entry-details {
     align-items: baseline;
     display: grid;
-    gap: var(--space-5);
+    gap: var(--step-24);
     grid-template-columns: minmax(0, 1fr) auto;
   }
   .software-entry--compact .entry-description {
@@ -91,14 +94,14 @@ const { entry, variant } = item;
   }
   @media (max-width: 720px) {
     .software-entry {
-      row-gap: var(--space-4);
-      padding-block: var(--space-6);
+      row-gap: var(--step-16);
+      padding-block: var(--step-32);
     }
     .software-entry.software-entry--compact {
-      row-gap: 0.7rem;
+      row-gap: var(--step-8);
     }
     .software-entry--compact .entry-details {
-      gap: 0.65rem;
+      gap: var(--step-8);
       grid-template-columns: minmax(0, 1fr);
     }
   }

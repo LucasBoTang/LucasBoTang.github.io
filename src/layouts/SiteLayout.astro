@@ -19,8 +19,6 @@ interface Props {
   title: string;
   description: string;
   page?: PageId;
-  /** The content's width; the header and footer stay wide on every page. */
-  shell?: 'wide' | 'reading';
   /**
    * Hide the site header, footer and `[data-opening-content]` until the opening starts (the gate
    * lifts after 2.5s regardless; see `src/lib/opening-gate.ts`).
@@ -29,7 +27,7 @@ interface Props {
    */
   opening?: 'reveal' | 'custom';
 }
-const { title, description, page, shell = 'wide', opening } = Astro.props;
+const { title, description, page, opening } = Astro.props;
 // Fonts visible in the first screen of each page, fetched before the stylesheet asks for them.
 const preloadFonts: Partial<Record<PageId, string[]>> = {
   home: [serifFont, monoFont],
@@ -135,7 +133,7 @@ const shareImage =
       }
     </script>}
   </head>
-  <body data-shell={shell}>
+  <body>
     <a class="skip-link" href="#main">
       Skip to content
     </a>

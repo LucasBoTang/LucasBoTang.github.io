@@ -12,12 +12,12 @@ const resources = publication.links.filter((link) => link.label !== 'Paper');
 ---
 
 <li class="publication" id={publication.id} data-reveal="unit" data-arrival="cascade">
-  <div class="publication-year">
+  <div class="publication-year label-text">
     {publication.year}
     {publication.status === 'Preprint' && <span>{publication.status}</span>}
   </div>
   <div class="publication-body">
-    <h3>
+    <h3 class="heading-text">
       <a class="publication-title-link" href={getPaperUrl(publication)}>
         {publication.title}
       </a>
@@ -30,7 +30,7 @@ const resources = publication.links.filter((link) => link.label !== 'Paper');
         </>
       ))}
     </p>
-    <p class="publication-venue">{formatVenue(publication)}</p>
+    <p class="publication-venue label-text">{formatVenue(publication)}</p>
     <ResourceLinks links={resources} context={publication.title}>
       <BibtexDialog
         id={`${publication.id}-bibtex`}
@@ -42,67 +42,61 @@ const resources = publication.links.filter((link) => link.label !== 'Paper');
 </li>
 
 <style>
+  /* Spans Research's subgrid: the year hangs in column 5, the entry starts on column 6, and the
+     two share a first baseline. */
   .publication {
+    align-items: baseline;
     display: grid;
-    gap: var(--space-4);
-    grid-template-columns: 4.5rem minmax(0, 1fr);
-    border-top: var(--rule-line);
-    padding-block: 1.6rem;
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
+    border-top: 1px solid var(--rule-item);
+    padding-block: var(--step-32);
     scroll-margin-top: 2rem;
   }
   .publication-year {
-    padding-top: 0.25rem;
-    font-family: var(--font-mono);
-    font-size: var(--text-label);
-    letter-spacing: var(--tracking-label);
-    text-transform: uppercase;
     color: var(--muted);
   }
   .publication-year span {
     display: block;
-    margin-top: 0.45rem;
+    margin-top: var(--step-8);
+  }
+  .publication-body {
+    grid-column: 2 / -1;
+    min-width: 0;
   }
   h3 {
-    margin: 0 0 0.7rem;
-    font-size: var(--text-lg);
-    font-weight: 500;
-    letter-spacing: -0.02em;
-    line-height: var(--leading-compact);
+    margin: 0;
     text-wrap: pretty;
   }
   .publication-title-link {
     text-decoration: none;
   }
-  .publication-authors,
-  .publication-venue {
-    margin: 0;
-    font-size: var(--text-xs);
-    line-height: var(--leading-prose);
+  .publication-authors {
+    margin: var(--step-16) 0 0;
     color: var(--muted);
   }
   .publication-authors strong {
-    font-weight: 500;
     color: var(--paper);
   }
+  /* A venue can run to two lines, so it takes the label's leading for blocks. */
   .publication-venue {
-    margin: 0.1rem 0 var(--space-3);
+    margin: var(--step-8) 0 var(--step-24);
+    line-height: var(--line-label-block);
+    color: var(--muted);
   }
-  @media (max-width: 600px) {
+  /* Below 900px column 5 is narrower than "Preprint", so the year and status read as one line
+     above the title instead. */
+  @media (max-width: 900px) {
     .publication {
-      gap: 0.55rem;
-      /* The column may not grow to the BibTeX's longest line, which scrolls instead. */
-      grid-template-columns: minmax(0, 1fr);
+      display: block;
     }
     .publication-year {
-      align-items: center;
       display: flex;
-      gap: 0.7rem;
+      gap: var(--step-8);
+      margin-bottom: var(--step-8);
     }
     .publication-year span {
       margin: 0;
-    }
-    h3 {
-      font-size: var(--text-base);
     }
   }
 </style>
