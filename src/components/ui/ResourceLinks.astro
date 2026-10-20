@@ -21,7 +21,9 @@ const { links, context } = Astro.props;
 </ul>
 
 <style>
+  /* The links share a baseline, whatever room each is given around its label. */
   .resource-links {
+    align-items: baseline;
     display: flex;
     flex-wrap: wrap;
     gap: var(--step-8) var(--step-24);

@@ -96,15 +96,18 @@ test.describe('on a touch screen', () => {
     await page.goto('/research/');
     const items = page.locator('#h-pdlp .resource-links > li > :is(a, button)');
     const boxes = await items.evaluateAll((elements) =>
-      elements.map((element) => ({
-        label: element.querySelector('.link-label')!.getBoundingClientRect().top,
-        height: element.getBoundingClientRect().height,
-      })),
+      elements.map((element) => {
+        const label = element.querySelector('.link-label')!.getBoundingClientRect();
+        const box = element.getBoundingClientRect();
+        return { label: label.top, height: box.height, reach: box.width - label.width };
+      }),
     );
     expect(boxes.length).toBeGreaterThan(1);
     for (const box of boxes) {
       expect(Math.abs(box.label - boxes[0].label)).toBeLessThan(1);
       expect(box.height).toBeGreaterThanOrEqual(28);
+      // A step of room on either side of the word.
+      expect(box.reach).toBeGreaterThanOrEqual(16);
     }
   });
 });

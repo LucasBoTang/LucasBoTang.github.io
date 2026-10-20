@@ -48,6 +48,12 @@
     margin-block: calc(-1 * var(--step-8));
     padding-block: var(--step-8);
   }
+  /* Resource links are short words, so each also reaches a step to either side; the gap between
+     them still leaves a step that belongs to neither. */
+  .resource-links > li > :is(a, button) {
+    margin-inline: calc(-1 * var(--step-8));
+    padding-inline: var(--step-8);
+  }
   .site-header nav a {
     margin-inline: calc(-1 * var(--step-8));
     padding-inline: var(--step-8);
