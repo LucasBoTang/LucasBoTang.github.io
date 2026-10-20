@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { routes } from '../../src/data/navigation';
 
 // The motion's cost, kept from creeping back. The first checks count work the page should never
 // do, so they hold on any machine. The last measure time on a CPU slowed four times, as an ordinary
@@ -68,10 +69,9 @@ test('every other page is fetched ahead, so moving to it waits for no network', 
 }) => {
   const fetched = new Set<string>();
   page.on('requestfinished', (request) => fetched.add(new URL(request.url()).pathname));
-  await page.goto('/research/');
-  await expect
-    .poll(() => ['/', '/software/', '/about/'].filter((path) => !fetched.has(path)))
-    .toEqual([]);
+  await page.goto(routes.research);
+  const others = Object.values(routes).filter((route) => route !== routes.research);
+  await expect.poll(() => others.filter((route) => !fetched.has(route))).toEqual([]);
   await page.locator('nav a[href="/software/"]').click();
   await page.waitForURL('**/software/');
   const { transferSize, encodedBodySize } = await page.evaluate(() => {

@@ -1,4 +1,4 @@
-import { enhance } from './lifecycle';
+import { enhance, onScrollFrame } from './lifecycle';
 
 // On screens without hover, a lit unit (`data-lit`, motion.css) is lit while it is the one being
 // read instead: the unit across the middle of the window, or failing that the nearest one within a
@@ -13,7 +13,6 @@ const units = () => [...document.querySelectorAll<HTMLElement>('[data-lit]')];
 enhance('body', () => {
   if (!units().length) return;
   let focused: HTMLElement | undefined;
-  let frame = 0;
 
   const focus = (unit?: HTMLElement) => {
     if (unit === focused) return;
@@ -23,7 +22,6 @@ enhance('body', () => {
   };
   /** Marks the unit being read, or none where a pointer can point instead. */
   const update = () => {
-    frame = 0;
     if (hoverQuery.matches) return focus(undefined);
     const middle = innerHeight / 2;
     let nearest: HTMLElement | undefined;
@@ -35,12 +33,7 @@ enhance('body', () => {
     }
     focus(nearest);
   };
-  const schedule = () => {
-    if (!frame) frame = requestAnimationFrame(update);
-  };
-  addEventListener('scroll', schedule, { passive: true });
-  addEventListener('resize', schedule);
-  hoverQuery.addEventListener('change', schedule);
+  hoverQuery.addEventListener('change', onScrollFrame(update));
   addEventListener('pointerup', (event) => {
     if (event.pointerType !== 'touch' || hoverQuery.matches) return;
     const unit = (event.target as Element | null)?.closest<HTMLElement>('[data-lit]');

@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync } from 'node:fs';
-import { join } from 'node:path';
+import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
+import { filesUnder } from '../../scripts/files.mjs';
 
 const css = readFileSync(new URL('../../src/styles/global.css', import.meta.url), 'utf8');
 
@@ -48,19 +48,10 @@ test('defines the page grid', () => {
 const OLD_TOKEN =
   /--(text-(label|xs|sm|base|lg|xl|page-mobile)|space-\d|leading-(compact|body|prose)|tracking-label|reading-|page-width-(wide|reading))\b/;
 
-/** Every source file under a directory. */
-const sourceFiles = (directory) =>
-  readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
-    const path = join(directory, entry.name);
-    return entry.isDirectory()
-      ? sourceFiles(path)
-      : /\.(astro|css|ts)$/.test(entry.name)
-        ? [path]
-        : [];
-  });
-
 test('the old tokens are gone', () => {
   const src = fileURLToPath(new URL('../../src', import.meta.url));
-  const stale = sourceFiles(src).filter((path) => OLD_TOKEN.test(readFileSync(path, 'utf8')));
+  const stale = filesUnder(src, /\.(astro|css|ts)$/).filter((path) =>
+    OLD_TOKEN.test(readFileSync(path, 'utf8')),
+  );
   assert.deepEqual(stale, []);
 });

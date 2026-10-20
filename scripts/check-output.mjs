@@ -5,7 +5,7 @@ import { parseHTML } from 'linkedom';
 import { openingParts } from '../src/components/home/opening/opening.ts';
 import { theme } from '../src/data/theme.ts';
 import { siteContent } from './site-content.mjs';
-import { validateOutput } from './validate-output.mjs';
+import { pageFiles, validateOutput } from './validate-output.mjs';
 
 const result = validateOutput(fileURLToPath(new URL('../dist/', import.meta.url)), siteContent);
 console.log(
@@ -28,13 +28,7 @@ for (const paragraph of about.querySelectorAll('.page-header p, .about-prose p')
 const missing = readPage('404.html');
 assert.equal(missing.querySelector('meta[name="robots"]').content, 'noindex');
 assert.equal(missing.querySelectorAll('[aria-current="page"]').length, 0);
-for (const file of [
-  'index.html',
-  'about/index.html',
-  'research/index.html',
-  'software/index.html',
-  '404.html',
-]) {
+for (const file of [...pageFiles, '404.html']) {
   const document = readPage(file);
   for (const p of document.querySelectorAll('.page-header p')) assert.ok(p.textContent.trim());
   assert.ok(document.querySelector('meta[property="og:site_name"]'));

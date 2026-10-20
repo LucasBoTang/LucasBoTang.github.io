@@ -1,12 +1,13 @@
 // Keeps every page on the type system: five sizes with their leadings, weight 400, tracking from
 // the tokens, uppercase only for section labels, and spacing from the step scale.
 // `node scripts/type-system.mjs` reports what breaks it; src/studies is outside the system.
-import { readFileSync, readdirSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { filesUnder } from './files.mjs';
 
 /** Artwork sets its own letters inside a box that the grid places: no size, weight or tracking rule. */
-export const ARTWORK = new Set([
+const ARTWORK = new Set([
   'src/components/catalogue/ProjectWordmark/ProjectWordmark.astro',
   'src/components/home/AboutSection/DecisionSign.astro',
 ]);
@@ -70,18 +71,10 @@ export function checkTypeSystem(path, text) {
   return found;
 }
 
-function styleFiles(directory) {
-  return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
-    const path = join(directory, entry.name);
-    if (entry.isDirectory()) return entry.name === 'studies' ? [] : styleFiles(path);
-    return /\.(astro|css)$/.test(entry.name) ? [path] : [];
-  });
-}
-
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const root = fileURLToPath(new URL('..', import.meta.url));
   const report = [];
-  for (const file of styleFiles(join(root, 'src'))) {
+  for (const file of filesUnder(join(root, 'src'), /\.(astro|css)$/, ['studies'])) {
     const path = relative(root, file).split(sep).join('/');
     const found = checkTypeSystem(path, readFileSync(file, 'utf8'));
     if (found.length) report.push(`${path}\n    ${found.join('\n    ')}`);

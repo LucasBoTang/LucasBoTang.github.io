@@ -1,8 +1,9 @@
 // Enforces the import and CSS ordering rules that Prettier does not handle.
 // `node scripts/code-style.mjs` reports problems; `--write` fixes them in place.
-import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { filesUnder } from './files.mjs';
 
 // ------------------------------------------------------------------ imports
 const compareText = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
@@ -187,19 +188,11 @@ export function styleFile(path, text) {
   );
 }
 
-function sourceFiles(directory) {
-  return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
-    const path = join(directory, entry.name);
-    if (entry.isDirectory()) return sourceFiles(path);
-    return /\.(astro|ts|css)$/.test(entry.name) ? [path] : [];
-  });
-}
-
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const root = fileURLToPath(new URL('..', import.meta.url));
   const write = process.argv.includes('--write');
   const changed = [];
-  for (const path of sourceFiles(join(root, 'src'))) {
+  for (const path of filesUnder(join(root, 'src'), /\.(astro|ts|css)$/)) {
     const text = readFileSync(path, 'utf8').replace(/\r\n/g, '\n');
     const styled = styleFile(path, text);
     if (styled === text) continue;

@@ -42,3 +42,21 @@ export function whenIdle(work: () => void, timeout = 400): void {
   if (typeof requestIdleCallback === 'function') requestIdleCallback(() => work(), { timeout });
   else window.setTimeout(work, 1);
 }
+
+/**
+ * Calls `update` at most once a frame while the page scrolls or the window resizes. Returns the
+ * function that asks for an update, for other events that should prompt one.
+ */
+export function onScrollFrame(update: () => void): () => void {
+  let frame = 0;
+  const request = () => {
+    if (frame) return;
+    frame = requestAnimationFrame(() => {
+      frame = 0;
+      update();
+    });
+  };
+  addEventListener('scroll', request, { passive: true });
+  addEventListener('resize', request);
+  return request;
+}

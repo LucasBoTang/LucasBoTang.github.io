@@ -3,14 +3,15 @@
 // see. `node scripts/performance-budget.mjs` checks dist/ after a build.
 import { readFileSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { pageFiles } from './validate-output.mjs';
 
 /** Kilobytes a page may weigh: its HTML, and the scripts it loads with everything they import. */
-export const BUDGET = {
+const BUDGET = {
   'index.html': { html: 80, scripts: 60 },
   default: { html: 48, scripts: 24 },
 };
 /** Fonts every page fetches early: the serif, the mono and the sans of its first screen. */
-export const PRELOADED_FONTS = 3;
+const PRELOADED_FONTS = 3;
 /** Letters the extended Latin font set draws, after its unicode-range: text with any of them needs
  * that set from the start, and a page without them fetches it while idle instead. */
 const EXTENDED_LETTERS = new RegExp(
@@ -26,7 +27,7 @@ const EXTENDED_LETTERS = new RegExp(
 const EXTENDED_FONT = /latin-ext/;
 /** Drawing coordinates carry at most this many decimals: a hundredth of a unit is already finer
  * than a pixel on every drawing on the site. */
-export const COORDINATE_DECIMALS = 2;
+const COORDINATE_DECIMALS = 2;
 
 /** The text a reader sees in `html`: no tags, scripts or styles, and character references read. */
 function textOf(html) {
@@ -82,12 +83,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const size = (path) => statSync(new URL(`.${path}`, dist)).size / 1024;
   const problems = [];
   const report = [];
-  for (const file of [
-    'index.html',
-    'research/index.html',
-    'software/index.html',
-    'about/index.html',
-  ]) {
+  for (const file of pageFiles) {
     const html = read(`/${file}`);
     const budget = BUDGET[file] ?? BUDGET.default;
     const htmlSize = size(`/${file}`);

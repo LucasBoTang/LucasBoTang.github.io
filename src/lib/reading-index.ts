@@ -1,4 +1,4 @@
-import { enhance } from './lifecycle';
+import { enhance, onScrollFrame } from './lifecycle';
 
 // A reading index: the links inside an element marked `data-reading-index` point at sections of the
 // page, and the link to the section being read is marked `aria-current="location"`. A section is
@@ -13,10 +13,8 @@ enhance('[data-reading-index]', (index) => {
   const sections = links.map((link) =>
     document.getElementById(decodeURIComponent(link.hash.slice(1))),
   );
-  let frame = 0;
 
   const update = () => {
-    frame = 0;
     const line = innerHeight * READING_LINE;
     let current = 0;
     sections.forEach((section, i) => {
@@ -30,10 +28,6 @@ enhance('[data-reading-index]', (index) => {
         : link.removeAttribute('aria-current'),
     );
   };
-  const schedule = () => {
-    if (!frame) frame = requestAnimationFrame(update);
-  };
-  addEventListener('scroll', schedule, { passive: true });
-  addEventListener('resize', schedule);
+  onScrollFrame(update);
   update();
 });

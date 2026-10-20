@@ -1,18 +1,13 @@
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, statSync } from 'node:fs';
 import { isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { parseHTML } from 'linkedom';
 import { routes } from '../src/data/navigation.ts';
+import { filesUnder } from './files.mjs';
 
 const origin = 'https://preview.invalid';
-const requiredPages = Object.values(routes).map((route) => `${route.slice(1)}index.html`);
-
-function listFiles(directory) {
-  return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
-    const path = join(directory, entry.name);
-    return entry.isDirectory() ? listFiles(path) : [path];
-  });
-}
+/** The built file of every page in the site's routes, such as `research/index.html`. */
+export const pageFiles = Object.values(routes).map((route) => `${route.slice(1)}index.html`);
 
 function sameRecords(actual, expected, message) {
   assert.deepEqual([...actual].sort(), [...expected].sort(), message);
@@ -21,13 +16,13 @@ function sameRecords(actual, expected, message) {
 export function validateOutput(directory, content) {
   const output = resolve(directory);
   assert.ok(existsSync(output), 'Build output is missing; run npm run build first');
-  const files = listFiles(output).map((file) => relative(output, file).split(sep).join('/'));
+  const files = filesUnder(output).map((file) => relative(output, file).split(sep).join('/'));
   const documents = new Map(
     files
       .filter((file) => file.endsWith('.html'))
       .map((file) => [file, parseHTML(readFileSync(join(output, file), 'utf8')).document]),
   );
-  for (const file of requiredPages) assert.ok(documents.has(file), `Missing page: ${file}`);
+  for (const file of pageFiles) assert.ok(documents.has(file), `Missing page: ${file}`);
   let localDestinations = 0;
 
   function checkDestination(value, source) {
@@ -106,7 +101,7 @@ export function validateOutput(directory, content) {
         `${file}: canonical URL must match its route`,
       );
     }
-    if (requiredPages.includes(file)) {
+    if (pageFiles.includes(file)) {
       const current = document.querySelectorAll('a[aria-current="page"]');
       assert.equal(current.length, 1, `${file}: exactly one current-page link required`);
       assert.equal(
