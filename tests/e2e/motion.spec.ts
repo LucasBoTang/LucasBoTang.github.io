@@ -183,6 +183,8 @@ test('a wordmark powers on once its entry has landed, 800ms after the entry sets
   page,
 }) => {
   await page.goto('/software/');
+  // Arrivals are prepared paused before the opening releases and schedules their wordmarks.
+  await expect(page.locator('html')).not.toHaveAttribute('data-opening-pending', '');
   const entry = page.locator('.software-entry').first();
   await expect
     .poll(() => entry.evaluate((element) => element.getAnimations().length))

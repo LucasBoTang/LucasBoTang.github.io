@@ -4,7 +4,7 @@ import { liftOpeningGate, openingPending } from './opening-gate';
 /** Leave time inside the layout's 2.5s fallback for animation preparation. */
 const RESOURCE_TIMEOUT = 1800;
 /** A short quiet interval lets decoded images and loaded fonts settle before motion starts. */
-const SETTLE_TIME = 100;
+const SETTLE_TIME = 400;
 let ready: Promise<void> | undefined;
 
 /** Shared readiness for page openings: first-screen fonts and eager images, bounded on failure. */

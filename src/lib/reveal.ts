@@ -29,6 +29,8 @@ function setupReveal(page: HTMLElement) {
   }
   const animations = new Map<Element, Animation>();
   const pending = new Map<Element, Animation>();
+  const firstScreen: [Element, DOMRect][] = [];
+  const belowScreen: Element[] = [];
   const pace = phonePace();
   const title = page.querySelector('[data-reveal="title"]');
   const handedOver = title?.hasAttribute('data-title-from') ?? false;
@@ -75,8 +77,8 @@ function setupReveal(page: HTMLElement) {
       animation.cancel();
       animations.delete(element);
     };
-    if (box.top < innerHeight) play(element, true, box);
-    else observer.observe(element);
+    if (box.top < innerHeight) firstScreen.push([element, box]);
+    else belowScreen.push(element);
   };
 
   // Every unit is measured before any is prepared: measuring between preparations would make the
@@ -104,7 +106,19 @@ function setupReveal(page: HTMLElement) {
   // Moving focus by keyboard, anywhere on the page, shows everything at once.
   onKeyboardFocus(finish);
   reducedMotion.addEventListener('change', finish);
-  liftOpeningGate();
+  // Commit the paused first frames before starting the clocks, as the home opening does.
+  // Keyboard focus, motion preferences or the layout fallback may release the gate meanwhile.
+  requestAnimationFrame(() =>
+    requestAnimationFrame(() => {
+      if (!openingPending() || !page.isConnected) {
+        finish();
+        return;
+      }
+      firstScreen.forEach(([element, box]) => play(element, true, box));
+      belowScreen.forEach((element) => observer.observe(element));
+      liftOpeningGate();
+    }),
+  );
 }
 
 enhance('[data-reveal-root]', (page) => {

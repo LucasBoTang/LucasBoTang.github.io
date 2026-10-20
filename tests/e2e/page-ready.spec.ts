@@ -1,5 +1,39 @@
 import { expect, test } from '@playwright/test';
 
+for (const route of ['/', '/research/', '/software/', '/about/']) {
+  test(`${route} leaves a quiet interval after fonts load before showing its opening`, async ({
+    page,
+  }) => {
+    await page.addInitScript(() => {
+      document.addEventListener(
+        'DOMContentLoaded',
+        () => {
+          void document.fonts.ready.then(() => performance.mark('test:fonts-ready'));
+        },
+        { once: true },
+      );
+      const observer = new MutationObserver(() => {
+        if (document.documentElement.hasAttribute('data-opening-pending')) return;
+        performance.mark('test:opening-visible');
+        observer.disconnect();
+      });
+      observer.observe(document, {
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['data-opening-pending'],
+      });
+    });
+    await page.goto(route);
+    await expect(page.locator('html')).not.toHaveAttribute('data-opening-pending', '');
+    const quietInterval = await page.evaluate(
+      () =>
+        performance.getEntriesByName('test:opening-visible')[0].startTime -
+        performance.getEntriesByName('test:fonts-ready')[0].startTime,
+    );
+    expect(quietInterval).toBeGreaterThanOrEqual(350);
+  });
+}
+
 for (const route of ['/', '/research/']) {
   test(`${route} waits for first-screen fonts before starting its opening`, async ({ page }) => {
     let releaseFonts!: () => void;
