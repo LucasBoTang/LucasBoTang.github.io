@@ -24,6 +24,8 @@ const publicationSchema = z.object({
   review: z
     .object({ status: z.enum(['Under review', 'Major revision']), journal: text })
     .optional(),
+  /** The paper's BibTeX entry, offered beside its links. */
+  bibtex: z.string().regex(/^@(?:article|inproceedings|misc)\{[a-z0-9]+,\n[^]*\n\}$/),
   links: z.array(resourceLinkSchema),
 });
 

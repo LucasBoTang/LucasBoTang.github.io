@@ -38,7 +38,7 @@
    without moving anything around it. Inline links grow through vertical padding, which takes no
    room in the line; links laid out as boxes give the room back through negative margins. */
 @media (pointer: coarse) {
-  .resource-links a,
+  .resource-links > li > :is(a, button),
   .site-footer-name {
     padding-block: 0.6rem;
   }

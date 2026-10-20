@@ -61,3 +61,27 @@ test('keyboard focus is visible', async ({ page }) => {
   const outline = await page.evaluate(() => getComputedStyle(document.activeElement!).outlineStyle);
   expect(outline).not.toBe('none');
 });
+
+test("a paper's Bib opens its BibTeX in a dialog, which copies whole", async ({
+  page,
+  context,
+}) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  // Without motion, the entry is in place at once, not still arriving under the pointer.
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/research/');
+  const bib = page.locator('#h-pdlp-bibtex');
+  await expect(bib).toBeHidden();
+  await page
+    .locator('#h-pdlp')
+    .getByRole('button', { name: /^BibTeX:/ })
+    .click();
+  await expect(bib).toBeVisible();
+  await bib.getByRole('button', { name: 'Copy' }).click();
+  await expect(bib.getByRole('button', { name: 'Copied' })).toBeVisible();
+  // The system clipboard may end its lines its own way.
+  const copied = await page.evaluate(() => navigator.clipboard.readText());
+  expect(copied.replace(/\r\n/g, '\n')).toBe(await bib.locator('code').textContent());
+  await page.keyboard.press('Escape');
+  await expect(bib).toBeHidden();
+});

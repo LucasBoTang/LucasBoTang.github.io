@@ -16,6 +16,8 @@ const { links, context } = Astro.props;
       </a>
     </li>
   ))}
+  {/* Further items in the row, such as a paper's Bib. */}
+  <slot />
 </ul>
 
 <style>

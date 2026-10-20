@@ -1,4 +1,5 @@
 ---
+import BibtexDialog from './BibtexDialog/BibtexDialog.astro';
 import ResourceLinks from '../ui/ResourceLinks.astro';
 import { profile } from '../../data/profile';
 import { formatVenue, getPaperUrl, type Publication } from '../../data/publications';
@@ -30,7 +31,13 @@ const resources = publication.links.filter((link) => link.label !== 'Paper');
       ))}
     </p>
     <p class="publication-venue">{formatVenue(publication)}</p>
-    {resources.length > 0 && <ResourceLinks links={resources} context={publication.title} />}
+    <ResourceLinks links={resources} context={publication.title}>
+      <BibtexDialog
+        id={`${publication.id}-bibtex`}
+        title={publication.title}
+        bibtex={publication.bibtex}
+      />
+    </ResourceLinks>
   </div>
 </li>
 
@@ -83,7 +90,8 @@ const resources = publication.links.filter((link) => link.label !== 'Paper');
   @media (max-width: 600px) {
     .publication {
       gap: 0.55rem;
-      grid-template-columns: 1fr;
+      /* The column may not grow to the BibTeX's longest line, which scrolls instead. */
+      grid-template-columns: minmax(0, 1fr);
     }
     .publication-year {
       align-items: center;

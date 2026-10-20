@@ -10,6 +10,44 @@ function uniqueIds(records, label) {
   assert.equal(new Set(ids).size, ids.length, `Duplicate ${label} ID`);
 }
 
+/** A BibTeX entry must parse, name its source, and agree with the paper's own link. */
+function checkBibtex(publication) {
+  const { id, bibtex, status } = publication;
+  let depth = 0;
+  for (const character of bibtex) {
+    depth += character === '{' ? 1 : character === '}' ? -1 : 0;
+    assert.ok(depth >= 0, `${id}: BibTeX braces must balance`);
+  }
+  assert.equal(depth, 0, `${id}: BibTeX braces must balance`);
+  // Each field holds one line: `  name = {value},`.
+  const field = (name) => bibtex.match(new RegExp(`\\n  ${name} += \\{(.*)\\},?\\n`))?.[1];
+  for (const name of ['title', 'author', 'year', 'doi'])
+    assert.ok(field(name), `${id}: BibTeX needs a ${name}`);
+  assert.equal(field('year'), String(publication.year), `${id}: BibTeX year`);
+  const paper = getPaperUrl(publication);
+  if (status === 'Preprint') {
+    assert.ok(bibtex.startsWith('@misc{'), `${id}: a preprint's BibTeX is @misc`);
+    const arxiv = field('howpublished')?.match(/^arXiv preprint arXiv:(\d{4}\.\d{4,5})$/)?.[1];
+    assert.ok(arxiv, `${id}: a preprint's BibTeX names its arXiv number`);
+    assert.equal(
+      field('doi'),
+      `10.48550/arXiv.${arxiv}`,
+      `${id}: BibTeX DOI must be arXiv's for its number`,
+    );
+    if (paper.includes('arxiv.org/'))
+      assert.ok(
+        paper.endsWith(`/${arxiv}`),
+        `${id}: BibTeX arXiv number must match the paper link`,
+      );
+  } else {
+    assert.ok(!bibtex.startsWith('@misc{'), `${id}: a published paper's BibTeX names its venue`);
+    assert.ok(
+      decodeURIComponent(paper).toLowerCase().includes(field('doi').toLowerCase()),
+      `${id}: BibTeX DOI must match the paper link`,
+    );
+  }
+}
+
 export function validateContent(content) {
   const parsed = siteContentSchema.safeParse(content);
   assert.ok(
@@ -38,7 +76,10 @@ export function validateContent(content) {
         `${publication.id}: review metadata requires Preprint status`,
       );
     }
+    checkBibtex(publication);
   }
+  const bibtexKeys = records.map(({ bibtex }) => bibtex.match(/^@\w+\{([^,]+),/)[1]);
+  assert.equal(new Set(bibtexKeys).size, bibtexKeys.length, 'Duplicate BibTeX key');
 
   assert.ok(
     researchAreas.some((area) => area.featured),

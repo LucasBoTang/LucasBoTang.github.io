@@ -16,6 +16,15 @@ export function contentFixture() {
     year: 2026,
     status: 'Preprint',
     review: { status: 'Under review', journal: 'Example journal' },
+    bibtex: [
+      '@misc{tang2026example,',
+      '  title        = {Example paper},',
+      '  author       = {Tang, Bo},',
+      '  howpublished = {arXiv preprint arXiv:2601.00001},',
+      '  year         = {2026},',
+      '  doi          = {10.48550/arXiv.2601.00001}',
+      '}',
+    ].join('\n'),
     links: [paper, { label: 'Code', href: 'https://example.invalid/reproduction' }],
   };
   const project = {

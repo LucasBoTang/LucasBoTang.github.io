@@ -1,0 +1,235 @@
+---
+interface Props {
+  /** The dialog's ID, unique on the page. */
+  id: string;
+  /** The paper's title, to name the dialog and its button. */
+  title: string;
+  bibtex: string;
+}
+const { id, title, bibtex } = Astro.props;
+---
+
+{/* One item in a row of resource links: Bib opens the paper's BibTeX in a dialog centred on the
+    page, to select or copy whole. The script shows the item, so without it there is no Bib. */}
+<li class="bibtex" hidden data-bibtex>
+  <button
+    class="bibtex-open text-link"
+    type="button"
+    aria-haspopup="dialog"
+    aria-controls={id}
+    aria-label={`BibTeX: ${title}`}
+  >
+    <span class="link-label">Bib</span>
+  </button>
+  <dialog class="bibtex-dialog" id={id} aria-label={`BibTeX: ${title}`}>
+    <div class="bibtex-bar">
+      <span class="bibtex-name">BibTeX</span>
+      <button class="bibtex-action" type="button" aria-label="Copy BibTeX" data-bibtex-copy>
+        <svg class="bibtex-icon bibtex-icon-copy" viewBox="0 0 16 16" aria-hidden="true">
+          <rect x="5.5" y="5.5" width="8" height="8"></rect>
+          <path d="M10.5 3.5v-1h-8v8h1"></path>
+        </svg>
+        <svg class="bibtex-icon bibtex-icon-copied" viewBox="0 0 16 16" aria-hidden="true">
+          <path d="M3 8.5l3 3 7-7"></path>
+        </svg>
+      </button>
+      <button class="bibtex-action" type="button" aria-label="Close" data-bibtex-close>
+        <svg class="bibtex-icon" viewBox="0 0 16 16" aria-hidden="true">
+          <path d="M3.5 3.5l9 9M12.5 3.5l-9 9"></path>
+        </svg>
+      </button>
+      <span class="bibtex-status" role="status" data-bibtex-status></span>
+    </div>
+    <pre><code>{bibtex}</code></pre>
+  </dialog>
+</li>
+
+<script>
+  import './bibtex-dialog';
+</script>
+
+<style>
+  /* Bib is set as the links beside it; the dialog sets its own text. */
+  button {
+    border: 0;
+    padding: 0;
+    font: inherit;
+    letter-spacing: inherit;
+    text-transform: inherit;
+    background: none;
+    color: var(--blue);
+    cursor: pointer;
+  }
+  .bibtex-dialog {
+    /* Positioned, so the light it switches on with can cover it. */
+    position: fixed;
+    border: var(--rule-line);
+    max-height: calc(100dvh - 4rem);
+    padding: 0;
+    width: min(46rem, calc(100vw - 2rem));
+    letter-spacing: normal;
+    text-transform: none;
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .bibtex-dialog[open] {
+    display: flex;
+    flex-direction: column;
+  }
+  .bibtex-dialog::backdrop {
+    background: rgb(0 0 0 / 0.6);
+  }
+  /* A bar naming the entry, with Copy and Close as small icons at the right. */
+  .bibtex-bar {
+    align-items: center;
+    display: flex;
+    gap: 0.4rem;
+    border-bottom: var(--rule-line);
+    padding: 0.55rem 0.7rem 0.55rem 1.2rem;
+    font-family: var(--font-mono);
+    font-size: var(--text-label);
+    letter-spacing: var(--tracking-label);
+    text-transform: uppercase;
+  }
+  .bibtex-name {
+    margin-right: auto;
+    color: var(--muted);
+  }
+  .bibtex-action {
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    height: 2rem;
+    width: 2rem;
+    color: var(--muted);
+  }
+  .bibtex-action:is(:hover, :focus-visible) {
+    color: var(--blue);
+  }
+  .bibtex-icon {
+    height: 1rem;
+    width: 1rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.2;
+  }
+  .bibtex-icon-copied,
+  [data-copied] .bibtex-icon-copy {
+    display: none;
+  }
+  [data-copied] .bibtex-icon-copied {
+    display: block;
+    color: var(--blue);
+  }
+  .bibtex-status {
+    position: absolute;
+    height: 1px;
+    overflow: hidden;
+    width: 1px;
+    white-space: nowrap;
+    clip-path: inset(50%);
+  }
+  pre {
+    margin: 0;
+    overflow: auto;
+    padding: 1.1rem 1.2rem 1.3rem;
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    line-height: 1.6;
+    tab-size: 2;
+    color: var(--body-copy);
+  }
+  /* The entry prints in as a terminal's output does (bibtex-dialog.ts), behind a block cursor. */
+  code :global(.bibtex-cursor) {
+    display: inline-block;
+    height: 1.1em;
+    margin-left: 1px;
+    width: 0.55em;
+    vertical-align: -0.2em;
+    background: var(--body-copy);
+  }
+
+  /* The box switches on as a screen does: a point of blue light at its centre draws out into a
+     line across, the line opens into the box, and the blue gives way to the ink. Closing, it
+     folds back to the line and the point, and goes out. */
+  .bibtex-dialog::before {
+    content: '';
+    inset: 0;
+    position: absolute;
+    z-index: 1;
+    background: var(--blue);
+    opacity: 0;
+    pointer-events: none;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .bibtex-dialog[open] {
+      animation: bibtex-on 280ms both;
+    }
+    .bibtex-dialog[open]::before {
+      animation: bibtex-on-light 280ms both;
+    }
+    .bibtex-dialog[open]::backdrop {
+      animation: bibtex-backdrop 220ms ease-out both;
+    }
+    .bibtex-dialog[data-closing] {
+      animation: bibtex-off 180ms both;
+    }
+    .bibtex-dialog[data-closing]::before {
+      animation: bibtex-off-light 180ms both;
+    }
+    .bibtex-dialog[data-closing]::backdrop {
+      animation: bibtex-backdrop 180ms ease-in reverse both;
+    }
+    @keyframes bibtex-on {
+      0% {
+        clip-path: inset(calc(50% - 1px) 50%);
+        animation-timing-function: cubic-bezier(0.3, 0, 0.2, 1);
+      }
+      30% {
+        clip-path: inset(calc(50% - 1px) 0);
+        animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      100% {
+        clip-path: inset(0);
+      }
+    }
+    @keyframes bibtex-on-light {
+      0%,
+      30% {
+        opacity: 1;
+        animation-timing-function: ease-out;
+      }
+      100% {
+        opacity: 0;
+      }
+    }
+    @keyframes bibtex-off {
+      0% {
+        clip-path: inset(0);
+        animation-timing-function: cubic-bezier(0.7, 0, 0.84, 0);
+      }
+      60% {
+        clip-path: inset(calc(50% - 1px) 0);
+        animation-timing-function: cubic-bezier(0.7, 0, 0.84, 0);
+      }
+      100% {
+        clip-path: inset(calc(50% - 1px) 50%);
+      }
+    }
+    @keyframes bibtex-off-light {
+      0% {
+        opacity: 0;
+        animation-timing-function: ease-in;
+      }
+      60%,
+      100% {
+        opacity: 1;
+      }
+    }
+    @keyframes bibtex-backdrop {
+      from {
+        opacity: 0;
+      }
+    }
+  }
+</style>

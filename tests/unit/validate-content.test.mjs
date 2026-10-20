@@ -76,3 +76,31 @@ test('rejects two contact links to the same destination', () => {
   content.contactLinks.push({ ...content.contactLinks[0], service: 'Mail', label: 'Mail' });
   assert.throws(() => validateContent(content), /duplicate contact destination/i);
 });
+
+test('checks each BibTeX entry against its paper', () => {
+  const broken = [
+    ['unbalanced braces', (bibtex) => bibtex.replace('{Example paper}', '{Example paper')],
+    ['a year other than the paper', (bibtex) => bibtex.replace('{2026}', '{2025}')],
+    ['a preprint without @misc', (bibtex) => bibtex.replace('@misc{', '@article{')],
+    [
+      'an arXiv DOI for another number',
+      (bibtex) => bibtex.replace('2601.00001}\n}', '2601.00002}\n}'),
+    ],
+  ];
+  for (const [label, edit] of broken) {
+    const content = contentFixture();
+    content.publications.example.bibtex = edit(content.publications.example.bibtex);
+    assert.throws(() => validateContent(content), /BibTeX/, label);
+  }
+});
+
+test("requires a published paper's BibTeX DOI to match its paper link", () => {
+  const content = contentFixture();
+  const publication = content.publications.example;
+  delete publication.review;
+  publication.status = 'Published';
+  publication.bibtex = publication.bibtex
+    .replace('@misc{', '@article{')
+    .replace('10.48550/arXiv.2601.00001', '10.1000/example');
+  assert.throws(() => validateContent(content), /DOI must match the paper link/);
+});
