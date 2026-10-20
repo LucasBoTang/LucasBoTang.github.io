@@ -152,3 +152,30 @@ test('motion resumes after going Back through the back-forward cache', async ({ 
   const before = await sign.getAttribute('data-sign-state');
   await expect(sign).not.toHaveAttribute('data-sign-state', before!, { timeout: 9000 });
 });
+
+test('a click lands on an entry still arriving, and Tab shows every entry at once', async ({
+  page,
+}) => {
+  await page.goto('/research/');
+  const paper = page.locator('#h-pdlp');
+  await paper.scrollIntoViewIfNeeded();
+  // Clicked as it arrives, the entry keeps arriving under the pointer instead of jumping away.
+  await expect.poll(() => paper.evaluate((element) => element.getAnimations().length)).toBe(1);
+  await paper.getByRole('button', { name: /^BibTeX:/ }).click();
+  await expect(page.locator('#h-pdlp-bibtex')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#h-pdlp-bibtex')).toBeHidden();
+
+  await page.goto('/research/');
+  await page.keyboard.press('Tab');
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          [...document.querySelectorAll('[data-reveal="unit"]')].filter(
+            (unit) => unit.getAnimations().length,
+          ).length,
+      ),
+    )
+    .toBe(0);
+});
