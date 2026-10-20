@@ -319,6 +319,17 @@ test.describe('on a phone', () => {
     await page.setViewportSize({ width: 375, height: 800 });
   });
 
+  test('the Selected work wordmarks stay centred, as on a wide screen', async ({ page }) => {
+    await page.goto('/');
+    const entries = await page.locator('.work-entry').count();
+    for (let index = 0; index < entries; index++) {
+      const entry = page.locator('.work-entry').nth(index);
+      const face = await entry.locator('.project-face').boundingBox();
+      const column = await entry.locator('.work-details').boundingBox();
+      near(face!.x + face!.width / 2, column!.x + column!.width / 2, 2);
+    }
+  });
+
   test('labels that can wrap get room between their lines', async ({ page }) => {
     for (const [route, selector] of [
       ['/', '.work-note'],

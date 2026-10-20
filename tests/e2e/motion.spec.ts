@@ -178,3 +178,19 @@ test('a click lands on an entry still arriving, and Tab shows every entry at onc
     )
     .toBe(0);
 });
+
+test('a wordmark powers on once its entry has landed, 800ms after the entry sets off', async ({
+  page,
+}) => {
+  await page.goto('/software/');
+  const entry = page.locator('.software-entry').first();
+  await expect
+    .poll(() => entry.evaluate((element) => element.getAnimations().length))
+    .toBeGreaterThan(0);
+  const gap = await entry.evaluate((element) => {
+    const arrival = element.getAnimations()[0].effect!.getTiming().delay ?? 0;
+    const beam = element.querySelector('.project-beam')!.getAnimations()[0];
+    return (beam.effect!.getTiming().delay ?? 0) - arrival;
+  });
+  expect(gap).toBe(800);
+});
