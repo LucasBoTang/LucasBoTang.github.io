@@ -33,7 +33,7 @@ const { text } = Astro.props;
     user-select: none;
   }
   .intro-cursor {
-    left: 100%;
+    left: 0;
     position: absolute;
     top: 0.12em;
     display: inline-block;
@@ -45,9 +45,6 @@ const { text } = Astro.props;
   }
   [data-typing-ready]:not([data-typing-started]):not([data-typing-complete]) .intro-cursor {
     visibility: hidden;
-  }
-  .intro-cursor[data-at-start] {
-    left: 0;
   }
   /* Letters laid out by typed-text.ts, revealed one by one. */
   .intro-typing :global(.intro-word) {

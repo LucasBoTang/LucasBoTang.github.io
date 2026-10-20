@@ -151,9 +151,31 @@ export function createTyping(host: HTMLElement, options: TypingOptions = {}) {
   const letters = spell(text, target);
   const strokes = plan(text, options);
 
+  let shown = 0;
+  let positions: { x: number; y: number }[] | undefined;
   let swappedAt: number | undefined;
+  // Measure the fixed sentence once, after fonts are ready. The caret stays in one DOM parent;
+  // translating it between cached positions avoids laying the paragraph out on every key.
+  const moveCursor = () => {
+    if (!cursor) return;
+    if (!shown) {
+      cursor.style.transform = 'translate(0px, 0px)';
+      return;
+    }
+    if (!positions) {
+      const origin = host.getBoundingClientRect();
+      positions = letters.map((letter) => {
+        const box = letter.getBoundingClientRect();
+        return { x: box.right - origin.left, y: box.top - origin.top };
+      });
+    }
+    const position = positions[shown - 1];
+    cursor.style.transform = `translate(${position.x.toFixed(2)}px, ${position.y.toFixed(2)}px)`;
+  };
   const show = ({ count, swapped }: Pick<Keystroke, 'count' | 'swapped'>) => {
-    letters.forEach((letter, i) => letter.toggleAttribute('data-unseen', i >= count));
+    for (let i = Math.min(shown, count); i < Math.max(shown, count); i++)
+      letters[i].toggleAttribute('data-unseen', i >= count);
+    shown = count;
     // The slip trades the two letters' characters, which keeps the word's width, so the line
     // never moves.
     if (swappedAt !== swapped) {
@@ -163,14 +185,20 @@ export function createTyping(host: HTMLElement, options: TypingOptions = {}) {
           [first.textContent, second.textContent] = [second.textContent, first.textContent];
         }
       swappedAt = swapped;
+      // Home's rare typo changes shaping. Refresh only when it appears or is corrected, keeping
+      // exact caret alignment even if the sentence was resized during the mistake.
+      positions = undefined;
     }
-    if (!cursor) return;
-    // Before the first letter the cursor waits in the line itself, not inside a hidden letter.
-    (count > 0 ? letters[count - 1] : target).append(cursor);
-    cursor.toggleAttribute('data-at-start', count === 0);
+    moveCursor();
   };
   show({ count: 0 });
   host.setAttribute('data-typing-ready', '');
+  const remeasure = () => {
+    positions = undefined;
+    moveCursor();
+  };
+  new ResizeObserver(remeasure).observe(host);
+  void document.fonts.ready.then(remeasure);
 
   let complete = false;
   let next = 0;
