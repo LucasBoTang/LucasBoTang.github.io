@@ -1,7 +1,7 @@
 import { announceArrival, arrival, arrivalFrames, createArrivalQueue } from './arrival';
 import { phonePace } from './breakpoints';
 import { enhance } from './lifecycle';
-import { reducedMotionQuery } from './motion';
+import { onKeyboardFocus, reducedMotionQuery } from './motion';
 import { liftOpeningGate, openingPending } from './opening-gate';
 
 // Inner-page opening: the element marked `data-reveal="title"` wipes in, then the `lead` and each
@@ -93,8 +93,8 @@ enhance('[data-reveal-root]', (page) => {
     pending.clear();
     liftOpeningGate();
   };
-  // Moving focus, anywhere on the page, shows everything at once.
-  document.addEventListener('focusin', finish, { once: true });
+  // Moving focus by keyboard, anywhere on the page, shows everything at once.
+  onKeyboardFocus(finish);
   reducedMotion.addEventListener('change', finish);
   liftOpeningGate();
 });

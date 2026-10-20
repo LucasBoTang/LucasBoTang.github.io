@@ -5,6 +5,20 @@ export function reducedMotionQuery(): MediaQueryList {
   return matchMedia('(prefers-reduced-motion: reduce)');
 }
 
+/**
+ * Calls `callback` once, the first time focus moves by keyboard anywhere on the page, so motion can
+ * step aside for a visitor tabbing through it. Focus that comes with a click is left alone: an
+ * entrance snapped into place under the pointer would carry the target away before the click lands.
+ */
+export function onKeyboardFocus(callback: () => void): void {
+  const listener = (event: FocusEvent) => {
+    if (!(event.target instanceof Element) || !event.target.matches(':focus-visible')) return;
+    document.removeEventListener('focusin', listener);
+    callback();
+  };
+  document.addEventListener('focusin', listener);
+}
+
 /** Why `watchActivity` is reporting: targets moved in or out of view, the tab was hidden or shown, or the motion preference changed. */
 type ActivityReason = 'viewport' | 'page' | 'preference';
 

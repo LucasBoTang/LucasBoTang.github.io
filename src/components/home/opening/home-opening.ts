@@ -1,7 +1,7 @@
 import { announceArrival, arrival, arrivalFrames, createArrivalQueue } from '../../../lib/arrival';
 import { phonePace } from '../../../lib/breakpoints';
 import { enhance } from '../../../lib/lifecycle';
-import { reducedMotionQuery } from '../../../lib/motion';
+import { onKeyboardFocus, reducedMotionQuery } from '../../../lib/motion';
 import { liftOpeningGate, openingPending } from '../../../lib/opening-gate';
 import { createTimeline } from '../../../lib/timeline';
 import { addHeroOpening } from '../HomeHero/hero-opening';
@@ -119,7 +119,7 @@ function setupHomeOpening(page: HTMLElement) {
   reducedMotion.addEventListener('change', () => {
     if (reducedMotion.matches) skipOpening();
   });
-  document.addEventListener('focusin', skipOpening, { once: true });
+  onKeyboardFocus(skipOpening);
   liftOpeningGate();
   void Promise.race([
     hero.ready,
