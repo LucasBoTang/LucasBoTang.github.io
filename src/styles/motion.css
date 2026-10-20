@@ -62,6 +62,19 @@ html[data-opening-pending] .site-footer {
       transform: translateY(-12px);
     }
   }
+  /* Going home, the page sinks back the way it came instead of moving on, and home's opening
+     starts beneath it. */
+  html[data-page='home']::view-transition-old(root),
+  html[data-page='home']::view-transition-old(page-title):only-child {
+    animation-name: page-return;
+  }
+  @keyframes page-return {
+    to {
+      filter: blur(4px);
+      opacity: 0;
+      transform: translateY(12px);
+    }
+  }
 }
 
 @media (prefers-reduced-motion: no-preference) {
