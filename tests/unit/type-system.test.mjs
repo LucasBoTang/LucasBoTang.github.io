@@ -54,3 +54,8 @@ test('exempts artwork from size and weight', () => {
 test('accepts the home name size', () => {
   assert.deepEqual(checkTypeSystem('src/a.css', '.a {\n  font-size: var(--type-name);\n}'), []);
 });
+
+test('accepts dedicated research lane size and leading', () => {
+  const css = '.a {\n  font-size: var(--type-lane);\n  line-height: var(--line-lane);\n}';
+  assert.deepEqual(checkTypeSystem('src/a.css', css), []);
+});

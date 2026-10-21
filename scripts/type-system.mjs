@@ -1,5 +1,5 @@
-// Keeps every page on the type system: five sizes with their leadings, weight 400, tracking from
-// the tokens, uppercase only for section labels, and spacing from the step scale.
+// Keeps every page on the type system: five reading sizes and named home lettering roles with
+// their leadings, weight 400, tracking from tokens, uppercase only for section labels and step spacing.
 // `node scripts/type-system.mjs` reports what breaks it; src/studies is outside the system.
 import { readFileSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
@@ -12,8 +12,8 @@ const ARTWORK = new Set([
   'src/components/home/AboutSection/DecisionSign.astro',
 ]);
 
-const SIZE = /^var\(--type-(label|body|heading|title|display|name)\)$/;
-const LEADING = /^var\(--line-(label|label-block|body|heading|title|display|name)\)$/;
+const SIZE = /^var\(--type-(label|body|heading|title|display|name|lane)\)$/;
+const LEADING = /^var\(--line-(label|label-block|body|heading|title|display|name|lane)\)$/;
 const TRACKING = /^(var\(--tracking-[a-z-]+\)|normal|inherit|0)$/;
 const SPACING = /^(margin|padding|gap$|row-gap$|column-gap$)/;
 const LENGTH = /-?\d*\.?\d+(px|rem|em)\b/;

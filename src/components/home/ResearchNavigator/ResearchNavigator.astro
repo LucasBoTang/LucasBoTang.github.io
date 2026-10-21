@@ -100,9 +100,9 @@ const laneStyle = (index: number) => {
     margin: 0;
     padding: 0;
     font-family: var(--font-mono);
-    font-size: var(--type-heading);
+    font-size: var(--type-lane);
     letter-spacing: var(--tracking-mono-heading);
-    line-height: var(--line-heading);
+    line-height: var(--line-lane);
     list-style: none;
     color: var(--blue);
   }
@@ -122,7 +122,7 @@ const laneStyle = (index: number) => {
   .lane-visual {
     position: relative;
     display: none;
-    height: var(--line-heading);
+    height: var(--line-lane);
     overflow: hidden;
     width: 100%;
     mask-image: linear-gradient(
@@ -235,15 +235,7 @@ const laneStyle = (index: number) => {
     }
   }
   @media (max-width: 720px) {
-    /* A phone is narrower than a topic at Heading size, so the lanes step down to the Body size,
-       where each whole topic still fits the light. */
-    .research-topics {
-      font-size: var(--type-body);
-      line-height: var(--line-body);
-    }
-    .lane-visual {
-      height: var(--line-body);
-    }
+    /* The lane type steps down to Body on phones (global.css); the light keeps its own stops. */
     .lane-foreground {
       --light-end: var(--light-end-phone);
       --light-in: var(--light-in-phone);

@@ -23,14 +23,12 @@
 }
 
 @layer base {
+  /* Three voices: the serif names things, the mono labels, and the sans carries what is read.
+     Five reading sizes have separate roles for the home name and research lanes, each with
+     leading on a 4px baseline. Label has a second leading for multi-line blocks. Spacing uses
+     the 8px step scale. The page grid has 12 columns; text starts on column 1 or 6, and column 12
+     stays empty. */
   :root {
-    /* Three voices: the serif names things (the name, titles, projects), the mono speaks for the
-       machine (navigation, labels, dates, research topics), and the sans carries what is read.
-       Five sizes (--type-*), each with its own leading (--line-*) on a 4px baseline; Label has a
-       second leading for blocks of several mono lines, and every text is weight 400. Spacing
-       steps (--step-N) are named by their size in pixels. The page grid has 12 columns in
-       --page-width; the zones (--zone-*) place things on it: text starts on column 1 or column 6,
-       and column 12 stays empty. */
     --column-gap: 1.5rem;
     --font: 'Geist Variable', 'Helvetica Neue', sans-serif;
     --font-mono: 'Geist Mono Variable', ui-monospace, Menlo, Consolas, monospace;
@@ -46,6 +44,7 @@
     --line-heading: 2rem;
     --line-label: 1rem;
     --line-label-block: 1.25rem;
+    --line-lane: 2.25rem;
     --line-name: var(--type-name);
     --line-title: 3.5rem;
     --page-width: 75rem;
@@ -70,6 +69,8 @@
     --type-display: 6rem;
     --type-heading: 1.5rem;
     --type-label: 0.75rem;
+    /* The drifting research lanes are lettering, scaled independently of reading headings. */
+    --type-lane: 1.75rem;
     /* The home name keeps its own size, a step under Display: the owner's call. */
     --type-name: 4.5rem;
     --type-title: 3rem;
@@ -98,8 +99,10 @@
   /* Below 900px the columns narrow, so Display and Title step down. */
   @media (max-width: 900px) {
     :root {
+      --line-lane: 2rem;
       --line-title: 2.5rem;
       --type-display: 4.5rem;
+      --type-lane: 1.5rem;
       --type-name: 4rem;
       --type-title: 2rem;
     }
@@ -113,10 +116,12 @@
       --gutter: var(--step-24);
       --item-rule: linear-gradient(var(--rule-item), var(--rule-item)) left top / 100% 1px no-repeat;
       --line-heading: 1.75rem;
+      --line-lane: var(--line-body);
       --site-header-fade: 1.25rem;
       --site-header-height: 5rem;
       --type-display: 3.5rem;
       --type-heading: 1.25rem;
+      --type-lane: var(--type-body);
       --zone-entry: 1 / -1;
       --zone-hanging: 1 / -1;
       --zone-index: 1 / -1;
