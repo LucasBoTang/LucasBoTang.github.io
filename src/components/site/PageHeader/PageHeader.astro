@@ -7,9 +7,11 @@ interface Props {
   title: string;
   /** One short line on what the page holds, in plain words. */
   description?: string;
+  /** Start this word on a new line on mobile. */
+  mobileBreakBefore?: string;
   typing?: TypingRhythm;
 }
-const { title, description, typing = {} } = Astro.props;
+const { title, description, mobileBreakBefore, typing = {} } = Astro.props;
 const introduction = description?.trim() ?? '';
 ---
 
@@ -37,7 +39,7 @@ const introduction = description?.trim() ?? '';
   </script>
   {introduction && (
     <p data-reveal="lead" data-page-intro data-typing-rhythm={JSON.stringify(typing)}>
-      <TypedText text={introduction} />
+      <TypedText text={introduction} mobileBreakBefore={mobileBreakBefore} />
     </p>
   )}
 </header>

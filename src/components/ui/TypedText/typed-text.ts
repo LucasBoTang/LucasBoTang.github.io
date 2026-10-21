@@ -58,9 +58,15 @@ interface Keystroke {
 }
 
 /** Splits `text` into hidden letter spans inside `into`, keeping each word unbroken. */
-function spell(text: string, into: HTMLElement): HTMLElement[] {
+function spell(text: string, into: HTMLElement, breakAt = 0): HTMLElement[] {
   const letters: HTMLElement[] = [];
+  let line = into;
   for (const token of text.match(/\S+|\s+/g) ?? []) {
+    if (breakAt > 0 && letters.length === breakAt) {
+      line = document.createElement('span');
+      line.className = 'intro-line';
+      into.append(line);
+    }
     const word = document.createElement('span');
     if (token.trim()) word.className = 'intro-word';
     for (const character of token) {
@@ -71,7 +77,7 @@ function spell(text: string, into: HTMLElement): HTMLElement[] {
       word.append(letter);
       letters.push(letter);
     }
-    into.append(word);
+    line.append(word);
   }
   return letters;
 }
@@ -150,7 +156,7 @@ export function createTyping(host: HTMLElement, options: TypingOptions = {}) {
   if (!target || !original) return { setRunning: () => {}, finish: () => {} };
   const cursor = host.querySelector<HTMLElement>('.intro-cursor');
   const text = original.textContent?.trim() ?? '';
-  const letters = spell(text, target);
+  const letters = spell(text, target, Number(host.dataset.mobileBreakAt) || 0);
   const strokes = plan(text, options);
 
   let shown = 0;

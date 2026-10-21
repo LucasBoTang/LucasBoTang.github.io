@@ -1,12 +1,25 @@
 ---
 interface Props {
   text: string;
+  /** Start this word on a new line on mobile, keeping the sentence intact. */
+  mobileBreakBefore?: string;
 }
-const { text } = Astro.props;
+const { text, mobileBreakBefore } = Astro.props;
+const sentence = text.trim();
+const breakAt = mobileBreakBefore ? sentence.indexOf(` ${mobileBreakBefore} `) + 1 : 0;
 ---
 
-<span class="typed-text" data-typed-text>
-  <span class="intro-copy">{text}</span>
+<span class="typed-text" data-typed-text data-mobile-break-at={breakAt || undefined}>
+  <span class="intro-copy">
+    {breakAt ? (
+      <>
+        {sentence.slice(0, breakAt)}
+        <span class="intro-line">{sentence.slice(breakAt)}</span>
+      </>
+    ) : (
+      sentence
+    )}
+  </span>
   <span class="intro-typing" aria-hidden="true">
     <span data-intro-typed></span>
     <span class="intro-cursor"></span>
@@ -20,6 +33,9 @@ const { text } = Astro.props;
   }
   .intro-typing {
     display: none;
+  }
+  .intro-copy {
+    display: block;
   }
   [data-typing-ready] .intro-copy {
     color: transparent;
@@ -57,6 +73,11 @@ const { text } = Astro.props;
     visibility: hidden;
   }
 
+  @media (max-width: 720px) {
+    .typed-text :global(.intro-line) {
+      display: block;
+    }
+  }
   @media (prefers-reduced-motion: no-preference) {
     .intro-cursor {
       animation: intro-cursor-blink 1.1s step-end infinite;

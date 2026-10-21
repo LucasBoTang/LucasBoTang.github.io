@@ -17,6 +17,60 @@ declare global {
 const contentPages = Object.values(routes).filter((route) => route !== routes.home);
 const pages = [...contentPages, '/404.html'];
 
+/** Reads text fragments rather than element boxes, so block-level line breaks count once. */
+function renderedLines(element: Element) {
+  const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+  const lines = new Map<number, string>();
+  let node: Node | null;
+  while ((node = walker.nextNode())) {
+    const text = node.textContent ?? '';
+    for (let i = 0; i < text.length; i++) {
+      const range = document.createRange();
+      range.setStart(node, i);
+      range.setEnd(node, i + 1);
+      const box = range.getBoundingClientRect();
+      if (!box.width) continue;
+      const top = Math.round(box.top);
+      lines.set(top, (lines.get(top) ?? '') + text[i]);
+    }
+  }
+  return [...lines.values()].map((line) => line.trim()).filter(Boolean);
+}
+
+for (const [route, first, second] of [
+  [routes.software, 'Open-source libraries', 'for learning and optimization.'],
+  [routes.about, 'Who I am', 'and what I work on.'],
+  [routes.research, 'The questions I study,', 'and the papers that answer them.'],
+]) {
+  test(`${route} keeps its mobile introduction on two intentional lines`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.goto(route);
+    await page.evaluate(() => document.fonts.ready);
+    const copy = page.locator('[data-page-intro] .intro-copy');
+    await expect(copy).toHaveText(`${first} ${second}`);
+    expect(await copy.evaluate(renderedLines)).toEqual([`${first} ${second}`]);
+    for (const width of [320, 375, 430, 720]) {
+      await page.setViewportSize({ width, height: 900 });
+      expect(await copy.evaluate(renderedLines)).toEqual([first, second]);
+    }
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    await page.reload();
+    await expect(page.locator('[data-page-intro] [data-typed-text]')).toHaveAttribute(
+      'data-typing-ready',
+      '',
+    );
+    await page.evaluate(() => document.fonts.ready);
+    const typed = page.locator('[data-page-intro] [data-intro-typed]');
+    for (const width of [320, 430, 720, 1280]) {
+      await page.setViewportSize({ width, height: 900 });
+      const expected = width <= 720 ? [first, second] : [`${first} ${second}`];
+      expect(await copy.evaluate(renderedLines)).toEqual(expected);
+      expect(await typed.evaluate(renderedLines)).toEqual(expected);
+    }
+  });
+}
+
 for (const width of [1280, 375]) {
   for (const route of contentPages) {
     test(`${route} lets the introduction type briefly before body content arrives at ${width}px`, async ({
