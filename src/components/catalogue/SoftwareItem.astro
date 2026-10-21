@@ -118,21 +118,35 @@ const { entry, variant } = item;
     color: var(--muted);
   }
   @media (max-width: 720px) {
-    .software-entry + .software-entry {
+    .software-entry:not(.software-entry--compact) + .software-entry {
       background: var(--item-rule);
     }
     .software-entry {
-      row-gap: var(--step-16);
+      row-gap: var(--step-24);
       padding-block: var(--step-32);
     }
+    /* Short contributions read as a list: name and source share a row, the description follows. */
     .software-entry.software-entry--compact {
+      grid-template-columns: minmax(0, 1fr) max-content;
       row-gap: var(--step-8);
+      padding-block: var(--step-24);
+    }
+    .software-entry--compact .entry-identity {
+      grid-column: 1;
+      grid-row: 1;
     }
     .software-entry--compact .entry-details {
-      display: block;
+      display: contents;
     }
     .software-entry--compact .entry-description {
-      margin-bottom: var(--step-8);
+      grid-column: 1 / -1;
+      grid-row: 2;
+      margin: 0;
+    }
+    .software-entry--compact .entry-details :global(.resource-links) {
+      align-self: center;
+      grid-column: 2;
+      grid-row: 1;
     }
   }
 </style>

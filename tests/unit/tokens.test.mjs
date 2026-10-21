@@ -42,7 +42,8 @@ test('keeps spacing on the 8px scale', () => {
 
 test('defines the page grid', () => {
   assert.equal(root['--page-width'], '75rem');
-  assert.match(css, /\.page-grid\s*\{[^}]*repeat\(12, minmax\(0, 1fr\)\)/);
+  assert.equal(root['--grid-columns'], '12');
+  assert.match(css, /\.page-grid\s*\{[^}]*repeat\(var\(--grid-columns\), minmax\(0, 1fr\)\)/);
 });
 
 const OLD_TOKEN =

@@ -34,4 +34,10 @@ const { links, context } = Astro.props;
   a {
     color: var(--blue);
   }
+  @media (pointer: coarse) {
+    /* The enlarged touch targets must stay separate when a resource row wraps. */
+    .resource-links {
+      row-gap: var(--step-16);
+    }
+  }
 </style>

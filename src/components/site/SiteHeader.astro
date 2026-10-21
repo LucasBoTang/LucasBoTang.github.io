@@ -11,7 +11,7 @@ const { page } = Astro.props;
 ---
 
 <div class="site-header-wrap">
-  <header class="site-header shell page-grid">
+  <header class="site-header shell page-grid" data-sticky-header>
     <a
       class="site-header-name"
       href={routes.home}
@@ -180,15 +180,24 @@ const { page } = Astro.props;
     }
   }
   @media (max-width: 720px) {
+    /* Keep both groups intact; their intrinsic widths decide when the navigation needs its row. */
     .site-header {
+      column-gap: var(--step-16);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
       row-gap: 0;
       padding-block: var(--step-8) 0;
     }
+    .site-header-name {
+      flex-shrink: 0;
+    }
     nav {
       align-items: center;
+      flex-shrink: 0;
       flex-wrap: wrap;
       gap: 0 var(--step-24);
-      justify-content: flex-start;
+      max-width: 100%;
     }
     nav a {
       padding-block: var(--step-8);

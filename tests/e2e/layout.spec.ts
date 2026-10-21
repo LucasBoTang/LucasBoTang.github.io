@@ -372,15 +372,27 @@ test.describe('on a phone', () => {
     near(first!.x, name!.x);
   });
 
-  test('the hero name starts on the text edge at every phone width', async ({ page }) => {
-    for (const width of [320, 375, 414]) {
+  test('the mobile identity keeps its overlap and stays within the reading column', async ({
+    page,
+  }) => {
+    for (const width of [320, 375, 390, 430, 600, 720]) {
       await page.setViewportSize({ width, height: 800 });
       await page.goto('/');
-      near(
-        await textLeft(page, '#hero-name .name-base'),
-        await textLeft(page, '.affiliation p'),
-        3,
-      );
+      await page.evaluate(() => document.fonts.ready);
+      const name = (await page.locator('#hero-name .name-base').boundingBox())!;
+      const portrait = (await page.locator('.portrait').boundingBox())!;
+      const ink = (await page.locator('.portrait-ink').boundingBox())!;
+      const identity = (await page.locator('.identity').boundingBox())!;
+      const left = Math.min(name.x, portrait.x, ink.x);
+      const right = Math.max(name.x + name.width, portrait.x + portrait.width, ink.x + ink.width);
+      // Optical balance is reviewed visually; unequal outer margins are intentional.
+      expect(left).toBeGreaterThanOrEqual(identity.x);
+      expect(right).toBeLessThanOrEqual(identity.x + identity.width);
+      expect(name.x).toBeLessThan(portrait.x);
+      expect(name.x + name.width).toBeGreaterThan(portrait.x);
+      await expect(page.locator('#hero-name')).toHaveCSS('font-size', '64px');
+      const contacts = (await page.locator('.identity .contact-links').boundingBox())!;
+      near(contacts.x + contacts.width / 2, width / 2, 1);
     }
   });
 

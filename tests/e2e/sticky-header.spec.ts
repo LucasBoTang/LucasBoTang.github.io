@@ -1,8 +1,9 @@
 import { expect, test } from '@playwright/test';
+import { routes } from '../../src/data/navigation';
 
 test.use({ reducedMotion: 'reduce' });
 
-for (const width of [1280, 375, 320]) {
+for (const width of [1280, 430, 390, 375, 320]) {
   test(`the name and main navigation remain available while reading at ${width}px`, async ({
     page,
   }) => {
@@ -40,6 +41,66 @@ for (const width of [1280, 375, 320]) {
     }
   });
 }
+
+for (const [width, oneRow] of [
+  [320, false],
+  [375, false],
+  [390, true],
+  [414, true],
+  [430, true],
+  [720, true],
+] as const) {
+  test(`the mobile header uses ${oneRow ? 'one row' : 'two rows'} at ${width}px without shrinking its labels`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 812 });
+    await page.goto(routes.research);
+    await page.evaluate(() => document.fonts.ready);
+    const header = (await page.locator('.site-header').boundingBox())!;
+    const name = (await page.locator('.site-header-name').boundingBox())!;
+    const navigation = page.getByRole('navigation', { name: 'Main navigation' });
+    const nav = (await navigation.boundingBox())!;
+    expect(Math.abs(name.x - header.x)).toBeLessThan(1);
+    if (oneRow) {
+      expect(name.y).toBeLessThan(nav.y + nav.height);
+      expect(nav.y).toBeLessThan(name.y + name.height);
+      expect(Math.abs(nav.x + nav.width - header.x - header.width)).toBeLessThan(1);
+    } else {
+      expect(nav.y).toBeGreaterThanOrEqual(name.y + name.height);
+      expect(Math.abs(nav.x - header.x)).toBeLessThan(1);
+    }
+    const links = navigation.getByRole('link');
+    await expect(links.first()).toHaveCSS('font-size', '16px');
+    const first = (await links.first().boundingBox())!;
+    const last = (await links.last().boundingBox())!;
+    expect(Math.abs(first.y - last.y)).toBeLessThan(1);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width);
+  });
+}
+
+test('anchor clearance follows the actual header height after resizing between one and two rows', async ({
+  page,
+}) => {
+  await page.goto(routes.research);
+  await page.evaluate(() => document.fonts.ready);
+  for (const width of [375, 430, 390, 320]) {
+    await page.setViewportSize({ width, height: 812 });
+    await expect
+      .poll(() =>
+        page.evaluate(() => {
+          const header = document.querySelector('.site-header')!;
+          const wrap = header.parentElement!;
+          const height = header.getBoundingClientRect().height;
+          const reserved =
+            parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) -
+            parseFloat(getComputedStyle(wrap).paddingTop) -
+            parseFloat(getComputedStyle(wrap, '::after').height);
+          return Math.abs(height - reserved);
+        }),
+      )
+      .toBeLessThan(0.5);
+  }
+});
 
 test('Research chapter navigation keeps its destinations clear of the sticky header', async ({
   page,

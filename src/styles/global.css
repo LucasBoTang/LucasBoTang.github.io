@@ -35,6 +35,7 @@
     --font: 'Geist Variable', 'Helvetica Neue', sans-serif;
     --font-mono: 'Geist Mono Variable', ui-monospace, Menlo, Consolas, monospace;
     --font-serif: 'Bodoni Moda Variable', 'Bodoni MT', Didot, Georgia, serif;
+    --grid-columns: 12;
     --gutter: clamp(1.4rem, 5.6vw, 6rem);
     /* The item rule, drawn as a background on a full-width grid entry: a quiet line from column 6
        to the right edge, so the column of names and wordmarks is never crossed. */
@@ -103,9 +104,13 @@
       --type-title: 2rem;
     }
   }
-  /* Phones: one column, so every zone spans it, and Heading and Display step down again. */
+  /* Phones keep a four-column grid under one reading column. A 24px edge and 16px gutters
+     align every page; the portrait uses three columns, while all reading zones span four. */
   @media (max-width: 720px) {
     :root {
+      --column-gap: var(--step-16);
+      --grid-columns: 4;
+      --gutter: var(--step-24);
       --item-rule: linear-gradient(var(--rule-item), var(--rule-item)) left top / 100% 1px no-repeat;
       --line-heading: 1.75rem;
       --site-header-fade: 1.25rem;
@@ -174,7 +179,7 @@
   .page-grid {
     column-gap: var(--column-gap);
     display: grid;
-    grid-template-columns: repeat(12, minmax(0, 1fr));
+    grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
   }
   /* The label voice: navigation, buttons, links, venues, dates and roles. */
   .label-text {
@@ -196,11 +201,6 @@
     letter-spacing: var(--tracking-caps);
     line-height: var(--line-label);
     text-transform: uppercase;
-  }
-  @media (max-width: 720px) {
-    .page-grid {
-      grid-template-columns: minmax(0, 1fr);
-    }
   }
   .skip-link {
     left: var(--gutter);

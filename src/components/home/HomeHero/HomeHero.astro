@@ -307,15 +307,23 @@ const [inkRed, inkGreen, inkBlue] = blueInk.dark.map((dark, i) => `${dark} ${blu
     }
   }
   @media (max-width: 720px) {
-    /* In one column the portrait stands in the middle: the photograph with its shifted blue third
-       is centred as one, the name still reaching out past its left edge, and the contact links
-       below follow the blue third. */
+    /* The composition starts on a shared axis. Its heavier photograph and blue third receive an
+       optical shift left; the name and contacts stay anchored so empty space is not given weight. */
     .hero {
-      --contact-links-offset: calc(var(--portrait-inset) + var(--ink-shift));
-      --contact-links-width: var(--portrait-width);
-      --portrait-inset: calc((100cqw - var(--portrait-width) - var(--ink-shift)) / 2);
-      --portrait-width: 15rem;
-      row-gap: var(--step-32);
+      --contact-links-offset: calc((100cqw - var(--contact-links-width)) / 2);
+      --contact-links-width: min(15rem, 100cqw);
+      --identity-overhang: var(--step-48);
+      --portrait-inset: calc(
+        (100cqw - var(--portrait-width) - var(--ink-shift) + var(--identity-overhang)) / 2 -
+          var(--portrait-optical-shift)
+      );
+      --portrait-optical-shift: var(--step-8);
+      /* Three of the mobile grid's four columns, capped at the portrait's established size. */
+      --portrait-width: min(
+        15rem,
+        calc((100cqw - 3 * var(--column-gap)) / 4 * 3 + 2 * var(--column-gap))
+      );
+      row-gap: var(--step-24);
       padding-top: var(--step-24);
     }
     /* The column is the container, so the inset reads the same wherever it is used. */
@@ -323,9 +331,9 @@ const [inkRed, inkGreen, inkBlue] = blueInk.dark.map((dark, i) => `${dark} ${blu
       display: block;
       container-type: inline-size;
     }
-    /* The name reaches out to the text's left edge, whatever the phone's width. */
+    /* Counter the photo's optical shift to preserve the name and its signal marks' position. */
     .portrait-block {
-      --name-offset: var(--portrait-inset);
+      --name-offset: calc(var(--identity-overhang) - var(--portrait-optical-shift));
       margin-left: var(--portrait-inset);
       width: var(--portrait-width);
     }
@@ -333,10 +341,10 @@ const [inkRed, inkGreen, inkBlue] = blueInk.dark.map((dark, i) => `${dark} ${blu
       display: block;
     }
     .affiliation {
-      margin-bottom: var(--step-48);
+      margin-bottom: var(--step-32);
     }
     .hero-intro {
-      margin-top: var(--step-48);
+      margin-top: var(--step-32);
     }
     .hero-actions {
       margin-top: var(--step-24);
