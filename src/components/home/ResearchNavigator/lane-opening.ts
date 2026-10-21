@@ -12,7 +12,11 @@ const LANE_FADE_IN = 0.22;
  * (`lane-0`, `lane-1`, ...), slightly after the one above. A lane's dim field opens from its
  * centre, its words starting to drift almost at once, and its light swells in behind it.
  */
-export function addLaneOpening(timeline: Timeline<HomeOpeningGroup>, navigator: HTMLElement) {
+export function addLaneOpening(
+  timeline: Timeline<HomeOpeningGroup>,
+  navigator: HTMLElement,
+  returning: boolean,
+) {
   const pace = phonePace();
   let started = false;
   const rows = Array.from(navigator.querySelectorAll<HTMLElement>('.research-topic'));
@@ -49,12 +53,12 @@ export function addLaneOpening(timeline: Timeline<HomeOpeningGroup>, navigator: 
   });
 
   return {
-    /** Staggers when visible; reports the first light and the last lane's settled opening. */
-    start(lighting: () => void, opened: () => void) {
+    /** Staggers when visible. Fresh actions join the last lane's tail; returns keep first light. */
+    start(action: () => void, opened: () => void) {
       if (started || timeline.finished) return;
       started = true;
       if (!rows.length) {
-        lighting();
+        action();
         opened();
         return;
       }
@@ -64,12 +68,17 @@ export function addLaneOpening(timeline: Timeline<HomeOpeningGroup>, navigator: 
             () => {
               timeline.start(`lane-${i}`);
               timeline.later(() => row.removeAttribute('data-connecting'), time.laneDrift * pace);
-              if (i === 0) timeline.later(lighting, time.laneLightDelay * pace);
-              if (i === rows.length - 1)
+              if (returning && i === 0) timeline.later(action, time.laneLightDelay * pace);
+              if (i === rows.length - 1) {
+                const settled =
+                  Math.max(time.laneField, time.laneLightDelay + time.laneLight) * pace;
+                const actionAt = Math.max(0, settled - time.actionLead * pace);
+                if (!returning) timeline.later(action, actionAt);
                 timeline.later(
                   opened,
-                  Math.max(time.laneField, time.laneLightDelay + time.laneLight) * pace,
+                  returning ? settled : Math.max(time.laneField * pace, actionAt + time.actionFade),
                 );
+              }
             },
             (time.laneOffsets[i] ?? 0) * pace,
           ),

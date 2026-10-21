@@ -32,14 +32,14 @@ const ICON_LANDING: Keyframe[] = [
 /**
  * The hero's part of the home opening: the portrait develops as a screen of dots and glitches into the
  * photograph, its lower third turns blue and shifts, the name decodes, and the framing arrives.
- * The framing joins `identity`; typing runs on its own clock and the action follows the lanes.
+ * The affiliation uses `frame`; typing runs on its own clock and the action follows the lanes.
  */
 export function addHeroOpening(timeline: Timeline<HomeOpeningGroup>, hero: HTMLElement) {
   const returning = isHomeReturn();
   const followAt = time.formStart + arrival.beat;
-  hero.setAttribute('data-opening', '');
-  hero.setAttribute('data-intro-waiting', '');
-  hero.setAttribute('data-bio-waiting', '');
+  hero.dataset.opening = '';
+  hero.dataset.introWaiting = '';
+  hero.dataset.bioWaiting = '';
   // The photograph develops as a screen of dots and glitches in (see portrait-develop.ts); the
   // real image layers stay hidden until the glitch settles on the photograph, then take over.
   const develop = createPortraitDevelop(hero);
@@ -116,22 +116,22 @@ export function addHeroOpening(timeline: Timeline<HomeOpeningGroup>, hero: HTMLE
       time.labelFade,
     );
   });
-  // The affiliation arrives with the portrait's first dots, rising a little into place.
-  const arrive = (element: Element | null, delay: number) =>
+  // The affiliation keeps its original fade, independently of fresh desktop portrait timing.
+  const arrive = (element: Element | null, delay: number, group: HomeOpeningGroup = 'identity') =>
     element &&
     timeline.animate(
       element,
       arrivalFrames(element),
       { duration: arrival.duration, delay, easing: arrival.easing },
-      'identity',
+      group,
     );
-  arrive(hero.querySelector('.affiliation'), time.formStart);
+  arrive(hero.querySelector('.affiliation'), time.formStart, 'frame');
   if (returning) {
     // One reading passage: both paragraphs arrive together, using the site's shared fade and rise.
     arrive(hero.querySelector('.hero-intro'), followAt);
     arrive(hero.querySelector('.hero-bio'), followAt);
   }
-  // The action shares the first research light's arrival, without a separate rising motion.
+  // The action fades in near the last lane's settled opening, without a separate rising motion.
   timeline.appear(hero.querySelector('.hero-actions'), 0, 'actions', time.actionFade);
 
   const photo = hero.querySelector<HTMLImageElement>('.portrait');
@@ -141,7 +141,7 @@ export function addHeroOpening(timeline: Timeline<HomeOpeningGroup>, hero: HTMLE
     start() {
       hero.dataset.openingStarted = String(performance.now());
       scramble?.play();
-      // Without the development, the photograph fades in with the affiliation and bio. The
+      // Without the development, the photograph fades in at its first-dot cue. The
       // signal canvas is left to its own styles, which show it only while motion runs.
       if (!develop.play())
         photo?.animate([{ opacity: 0 }, { opacity: 1 }], {
@@ -150,15 +150,17 @@ export function addHeroOpening(timeline: Timeline<HomeOpeningGroup>, hero: HTMLE
           fill: 'forwards',
         });
     },
-    /** The lanes follow the affiliation while fresh prose keeps typing. On returns, the prose
-     * fades in first and the lanes follow it by their shorter beat. */
-    scheduleCues() {
-      timeline.later(() => hero.removeAttribute('data-opening'), time.shiftEnd);
-      timeline.later(
-        () => hero.dispatchEvent(new Event(openingEvents.lanesReady)),
-        followAt + (returning ? time.returnLaneDelay : 0),
-      );
+    /** Reports the settled portrait; site returns also retain their original prose and lane cues. */
+    scheduleCues(settled: () => void) {
+      timeline.later(() => {
+        delete hero.dataset.opening;
+        settled();
+      }, time.shiftEnd);
       if (returning) {
+        timeline.later(
+          () => hero.dispatchEvent(new Event(openingEvents.lanesReady)),
+          followAt + time.returnLaneDelay,
+        );
         timeline.later(
           () => hero.dispatchEvent(new Event(openingEvents.introComplete)),
           followAt + arrival.duration,
@@ -167,18 +169,19 @@ export function addHeroOpening(timeline: Timeline<HomeOpeningGroup>, hero: HTMLE
     },
     /** The greeting is the first part of the opening. */
     startTyping() {
-      hero.removeAttribute('data-intro-waiting');
+      delete hero.dataset.introWaiting;
+      hero.dispatchEvent(new Event(openingEvents.greetingStart));
     },
-    /** The bio begins with the affiliation and portrait's first dots. */
+    /** Desktop prose leads the portrait's first dots; phones and returns retain their shared cue. */
     startBio() {
-      hero.removeAttribute('data-bio-waiting');
+      delete hero.dataset.bioWaiting;
     },
     skip() {
       develop.stop();
       scramble?.finish();
-      hero.removeAttribute('data-opening');
-      hero.removeAttribute('data-intro-waiting');
-      hero.removeAttribute('data-bio-waiting');
+      delete hero.dataset.opening;
+      delete hero.dataset.introWaiting;
+      delete hero.dataset.bioWaiting;
       skipHomeIntro(hero);
     },
   };

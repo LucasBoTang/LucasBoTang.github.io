@@ -149,8 +149,12 @@ function plan(text: string, rhythm: TypingRhythm): Keystroke[] {
 }
 
 interface TypingOptions extends TypingRhythm {
-  /** Leave the caret at the final punctuation before handing over to another paragraph. */
-  endDelay?: number;
+  /** Report one phrase as it is typed; showing completed text directly never plays the cue. */
+  cue?: { after: string; onReach: () => void };
+  /** Runs once near the end on the active typing clock; direct completion skips this cue. */
+  endCue?: { lead: number; onReach: () => void };
+  /** Develop newly typed letters without changing their geometry or the keystroke clock. */
+  letterFade?: number;
   /** A page introduction may type beside its title while the body is still being prepared. */
   duringOpening?: boolean;
   held?: () => boolean;
@@ -161,12 +165,23 @@ interface TypingOptions extends TypingRhythm {
 export function createTyping(host: HTMLElement, options: TypingOptions = {}) {
   const target = host.querySelector<HTMLElement>('[data-intro-typed]');
   const original = host.querySelector<HTMLElement>('.intro-copy');
-  if (!target || !original) return { setRunning: () => {}, finish: () => {} };
+  if (!target || !original)
+    return { setRunning: () => {}, finish: () => {}, remeasure: () => {}, duration: 0 };
   const cursor = host.querySelector<HTMLElement>('.intro-cursor');
+  // TypedText puts the live copy and its caret in this shared layer.
+  const layer = target.parentElement!;
   const text = original.textContent?.trim() ?? '';
   const letters = spell(text, target, Number(host.dataset.mobileBreakAt) || 0);
   const strokes = plan(text, options);
-  const completeAt = (strokes.at(-1)?.at ?? 0) + (options.endDelay ?? 0);
+  const duration = strokes.at(-1)?.at ?? 0;
+  let endCue = options.endCue;
+  const cueStart = options.cue?.after ? text.indexOf(options.cue.after) : -1;
+  const cueAt = cueStart >= 0 ? cueStart + options.cue!.after.length : Infinity;
+  const letterFade = options.letterFade ?? 0;
+  if (letterFade) {
+    host.dataset.typingFade = '';
+    host.style.setProperty('--typing-letter-fade', `${letterFade}ms`);
+  }
 
   let shown = 0;
   let positions: { x: number; y: number }[] | undefined;
@@ -180,10 +195,13 @@ export function createTyping(host: HTMLElement, options: TypingOptions = {}) {
       return;
     }
     if (!positions) {
-      const origin = host.getBoundingClientRect();
+      const origin = layer.getBoundingClientRect();
+      // A host may scale its whole typing layer during an entrance. Cache local coordinates so
+      // the caret inherits that transform exactly once, including while the sentence resizes.
+      const scale = origin.width / parseFloat(getComputedStyle(layer).width) || 1;
       positions = letters.map((letter) => {
         const box = letter.getBoundingClientRect();
-        return { x: box.right - origin.left, y: box.top - origin.top };
+        return { x: (box.right - origin.left) / scale, y: (box.top - origin.top) / scale };
       });
     }
     const position = positions[shown - 1];
@@ -209,7 +227,7 @@ export function createTyping(host: HTMLElement, options: TypingOptions = {}) {
     moveCursor();
   };
   show({ count: 0 });
-  host.setAttribute('data-typing-ready', '');
+  host.dataset.typingReady = '';
   const remeasure = () => {
     positions = undefined;
     moveCursor();
@@ -220,6 +238,8 @@ export function createTyping(host: HTMLElement, options: TypingOptions = {}) {
   let complete = false;
   let next = 0;
   let started = false;
+  let revealedAt = 0;
+  let cued = false;
   // Home follows its opening gate and reading cues. A page introduction may explicitly start
   // beside its title while that gate still protects the body.
   const loop = createLoop(
@@ -229,14 +249,22 @@ export function createTyping(host: HTMLElement, options: TypingOptions = {}) {
       if (stroke) {
         if (!started) {
           started = true;
-          host.setAttribute('data-typing-started', '');
+          host.dataset.typingStarted = '';
         }
         show(stroke);
+        revealedAt = elapsed;
+        if (!cued && stroke.count >= cueAt) {
+          cued = true;
+          options.cue?.onReach();
+        }
         // Like a real caret, the cursor holds steady while keys move and blinks once they stop.
-        host.setAttribute('data-typing', '');
-      } else if (next > 0 && elapsed - strokes[next - 1].at > STILL)
-        host.removeAttribute('data-typing');
-      if (next >= strokes.length && elapsed >= completeAt) finish();
+        host.dataset.typing = '';
+      } else if (next > 0 && elapsed - strokes[next - 1].at > STILL) delete host.dataset.typing;
+      if (endCue && elapsed >= duration - endCue.lead) {
+        endCue.onReach();
+        endCue = undefined;
+      }
+      if (next >= strokes.length && elapsed >= revealedAt + letterFade) finish();
     },
     () => (options.held?.() ?? false) || (!options.duringOpening && openingPending()),
   );
@@ -246,9 +274,12 @@ export function createTyping(host: HTMLElement, options: TypingOptions = {}) {
     if (complete) return;
     complete = true;
     loop.stop();
-    host.removeAttribute('data-typing');
+    delete host.dataset.typingFade;
+    host.style.removeProperty('--typing-letter-fade');
+    if (!host.getAttribute('style')) host.removeAttribute('style');
+    delete host.dataset.typing;
     show({ count: letters.length });
-    host.setAttribute('data-typing-complete', '');
+    host.dataset.typingComplete = '';
     options.onComplete?.();
   }
 
@@ -260,5 +291,5 @@ export function createTyping(host: HTMLElement, options: TypingOptions = {}) {
     else loop.stop();
   }
 
-  return { setRunning, finish };
+  return { setRunning, finish, remeasure, duration };
 }

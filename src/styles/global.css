@@ -72,7 +72,7 @@
     /* The drifting research lanes are lettering, scaled independently of reading headings. */
     --type-lane: 1.75rem;
     /* The home name keeps its own size, a step under Display: the owner's call. */
-    --type-name: 4.5rem;
+    --type-name: 4rem;
     --type-title: 3rem;
     /* Software: a project's description runs from column 5 to column 11. */
     --zone-entry: 5 / 12;
@@ -80,9 +80,9 @@
     /* The main zone with the margin column before it, where the Research years hang. */
     --zone-hanging: 5 / 12;
     --zone-index: 1 / 5;
-    /* Running text spans six columns, about 66 characters; Home's About copy keeps seven. */
+    /* Running text spans six columns, about 66 characters; Home's bio keeps seven. */
     --zone-lead: 1 / 7;
-    --zone-lead-wide: 1 / 8;
+    --zone-lead-inset: 2 / 8;
     --zone-line: 5 / 13;
     --zone-main: 6 / 12;
     --zone-main-wide: 6 / 13;
@@ -103,7 +103,6 @@
       --line-title: 2.5rem;
       --type-display: 4.5rem;
       --type-lane: 1.5rem;
-      --type-name: 4rem;
       --type-title: 2rem;
     }
   }
@@ -126,7 +125,7 @@
       --zone-hanging: 1 / -1;
       --zone-index: 1 / -1;
       --zone-lead: 1 / -1;
-      --zone-lead-wide: 1 / -1;
+      --zone-lead-inset: 1 / -1;
       --zone-line: 1 / -1;
       --zone-main: 1 / -1;
       --zone-main-wide: 1 / -1;

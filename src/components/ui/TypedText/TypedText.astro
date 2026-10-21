@@ -79,6 +79,12 @@ const breakAt = mobileBreakBefore ? sentence.indexOf(` ${mobileBreakBefore} `) +
     }
   }
   @media (prefers-reduced-motion: no-preference) {
+    [data-typing-fade] .intro-typing :global(.intro-letter) {
+      transition: opacity var(--typing-letter-fade) linear;
+    }
+    [data-typing-fade] .intro-typing :global(.intro-letter[data-unseen]) {
+      opacity: 0;
+    }
     .intro-cursor {
       animation: intro-cursor-blink 1.1s step-end infinite;
     }

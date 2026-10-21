@@ -66,8 +66,7 @@ import { conferenceResources } from '../../../data/resources';
 </section>
 
 <style>
-  /* The copy runs over columns 1 to 7 and the sign hangs in columns 9 to 11, the mirror of the
-     portrait's columns, so the page ends turning the other way from the hero and the work. */
+  /* The copy spans columns 2 to 7. The sign occupies columns 9 to 11. */
   .about {
     align-items: start;
     margin-top: var(--step-160);
@@ -87,7 +86,7 @@ import { conferenceResources } from '../../../data/resources';
     grid-row: 2;
   }
   .about-copy {
-    grid-column: var(--zone-lead-wide);
+    grid-column: var(--zone-lead-inset);
     grid-row: 2;
   }
   .about-copy p {
@@ -103,7 +102,7 @@ import { conferenceResources } from '../../../data/resources';
   /* The link follows on a row of its own, so the sign centres on the two paragraphs alone. */
   .about-action {
     display: flex;
-    grid-column: var(--zone-lead-wide);
+    grid-column: var(--zone-lead-inset);
     grid-row: 3;
     justify-content: flex-start;
     margin-top: var(--step-32);

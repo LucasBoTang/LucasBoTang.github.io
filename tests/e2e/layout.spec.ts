@@ -68,9 +68,15 @@ test('the hero name keeps its own size and starts on column 1', async ({ page })
   await page.goto('/');
   const cols = await gridColumns(page);
   const size = await page.locator('#hero-name').evaluate((name) => getComputedStyle(name).fontSize);
-  expect(size).toBe('72px');
+  expect(size).toBe('64px');
   // Bodoni's B sits a little inside its advance; 3px allows for that side bearing.
   near(await textLeft(page, '#hero-name .name-base'), cols[0].left, 3);
+  const marks = page.locator('.name-marks span');
+  await expect(marks).toHaveCount(3);
+  for (const mark of await marks.all()) {
+    await expect(mark).toHaveCSS('width', '6px');
+    await expect(mark).toHaveCSS('height', '6px');
+  }
 });
 
 test('the hero copy starts on column 6', async ({ page }) => {
@@ -80,12 +86,20 @@ test('the hero copy starts on column 6', async ({ page }) => {
   near(await textLeft(page, '.hero-intro .intro-copy'), cols[5].left);
 });
 
-test('the portrait sits in columns 2 to 4', async ({ page }) => {
-  await page.goto('/');
-  const cols = await gridColumns(page);
-  const portrait = await page.locator('.portrait-block').boundingBox();
-  near(portrait!.x, cols[1].left);
-  near(portrait!.width, cols[3].right - cols[1].left);
+test('the compact portrait stays in columns 2 to 4 and meets the action baseline on wide screens', async ({
+  page,
+}) => {
+  for (const width of [800, 1280, 1440, 1935]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto('/');
+    await page.evaluate(() => document.fonts.ready);
+    const cols = await gridColumns(page);
+    const portrait = (await page.locator('.portrait-block').boundingBox())!;
+    near(portrait.x, cols[1].left);
+    near(portrait.width, Math.min(260, cols[3].right - cols[1].left));
+    if (width >= 1280)
+      near(portrait.y + portrait.height, await firstBaseline(page, '.hero-actions .link-label'));
+  }
 });
 
 test('the hero name stays left of column 6 at 900px', async ({ page }) => {
@@ -122,13 +136,19 @@ test('the work note is in natural case', async ({ page }) => {
   expect(transform).toBe('none');
 });
 
-test('about sets the copy from column 1 and the sign in columns 9 to 11', async ({ page }) => {
+test('about leaves column 1 empty, with copy in 2 to 7 and the sign in 9 to 11', async ({
+  page,
+}) => {
   await page.goto('/');
   const cols = await gridColumns(page);
   const sign = await page.locator('.about-fields').boundingBox();
   near(sign!.x, cols[8].left);
   near(sign!.x + sign!.width, cols[10].right);
-  near(await textLeft(page, '.about-copy p'), cols[0].left);
+  near(await textLeft(page, '.about-copy p'), cols[1].left);
+  const copy = await page.locator('.about-copy').boundingBox();
+  const action = await page.locator('.about-action').boundingBox();
+  near(copy!.x + copy!.width, cols[6].right);
+  near(action!.x, cols[1].left);
 });
 
 test('the about sign hangs a tab below its lettering', async ({ page }) => {
@@ -205,13 +225,18 @@ test('a preprint keeps clear of its title at tablet widths', async ({ page }) =>
   expect(above || beside).toBe(true);
 });
 
-test('the hero copy keeps column 12 empty', async ({ page }) => {
-  for (const width of [1024, 1280]) {
+test('the hero bio spans columns 6 to 12 beside the narrower affiliation and greeting', async ({
+  page,
+}) => {
+  for (const width of [800, 1024, 1280, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto('/');
     const cols = await gridColumns(page);
     for (const { right } of await textExtent(page, '.hero-intro .intro-copy, .affiliation a'))
       expect(right).toBeLessThanOrEqual(cols[10].right + 1);
+    const bio = (await page.locator('.hero-bio').boundingBox())!;
+    near(bio.x, cols[5].left);
+    near(bio.x + bio.width, cols[11].right);
   }
 });
 
@@ -447,12 +472,12 @@ test.describe('dividers', () => {
 });
 
 test.describe('measure, spacing, strokes and targets', () => {
-  // Running text takes its measure from the columns it spans, six of them (about 66 characters),
-  // so its right edge always lands on a column line. Home's About copy keeps seven, by choice.
-  test('running text spans six columns and ends on a column line', async ({ page }) => {
+  // Reading blocks end on their assigned column line. Home's bio spans seven columns;
+  // other passages retain their six-column measure.
+  test('running text ends on its assigned column line', async ({ page }) => {
     const checks: [string, string, number][] = [
       ['/', '.hero-intro', 10],
-      ['/', '.hero-bio', 10],
+      ['/', '.hero-bio', 11],
       ['/', '.work-description', 10],
       ['/', '.about-copy', 6],
       ['/research/', '.page-header p', 5],

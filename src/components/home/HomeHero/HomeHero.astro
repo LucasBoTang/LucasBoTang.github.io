@@ -58,7 +58,7 @@ const [inkRed, inkGreen, inkBlue] = blueInk.dark.map((dark, i) => `${dark} ${blu
       </div>
     </div>
     <ContactLinks />
-    <svg class="ink-filter" aria-hidden="true" width="0" height="0">
+    <svg class="hero-filters" aria-hidden="true" width="0" height="0">
       <defs>
         <filter id="portrait-blue-ink" color-interpolation-filters="sRGB">
           <feColorMatrix
@@ -101,18 +101,29 @@ const [inkRed, inkGreen, inkBlue] = blueInk.dark.map((dark, i) => `${dark} ${blu
 </script>
 
 <style>
-  /* The portrait fills columns 2 to 4 and splits two thirds of the way down: the photograph
+  :global(html[data-greeting-locked]) {
+    overflow: hidden;
+    padding-right: var(--greeting-scrollbar);
+  }
+  :global(html[data-greeting-locked] body) {
+    pointer-events: none;
+    touch-action: none;
+  }
+  /* The portrait sits within columns 2 to 4 and splits two thirds of the way down: the photograph
      above, and below it the blue third, shifted right by --ink-shift. The name starts on column 1,
      reaching across the portrait; ContactLinks sits under the blue third. The copy starts on
      column 6, level with the portrait's top. */
   .hero {
     --contact-links-offset: var(--ink-shift);
-    --contact-links-width: 100%;
+    --contact-links-width: min(100%, var(--portrait-width));
     --ink-height: 33.334%;
     --ink-shift: 18px;
     --ink-top: 66.666%;
+    /* optical: the compact photograph's bottom meets the research action's text baseline. */
+    --portrait-width: 16.25rem;
     align-items: start;
     padding-top: var(--step-64);
+    container-type: inline-size;
   }
   .identity {
     display: grid;
@@ -122,11 +133,12 @@ const [inkRed, inkGreen, inkBlue] = blueInk.dark.map((dark, i) => `${dark} ${blu
   }
   /* The name and its marks start one column and one gap left of the portrait: column 1's edge. */
   .portrait-block {
-    --name-offset: calc((100% - 2 * var(--column-gap)) / 3 + var(--column-gap));
+    --name-offset: calc((100cqw + var(--column-gap)) / var(--grid-columns));
     isolation: isolate;
     position: relative;
     grid-column: var(--zone-portrait);
     aspect-ratio: 2 / 3;
+    width: min(100%, var(--portrait-width));
   }
   .identity :global(.contact-links) {
     grid-column: var(--zone-portrait);
@@ -149,7 +161,7 @@ const [inkRed, inkGreen, inkBlue] = blueInk.dark.map((dark, i) => `${dark} ${blu
     transform: translateX(var(--ink-shift));
     pointer-events: none;
   }
-  .ink-filter {
+  .hero-filters {
     position: absolute;
     pointer-events: none;
   }
@@ -240,8 +252,8 @@ const [inkRed, inkGreen, inkBlue] = blueInk.dark.map((dark, i) => `${dark} ${blu
     clip-path: inset(61% 0 27%);
     color: var(--signal-light);
   }
-  /* The copy runs from column 6 to 11, leaving column 12 empty; only the drifting research
-     lanes reach across it. */
+  /* The affiliation and greeting span columns 6 to 11. The bio and research lanes continue
+     through column 12, sharing the full measure of the right-hand composition. */
   .hero-copy {
     align-content: start;
     display: grid;
@@ -251,6 +263,9 @@ const [inkRed, inkGreen, inkBlue] = blueInk.dark.map((dark, i) => `${dark} ${blu
   }
   .hero-copy > * {
     grid-column: 1 / -2;
+  }
+  .hero-copy > .hero-bio {
+    grid-column: 1 / -1;
   }
   .hero-copy > :global(.research-navigator) {
     grid-column: 1 / -1;
@@ -275,6 +290,42 @@ const [inkRed, inkGreen, inkBlue] = blueInk.dark.map((dark, i) => `${dark} ${blu
   .hero-bio {
     margin-top: var(--step-16);
   }
+  /* One intact line scales and moves into its measured reading position. The accessible copy keeps
+     reserving the final paragraph geometry; token spans retain their natural word spacing. */
+  .hero-intro[data-greeting-opening] :global([data-intro-typed]) {
+    display: inline-block;
+    clip-path: inset(0);
+  }
+  /* Resolve the title tier without inserting a measurement element during the entrance. */
+  .hero-intro::before {
+    content: '';
+    position: absolute;
+    font-size: var(--type-title);
+    visibility: hidden;
+  }
+  .hero-intro :global(.intro-typing)::before,
+  .hero-intro :global(.intro-typing)::after {
+    content: attr(data-greeting-signal);
+    inset: 0;
+    position: absolute;
+    white-space: pre;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .hero-intro :global(.intro-typing)::before {
+    text-shadow: calc(1px / var(--greeting-scale, 1)) 0 var(--blue);
+    clip-path: inset(44% 0 36%);
+  }
+  .hero-intro :global(.intro-typing)::after {
+    clip-path: inset(64% 0 0);
+  }
+  .hero-intro[data-greeting-opening] :global(.intro-cursor) {
+    width: calc(2px / var(--greeting-scale));
+  }
+  .hero-intro[data-greeting-opening]:not([data-greeting-folding])
+    :global([data-typing-complete] .intro-cursor) {
+    visibility: visible;
+  }
   .hero-actions {
     align-items: center;
     display: flex;
@@ -284,6 +335,15 @@ const [inkRed, inkGreen, inkBlue] = blueInk.dark.map((dark, i) => `${dark} ${blu
     margin-top: var(--step-24);
   }
   @media (prefers-reduced-motion: no-preference) {
+    .hero-intro :global(.intro-typing[data-greeting-glitch] [data-intro-typed]) {
+      animation: signal-greeting-breakup var(--greeting-glitch) steps(1, end) both;
+    }
+    .hero-intro :global(.intro-typing[data-greeting-glitch])::before {
+      animation: signal-greeting-upper var(--greeting-glitch) steps(1, end) both;
+    }
+    .hero-intro :global(.intro-typing[data-greeting-glitch])::after {
+      animation: signal-greeting-lower var(--greeting-glitch) steps(1, end) both;
+    }
     .name-marks span {
       animation: signal-marks-hop 2.7s steps(1, end) infinite;
     }

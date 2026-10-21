@@ -9,6 +9,7 @@ function setupHero(hero: HTMLElement) {
   let inView = true;
   const portraitSignal = createPortraitSignal(hero);
   const typing = createIntroTyping(hero);
+  hero.addEventListener(openingEvents.greetingStart, typing.start, { once: true });
   function updateMotion() {
     hero.toggleAttribute('data-motion-ready', !reducedMotion.matches);
     hero.toggleAttribute('data-motion-suspended', !inView || document.hidden);

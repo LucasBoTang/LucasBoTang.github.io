@@ -45,15 +45,10 @@ function setupHomeOpening(page: HTMLElement) {
   };
   const hero = addHeroOpening(timeline, heroElement);
   if (!returning) {
-    timeline.appear(
-      document.querySelector('.site-header'),
-      time.frameAt,
-      'identity',
-      time.headerFade,
-    );
+    timeline.appear(document.querySelector('.site-header'), time.frameAt, 'frame', time.headerFade);
   }
   const navigator = page.querySelector<HTMLElement>(part('topics'));
-  const lanes = navigator ? addLaneOpening(timeline, navigator) : undefined;
+  const lanes = navigator ? addLaneOpening(timeline, navigator, returning) : undefined;
   const bio = heroElement.querySelector<HTMLElement>('[data-home-bio] [data-typed-text]');
 
   // Reading units arrive whole, with no nested fades, clipped lines or separately timed links, one
@@ -79,10 +74,13 @@ function setupHomeOpening(page: HTMLElement) {
   readingUnit(document.querySelector('.site-footer'), 'footer');
 
   let introComplete = !returning && (bio?.hasAttribute('data-typing-complete') ?? false);
+  let introEnding = false;
+  let portraitComplete = returning || isPhone();
   let lanesComplete = false;
   let identityStarted = false;
   const revealActions = () => timeline.start('actions');
   const revealLanes = () => {
+    if (!returning && ((!introComplete && !introEnding) || !portraitComplete)) return;
     if (lanes) lanes.start(revealActions, completeLanes);
     else {
       revealActions();
@@ -116,38 +114,82 @@ function setupHomeOpening(page: HTMLElement) {
   // A visitor who scrolls on past the hero has moved on from the opening: what they scroll to
   // arrives at once instead of waiting for the lanes.
   const onScroll = () => {
-    if (!identityStarted && !openingPending() && isPhone()) safely(startIdentity);
+    if (
+      !identityStarted &&
+      !openingPending() &&
+      isPhone() &&
+      !document.documentElement.hasAttribute('data-greeting-locked')
+    )
+      safely(startIdentity);
     if (window.scrollY > window.innerHeight * SCROLLED_ON) startReading();
   };
   const pageWatch = onScrollFrame(onScroll);
-  // The hero releases the lanes after the affiliation; the action joins their first light.
-  // Reading below waits for the text and lanes to settle, unless the visitor scrolls on deliberately.
-  heroElement.addEventListener(openingEvents.lanesReady, revealLanes, { once: true });
+  // Fresh desktop typing releases the lanes in its tail; returns retain their short fade handoff.
+  // Reading waits for the lanes and action to settle, unless the visitor scrolls on deliberately.
+  heroElement.addEventListener(
+    openingEvents.lanesReady,
+    () => {
+      introEnding = true;
+      revealLanes();
+    },
+    { once: true },
+  );
   const completeIntro = () => {
     introComplete = true;
     revealLanes();
     if (lanesComplete) startReading();
   };
   heroElement.addEventListener(openingEvents.introComplete, completeIntro, { once: true });
-  const startIdentity = () => {
+  const startIdentity = (bioDuration = 0) => {
     if (identityStarted || timeline.finished || !page.isConnected) return;
     identityStarted = true;
     if (reading) pageWatch.stop();
-    hero.start();
-    timeline.start('identity');
-    timeline.later(hero.startBio, time.formStart);
-    hero.scheduleCues();
+    timeline.start('frame');
+    const showPortrait = () => {
+      hero.start();
+      timeline.start('identity');
+      hero.scheduleCues(() => {
+        if (!portraitComplete)
+          timeline.later(() => {
+            portraitComplete = true;
+            revealLanes();
+          }, time.portraitRest);
+      });
+    };
+    if (
+      !returning &&
+      !isPhone() &&
+      bio &&
+      bio.getBoundingClientRect().top + parseFloat(getComputedStyle(bio).lineHeight) <
+        window.innerHeight
+    ) {
+      hero.startBio();
+      // Centre the unchanged visible effect between the bio's start and the lane cue.
+      timeline.later(
+        showPortrait,
+        Math.max(0, (bioDuration - time.laneLead - time.formStart - time.shiftEnd) / 2),
+      );
+    } else {
+      showPortrait();
+      timeline.later(hero.startBio, time.formStart);
+    }
   };
-  heroElement.addEventListener(openingEvents.greetingComplete, () => safely(startIdentity), {
+  heroElement.addEventListener(openingEvents.frameReady, () => timeline.start('frame'), {
     once: true,
   });
+  heroElement.addEventListener(
+    openingEvents.identityReady,
+    (event) => safely(() => startIdentity((event as CustomEvent<number>).detail)),
+    {
+      once: true,
+    },
+  );
   const startOpening = () => {
     if (timeline.finished || !page.isConnected) return;
     if (!openingPending()) return skipOpening();
     hero.startTyping();
     // Returns and phones go straight to the portrait; only a fresh desktop visit leads with typing.
-    if (returning || isPhone() || heroElement.hasAttribute('data-greeting-complete'))
-      startIdentity();
+    if (returning || isPhone() || heroElement.hasAttribute('data-identity-ready')) startIdentity();
     // A restored scroll position can complete the text before this script attaches its listeners.
     if (introComplete) completeIntro();
     // The visitor may already have scrolled while resources were loading.
@@ -166,18 +208,24 @@ function setupHomeOpening(page: HTMLElement) {
     if (reducedMotion.matches) skipOpening();
   });
   onKeyboardFocus(skipOpening);
-  void Promise.race([
-    hero.ready,
-    new Promise<void>((resolve) => {
-      readyTimeout = window.setTimeout(resolve, time.readyTimeout);
-    }),
-  ]).then(() => {
-    window.clearTimeout(readyTimeout);
-    // Let the browser paint after preparation, then let the greeting lead the opening.
+  const begin = () => {
+    // Fresh desktop visits use the greeting's time to prepare the portrait in parallel.
     requestAnimationFrame(() => requestAnimationFrame(() => safely(startOpening)));
-  });
+  };
+  if (!returning && !isPhone()) begin();
+  else
+    void Promise.race([
+      hero.ready,
+      new Promise<void>((resolve) => {
+        readyTimeout = window.setTimeout(resolve, time.readyTimeout);
+      }),
+    ]).then(() => {
+      window.clearTimeout(readyTimeout);
+      begin();
+    });
 }
 
 enhance('[data-opening-content]', (page) => {
-  void waitForPageReady().then(() => setupHomeOpening(page));
+  const waitForImages = isPhone() || isHomeReturn();
+  void waitForPageReady({ waitForImages }).then(() => setupHomeOpening(page));
 });

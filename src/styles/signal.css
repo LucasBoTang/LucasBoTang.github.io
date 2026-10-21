@@ -148,6 +148,53 @@
   }
 }
 
+/* The line stays anchored. Two cuts complement HomeHero's middle and lower slices.
+   In the 280ms burst, hold the main displacement from 30–170ms, correct until 230ms,
+   then lock cleanly. The offsets use the visible type size, including its entrance scale. */
+@keyframes signal-greeting-breakup {
+  0% {
+    clip-path: inset(0 0 56%);
+  }
+  82.14%,
+  100% {
+    clip-path: inset(0);
+  }
+}
+@keyframes signal-greeting-upper {
+  0% {
+    opacity: 1;
+    transform: translate(0.07em, 0);
+  }
+  10.71% {
+    transform: translate(0.4em, -0.1em);
+  }
+  60.71% {
+    transform: translate(-0.16em, 0.03em);
+  }
+  82.14%,
+  100% {
+    opacity: 0;
+    transform: none;
+  }
+}
+@keyframes signal-greeting-lower {
+  0% {
+    opacity: 1;
+    transform: translate(-0.04em, 0);
+  }
+  10.71% {
+    transform: translate(-0.22em, 0.13em);
+  }
+  60.71% {
+    transform: translate(0.11em, -0.04em);
+  }
+  82.14%,
+  100% {
+    opacity: 0;
+    transform: none;
+  }
+}
+
 /* Page titles: a lighter version of the hero name tear. */
 @keyframes signal-title-distort {
   0%,

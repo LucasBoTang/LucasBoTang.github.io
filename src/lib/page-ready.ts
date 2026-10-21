@@ -5,12 +5,14 @@ import { liftOpeningGate, openingPending } from './opening-gate';
 const RESOURCE_TIMEOUT = 1800;
 /** A short quiet interval lets decoded images and loaded fonts settle before motion starts. */
 const SETTLE_TIME = 400;
-let ready: Promise<void> | undefined;
+const readiness = new Map<boolean, Promise<void>>();
 
 /** Shared readiness for page openings: first-screen fonts and eager images, bounded on failure. */
-export function waitForPageReady(): Promise<void> {
+export function waitForPageReady({ waitForImages = true } = {}): Promise<void> {
   if (!openingPending()) return Promise.resolve();
-  ready ??= new Promise<void>((resolve) => {
+  const cached = readiness.get(waitForImages);
+  if (cached) return cached;
+  const ready = new Promise<void>((resolve) => {
     const reducedMotion = reducedMotionQuery();
     let timeout = 0;
     let settle = 0;
@@ -22,7 +24,9 @@ export function waitForPageReady(): Promise<void> {
       window.clearTimeout(settle);
       stopKeyboardFocus();
       reducedMotion.removeEventListener('change', onPreferenceChange);
-      if (skip) liftOpeningGate();
+      // A font-only opening owns its gate when images prepare independently. An unrelated
+      // image waiter's timeout must not cancel that opening during its settling interval.
+      if (skip && (!waitForImages || !readiness.has(false))) liftOpeningGate();
       resolve();
     };
     const onPreferenceChange = () => {
@@ -35,7 +39,7 @@ export function waitForPageReady(): Promise<void> {
       return;
     }
     const images = [...document.images]
-      .filter((image) => image.loading !== 'lazy')
+      .filter((image) => waitForImages && image.loading !== 'lazy')
       .map((image) => image.decode());
     const resources = Promise.allSettled([document.fonts.ready, ...images]);
     timeout = window.setTimeout(() => finish(true), RESOURCE_TIMEOUT);
@@ -45,5 +49,6 @@ export function waitForPageReady(): Promise<void> {
       settle = window.setTimeout(() => finish(), SETTLE_TIME);
     });
   });
+  readiness.set(waitForImages, ready);
   return ready;
 }

@@ -1,7 +1,8 @@
-import { enhanceNear } from '../../../lib/lifecycle';
+import { enhanceNear, whenIdle } from '../../../lib/lifecycle';
 import { createLoop } from '../../../lib/loop';
 import { watchActivity } from '../../../lib/motion';
 import { openingPending } from '../../../lib/opening-gate';
+import { openingEvents } from '../opening/opening';
 import { createBand } from './sign-band';
 import { createCollision } from './sign-collision';
 import { createDots } from './sign-dots';
@@ -36,6 +37,7 @@ const PAINT_INTERVAL = 1000 / 60;
 const HIDDEN_OPACITY = 0.05;
 
 function setupDecisionSign(svg: SVGSVGElement) {
+  if (svg.dataset.signReady !== undefined) return;
   const surface = createSurface(svg);
   const slogan = svg.querySelector<SVGGElement>('.slogan-lettering');
   const fields = svg.querySelector<SVGGElement>('.research-lettering');
@@ -130,10 +132,15 @@ function setupDecisionSign(svg: SVGSVGElement) {
     } else if (!activity.hidden && activity.inView.size > 0) loop.start();
     else loop.stop();
   });
+  svg.dataset.signReady = '';
 }
 
-// The sign lies far below the first screen; it is set up as the reader nears it.
-enhanceNear('[data-decision-sign]', (section) => {
-  const svg = section.querySelector<SVGSVGElement>('svg');
-  if (svg) setupDecisionSign(svg);
-});
+const signs = document.querySelectorAll<SVGSVGElement>('[data-decision-sign] svg');
+// Prepare ahead in the bio's idle time; playback still waits for the visible section.
+document.addEventListener(
+  openingEvents.bioStart,
+  () => whenIdle(() => signs.forEach(setupDecisionSign)),
+  { once: true },
+);
+// Fast scrolling, skipped typing and site returns retain the near-viewport fallback.
+enhanceNear('[data-decision-sign] svg', setupDecisionSign);
