@@ -10,6 +10,7 @@ interface Props {
   typing?: TypingRhythm;
 }
 const { title, description, typing = {} } = Astro.props;
+const introduction = description?.trim() ?? '';
 ---
 
 <header class="page-header page-grid">
@@ -29,20 +30,21 @@ const { title, description, typing = {} } = Astro.props;
         if (!entry || entry.to !== location.href.split('#')[0] || Date.now() - entry.at > 4000)
           return;
         title.dataset.titleFrom = entry.title;
+        title.setAttribute('data-title-handoff', '');
         title.firstElementChild.textContent = entry.title || ' ';
       } catch {}
     })();
   </script>
-  {description?.trim() && (
+  {introduction && (
     <p data-reveal="lead" data-page-intro data-typing-rhythm={JSON.stringify(typing)}>
-      <TypedText text={description.trim()} />
+      <TypedText text={introduction} />
     </p>
   )}
 </header>
 
 <script>
   import './page-intro';
-  import './title-decode';
+  import './title-opening';
   import './title-signal';
 </script>
 
@@ -64,6 +66,7 @@ const { title, description, typing = {} } = Astro.props;
     letter-spacing: var(--tracking-display);
     line-height: var(--line-display);
     color: var(--blue);
+    visibility: visible;
   }
   .page-header p {
     grid-column: var(--zone-lead);
@@ -71,8 +74,8 @@ const { title, description, typing = {} } = Astro.props;
     text-wrap: balance;
     color: var(--muted);
   }
-  /* A title being rewritten stands through the opening gate, so it never leaves the screen. */
-  h1[data-title-from] {
+  /* Scripted introductions share the title's early entrance while the body gate stays closed. */
+  .page-header p[data-intro-started] {
     visibility: visible;
   }
   /* The decoding letters (title-decode.ts). A blink only dims a letter to a trace: at this size a

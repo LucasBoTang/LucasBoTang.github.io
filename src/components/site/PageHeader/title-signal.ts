@@ -13,7 +13,7 @@ const FIRST_DELAY = 1000;
 function setupTitleSignal(title: HTMLElement) {
   const reducedMotion = reducedMotionQuery();
   let timer = 0;
-  let glitched = !!title.closest('[data-title-from]');
+  let glitched = !!title.closest('[data-title-handoff]');
   let active = false;
 
   const glitch = () => {

@@ -6,10 +6,11 @@ import { waitForPageReady } from './page-ready';
 /** Brief activation feedback; the browser still follows the link immediately. */
 enhance('[data-navigation-feedback]', (navigation) => {
   const header = navigation.closest('header') ?? navigation;
+  const currentLink = navigation.querySelector('a[aria-current="page"]');
   const holdCurrentHover = () => {
     // Chrome may not restore :hover across documents until its first pointer event. Hold the
     // current label in advance; actual pointer movement or leaving releases it below.
-    navigation.querySelector('a[aria-current="page"]')?.setAttribute('data-hover-hold', '');
+    currentLink?.setAttribute('data-hover-hold', '');
   };
   void waitForPageReady().then(async () => {
     await waitForOpeningVisible();
@@ -44,7 +45,7 @@ enhance('[data-navigation-feedback]', (navigation) => {
   });
   navigation.addEventListener('pointermove', (event) => {
     if (!(event instanceof PointerEvent) || (!event.movementX && !event.movementY)) return;
-    navigation.querySelector('[data-hover-hold]')?.removeAttribute('data-hover-hold');
+    currentLink?.removeAttribute('data-hover-hold');
   });
   // Keep the choice settled while navigation commits, including a slow response. Clearing its
   // marker at animationend would restart the hover roll underneath the pointer.

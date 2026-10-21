@@ -1,9 +1,10 @@
 import { expect, test } from '@playwright/test';
+import { routes } from '../../src/data/navigation';
 
 interface TypingSample {
   text: string;
   height: number;
-  entering: boolean;
+  visible: boolean;
   caretGap: number;
 }
 
@@ -13,15 +14,68 @@ declare global {
   }
 }
 
-const pages = ['/research/', '/software/', '/about/', '/404.html'];
+const contentPages = Object.values(routes).filter((route) => route !== routes.home);
+const pages = [...contentPages, '/404.html'];
+
+for (const width of [1280, 375]) {
+  for (const route of contentPages) {
+    test(`${route} lets the introduction type briefly before body content arrives at ${width}px`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await page.addInitScript((handedOver) => {
+        if (handedOver)
+          sessionStorage.setItem(
+            'page-title-from',
+            JSON.stringify({ to: location.href, title: 'Software', at: Date.now() }),
+          );
+        document.addEventListener('DOMContentLoaded', () => {
+          const intro = document.querySelector('[data-page-intro] [data-typed-text]')!;
+          const body = document.querySelector<HTMLElement>(
+            '[data-reveal-root] [data-reveal]:not([data-reveal="title"]):not([data-page-intro])',
+          )!;
+          const sample = (now: number) => {
+            if (intro.hasAttribute('data-typing-started') && !body.dataset.testTypingAt)
+              body.dataset.testTypingAt = String(now);
+            if (
+              getComputedStyle(body).visibility === 'visible' &&
+              Number(getComputedStyle(body).opacity) > 0.05
+            ) {
+              body.dataset.testBodyAt = String(now);
+              body.dataset.testTypingComplete = String(intro.hasAttribute('data-typing-complete'));
+              return;
+            }
+            requestAnimationFrame(sample);
+          };
+          requestAnimationFrame(sample);
+        });
+      }, width === 375);
+      await page.goto(route);
+      const warming = page.locator('[data-arrival-warm]');
+      await expect(warming).not.toHaveCount(0);
+      expect(await warming.count()).toBeLessThanOrEqual(2);
+      const body = page.locator('[data-test-body-at]');
+      await expect(body).toBeAttached();
+      const timing = await body.evaluate((element) => ({ ...(element as HTMLElement).dataset }));
+      expect(
+        timing.testTypingAt,
+        'the introduction starts typing before body content arrives',
+      ).toBeDefined();
+      expect(Number(timing.testBodyAt) - Number(timing.testTypingAt)).toBeGreaterThan(450);
+      expect(Number(timing.testBodyAt) - Number(timing.testTypingAt)).toBeLessThan(1200);
+      expect(timing.testTypingComplete).toBe('false');
+      await expect(warming).toHaveCount(0);
+    });
+  }
+}
 
 const cases = [
   ...pages.map((route) => ({ route, scriptDelay: 0 })),
-  { route: '/software/', scriptDelay: 1200 },
+  { route: routes.software, scriptDelay: 1200 },
 ];
 
 for (const { route, scriptDelay } of cases) {
-  test(`${route} types after arriving without typos or reflow (script delay ${scriptDelay}ms)`, async ({
+  test(`${route} types alongside its entrance without typos or reflow (script delay ${scriptDelay}ms)`, async ({
     page,
   }) => {
     await page.setViewportSize({ width: 375, height: 812 });
@@ -42,7 +96,9 @@ for (const { route, scriptDelay } of cases) {
         window.typingSamples.push({
           text,
           height: intro.getBoundingClientRect().height,
-          entering: intro.getAnimations().some((animation) => animation.playState !== 'finished'),
+          visible:
+            getComputedStyle(intro).visibility === 'visible' &&
+            Number(getComputedStyle(intro).opacity) > 0,
           caretGap:
             intro.querySelector('.intro-cursor')!.getBoundingClientRect().left -
             letters[letters.length - 1].getBoundingClientRect().right,
@@ -66,17 +122,20 @@ for (const { route, scriptDelay } of cases) {
     expect(
       samples.every(({ text }, i) => i === 0 || text.length > samples[i - 1].text.length),
     ).toBe(true);
-    expect(samples.every(({ entering }) => !entering)).toBe(true);
+    expect(samples.every(({ visible }) => visible)).toBe(true);
     expect(samples.every(({ caretGap }) => Math.abs(caretGap - 3) < 0.1)).toBe(true);
-    expect(new Set(samples.map(({ height }) => height)).size).toBe(1);
+    const heights = samples.map(({ height }) => height);
+    // Translated rectangles can differ by tiny floating-point fractions without any reflow.
+    expect(Math.max(...heights) - Math.min(...heights)).toBeLessThan(0.1);
     expect(samples.at(-1)?.text).toBe(await intro.locator('.intro-copy').textContent());
   });
 }
 
 test('keyboard focus completes an introduction immediately', async ({ page }) => {
-  await page.goto('/software/');
+  await page.goto(routes.software);
   await expect(page.locator('[data-typing-ready]')).toBeAttached();
   await page.keyboard.press('Tab');
+  await expect(page.locator('[data-arrival-warm]')).toHaveCount(0);
   await expect(page.locator('[data-page-intro] [data-typed-text]')).toHaveAttribute(
     'data-typing-complete',
     '',
@@ -87,7 +146,7 @@ test('keyboard focus completes an introduction immediately', async ({ page }) =>
 test('the caret follows wrapped text after resizing, including after typing ends', async ({
   page,
 }) => {
-  await page.goto('/research/');
+  await page.goto(routes.research);
   const host = page.locator('[data-page-intro] [data-typed-text]');
   await expect(host).toHaveAttribute('data-typing-started', '');
   for (const width of [320, 1280, 375]) {
@@ -130,10 +189,23 @@ test('reduced motion leaves every introduction readable without typing', async (
   }
 });
 
+test('without Web Animations, the introduction remains readable without page errors', async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.addInitScript(() => {
+    Object.defineProperty(Element.prototype, 'animate', { value: undefined, configurable: true });
+  });
+  await page.goto(routes.software);
+  await expect(page.locator('[data-page-intro] .intro-copy')).toBeVisible({ timeout: 500 });
+  expect(errors).toEqual([]);
+});
+
 test('the home caret stays aligned after resizing during its typo and correction', async ({
   page,
 }) => {
-  await page.goto('/');
+  await page.goto(routes.home);
   await page.waitForFunction(
     () => document.querySelector('[data-intro-typed]')?.textContent?.includes('algorithsm'),
     undefined,

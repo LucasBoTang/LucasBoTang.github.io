@@ -1,7 +1,5 @@
 import { CALM_STEPS, DECODE_ECHO, decodeNoise, seeded } from '../../../lib/decode';
-import { enhance } from '../../../lib/lifecycle';
 import { reducedMotionQuery } from '../../../lib/motion';
-import { waitForPageReady } from '../../../lib/page-ready';
 import { slipDuration } from '../../../lib/signal';
 
 // Moving between pages, the page title rewrites itself in place, the way the home name decodes.
@@ -38,7 +36,8 @@ const DROP = 90;
 /** Each letter's offset in the decode signal's cycle, in steps. */
 const PHASE = 3;
 
-function setupTitleDecode(title: HTMLElement) {
+/** Rewrites the handed-over title without waiting for body readiness. */
+export function decodeTitle(title: HTMLElement) {
   const text = title.querySelector<HTMLElement>('.title-signal');
   const from = title.dataset.titleFrom ?? '';
   const to = title.getAttribute('aria-label') ?? '';
@@ -123,7 +122,3 @@ function setupTitleDecode(title: HTMLElement) {
   };
   requestAnimationFrame(draw);
 }
-
-enhance('[data-title-from]', (title) => {
-  void waitForPageReady().then(() => setupTitleDecode(title));
-});

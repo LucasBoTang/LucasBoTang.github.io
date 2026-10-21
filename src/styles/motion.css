@@ -1,5 +1,10 @@
 /* Static content is the default: motion never gates reading or navigation for long. */
 
+/* A short compositor hint for at most two first-screen reading units, removed as they land. */
+[data-arrival-warm] {
+  will-change: filter, opacity, transform;
+}
+
 /* While a page with an opening waits for its script, its footer and any section marked
    `data-opening-content` stay hidden, and on the home page, whose opening brings the header in
    too, the header unless it is already visible from a previous page. SiteLayout sets the attribute

@@ -136,6 +136,8 @@ function plan(text: string, rhythm: TypingRhythm): Keystroke[] {
 }
 
 interface TypingOptions extends TypingRhythm {
+  /** A page introduction may type beside its title while the body is still being prepared. */
+  duringOpening?: boolean;
   held?: () => boolean;
   onStart?: () => void;
   onComplete?: () => void;
@@ -203,8 +205,8 @@ export function createTyping(host: HTMLElement, options: TypingOptions = {}) {
   let complete = false;
   let next = 0;
   let started = false;
-  // Wait while SiteLayout's gate is up or the page holds the introduction back, so the first
-  // letter, and the reading cue it fires, always follow the opening's listeners.
+  // Home follows its opening gate and reading cues. A page introduction may explicitly start
+  // beside its title while that gate still protects the body.
   const loop = createLoop(
     (elapsed) => {
       let stroke: Keystroke | undefined;
@@ -222,7 +224,7 @@ export function createTyping(host: HTMLElement, options: TypingOptions = {}) {
         host.removeAttribute('data-typing');
       if (next >= strokes.length) finish();
     },
-    () => (options.held?.() ?? false) || openingPending(),
+    () => (options.held?.() ?? false) || (!options.duringOpening && openingPending()),
   );
 
   /** Shows the whole sentence at once and reports the introduction as complete. */

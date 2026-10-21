@@ -1,36 +1,35 @@
+import { arrival, arrivalFrames } from '../../../lib/arrival';
+import { phonePace } from '../../../lib/breakpoints';
 import { enhance } from '../../../lib/lifecycle';
 import { onKeyboardFocus, reducedMotionQuery, watchActivity } from '../../../lib/motion';
-import { waitForOpeningVisible } from '../../../lib/opening-gate';
-import { waitForPageReady } from '../../../lib/page-ready';
 import { createTyping, type TypingRhythm } from '../../ui/TypedText/typed-text';
 
-/** The lead keeps its entrance, then types once it has settled into readable text. */
+/** The introduction types alongside the title; body readiness never holds it back. */
 function setupPageIntro(intro: HTMLElement) {
   const host = intro.querySelector<HTMLElement>('[data-typed-text]');
-  if (!host || reducedMotionQuery().matches) return;
+  if (!host || reducedMotionQuery().matches || !Element.prototype.animate) return;
   const rhythm: TypingRhythm = JSON.parse(intro.dataset.typingRhythm ?? '{}');
-  let ready = false;
-  let active = false;
   let stopKeyboardWatch = () => {};
   const typing = createTyping(host, {
     ...rhythm,
-    held: () => !ready,
+    duringOpening: true,
     onComplete: () => stopKeyboardWatch(),
   });
-  stopKeyboardWatch = onKeyboardFocus(typing.finish);
-  watchActivity(intro, (activity) => {
-    active = !activity.hidden && activity.inView.has(intro);
-    if (activity.reduced) typing.finish();
-    typing.setRunning(ready && active);
+  const entrance = intro.animate(arrivalFrames(intro), {
+    duration: arrival.duration * phonePace(),
+    easing: arrival.easing,
+    fill: 'both',
   });
-
-  void waitForPageReady().then(async () => {
-    // A slow script can prepare Reveal later than this module. The gate opens only after those
-    // entrances are prepared, or when skipped, so collect them after it has lifted.
-    await waitForOpeningVisible();
-    await Promise.allSettled(intro.getAnimations().map((animation) => animation.finished));
-    ready = true;
-    typing.setRunning(active);
+  entrance.onfinish = () => entrance.cancel();
+  intro.dataset.introStarted = String(performance.now());
+  const finish = () => {
+    entrance.cancel();
+    typing.finish();
+  };
+  stopKeyboardWatch = onKeyboardFocus(finish);
+  watchActivity(intro, (activity) => {
+    if (activity.reduced) finish();
+    typing.setRunning(!activity.hidden && activity.inView.has(intro));
   });
 }
 

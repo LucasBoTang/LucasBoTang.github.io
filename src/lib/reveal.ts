@@ -5,20 +5,14 @@ import { onKeyboardFocus, reducedMotionQuery } from './motion';
 import { liftOpeningGate, openingPending } from './opening-gate';
 import { waitForPageReady } from './page-ready';
 
-// Inner-page opening: the element marked `data-reveal="title"` wipes in, then the `lead` and each
-// `unit` arrive (see arrival.ts) as they enter the viewport, in document order, through the page's
-// arrival queue. The footer arrives last. Arriving from another page, the title is already in
-// place, being rewritten (PageHeader), and the first unit rises sooner, while the last page is
-// still leaving above it, so the two pages hand over without a gap.
+// Inner-page body opening: PageHeader starts the title and introduction together. The remaining
+// leads and units arrive (see arrival.ts) through one queue after a short reading pause, without
+// waiting for the introduction to finish typing. The footer arrives last.
 
-/** The title wipes in from the top. */
-const TITLE_WIPE: Keyframe[] = [
-  { opacity: 0, clipPath: 'inset(0 0 100% 0)' },
-  { opacity: 1, clipPath: 'inset(0 0 0% 0)' },
-];
-const TITLE_DURATION = 1000;
-/** Arriving from another page, the first unit starts this long after the page shows. */
-const HAND_OVER = 120;
+/** One reading beat from the introduction's start, overlapping resource preparation. */
+const READING_BEAT = 900;
+/** Only the first visible blurred units receive temporary compositor hints. */
+const WARM_UNIT_LIMIT = 2;
 
 function setupReveal(page: HTMLElement) {
   const reducedMotion = reducedMotionQuery();
@@ -32,9 +26,19 @@ function setupReveal(page: HTMLElement) {
   const firstScreen: [Element, DOMRect][] = [];
   const belowScreen: Element[] = [];
   const pace = phonePace();
-  const title = page.querySelector('[data-reveal="title"]');
-  const handedOver = title?.hasAttribute('data-title-from') ?? false;
-  const nextArrival = createArrivalQueue(handedOver ? HAND_OVER : 0);
+  const intro = page.querySelector<HTMLElement>('[data-page-intro]');
+  const now = performance.now();
+  const introAt = Number(intro?.dataset.introStarted ?? now);
+  const firstDelay = intro ? Math.max(0, introAt + READING_BEAT - now) : 0;
+  const nextArrival = createArrivalQueue(firstDelay);
+  let warmed = 0;
+
+  /** Releases both the finished animation and its temporary compositor hint. */
+  const release = (element: Element) => {
+    animations.get(element)?.cancel();
+    element.removeAttribute('data-arrival-warm');
+    animations.delete(element);
+  };
 
   /** Starts `element`'s arrival: in its turn if it is on screen, at once if already scrolled past,
    * so units in view are never kept waiting behind ones the reader has left. */
@@ -73,10 +77,18 @@ function setupReveal(page: HTMLElement) {
     animation.pause();
     animations.set(element, animation);
     pending.set(element, animation);
-    animation.onfinish = () => {
-      animation.cancel();
-      animations.delete(element);
-    };
+    animation.onfinish = () => release(element);
+    // Use the introduction's reading pause to let Chrome prepare the first blurred text layers.
+    // Keep this to two visible units; release each hint when it lands or the opening is skipped.
+    if (
+      warmed < WARM_UNIT_LIMIT &&
+      box.top < innerHeight &&
+      box.bottom > 0 &&
+      frames.some((frame) => frame.filter)
+    ) {
+      element.setAttribute('data-arrival-warm', '');
+      warmed++;
+    }
     if (box.top < innerHeight) firstScreen.push([element, box]);
     else belowScreen.push(element);
   };
@@ -84,22 +96,18 @@ function setupReveal(page: HTMLElement) {
   // Every unit is measured before any is prepared: measuring between preparations would make the
   // browser work out the page's style again for each unit.
   const units = [
-    ...page.querySelectorAll('[data-reveal="lead"]'),
+    ...page.querySelectorAll('[data-reveal="lead"]:not([data-page-intro])'),
     ...page.querySelectorAll('[data-reveal="unit"]'),
     ...document.querySelectorAll('.site-footer'),
   ];
-  const wipesTitle = title && !handedOver;
-  const titleBox = wipesTitle ? title.getBoundingClientRect() : undefined;
   const boxes = units.map((element) => element.getBoundingClientRect());
-  if (wipesTitle && titleBox) prepare(title, titleBox, TITLE_WIPE, TITLE_DURATION);
   units.forEach((element, i) =>
     prepare(element, boxes[i], arrivalFrames(element), arrival.duration),
   );
 
   const finish = () => {
     observer.disconnect();
-    animations.forEach((animation) => animation.cancel());
-    animations.clear();
+    animations.forEach((_, element) => release(element));
     pending.clear();
     liftOpeningGate();
   };
