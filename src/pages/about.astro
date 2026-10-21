@@ -73,8 +73,11 @@ import { profile } from '../data/profile';
           {'.'}
         </p>
         <p>
-          In 2023, I was a research intern at Pacific Northwest National Laboratory, where I studied
-          learning-based correction methods for mixed-integer nonlinear optimization.
+          In 2023, I was a research intern at Pacific Northwest National Laboratory, working with{' '}
+          <a class="text-link text-link--inline" href={profile.internshipCollaborator.url}>
+            <span class="link-label">{profile.internshipCollaborator.name}</span>
+          </a>
+          {' on learning-based correction methods for mixed-integer nonlinear optimization.'}
         </p>
       </div>
       <div class="about-navigation">

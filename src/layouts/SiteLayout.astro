@@ -36,7 +36,7 @@ const preloadFonts = [serifFont, monoFont, sansFont];
 // The sans's extended Latin set, for names such as Drgoňa. A page whose text needs it fetches it
 // with the others; every other page fetches it while the browser is idle, so it is in hand before
 // the reader reaches such a page. `npm run check:budget` finds the pages that need it.
-const extendedPages: PageId[] = ['research'];
+const extendedPages: PageId[] = ['home', 'about', 'research'];
 const extendedFont = page && extendedPages.includes(page) ? 'preload' : 'prefetch';
 
 // Absolute URLs need the public origin; without SITE_URL the build omits them.

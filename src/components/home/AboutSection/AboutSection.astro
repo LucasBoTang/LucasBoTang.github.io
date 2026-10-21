@@ -31,8 +31,12 @@ import { conferenceResources } from '../../../data/resources';
         <span class="link-label">{profile.doctoralAdvisor.name}</span>
       </a>
       {
-        '. During my PhD, I spent summer 2023 as a research intern at Pacific Northwest National Laboratory.'
+        '. During my PhD, I spent summer 2023 as a research intern at Pacific Northwest National Laboratory, working with '
       }
+      <a class="text-link text-link--inline about-person" href={profile.internshipCollaborator.url}>
+        <span class="link-label">{profile.internshipCollaborator.name}</span>
+      </a>
+      {'.'}
     </p>
     <p>
       I'll be at the{' '}

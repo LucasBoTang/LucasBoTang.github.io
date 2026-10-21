@@ -18,6 +18,7 @@ export const profile = {
   // People named in the biography; Home and About link to the same pages.
   supervisor: { name: 'Haihao Lu', url: 'https://mit-lu-lab.github.io/haihao-website/' },
   doctoralAdvisor: { name: 'Elias B. Khalil', url: 'https://www.ekhalil.com/' },
+  internshipCollaborator: { name: 'Ján Drgoňa', url: 'https://drgona.github.io/' },
 } as const;
 
 export const contactLinks: ContactLink[] = [
