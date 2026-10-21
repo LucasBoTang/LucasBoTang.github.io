@@ -127,7 +127,8 @@ const glyphClasses = [
     pointer-events: none;
   }
   .project-glyphs :global(.project-band[data-torn]) {
-    visibility: visible;
+    /* A torn slice follows its entry's visibility, including the page's opening gate. */
+    visibility: inherit;
   }
   @media (max-width: 720px) {
     .project-wordmark {

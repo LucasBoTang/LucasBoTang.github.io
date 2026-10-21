@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { routes } from '../../src/data/navigation';
 import { attributeChanges, recordAttribute, recordRestores, restoredAt } from './helpers';
 
 // The motion that keeps running after the openings: project wordmarks, page-title glitches and the
@@ -258,4 +259,41 @@ test('the About sign draws its fields through a single clip that also carries th
       return d.split('M').length - 1;
     });
   await expect.poll(shapes, { timeout: 4000, intervals: [50] }).toBeGreaterThan(1);
+});
+test('project tear bands stay hidden while the Software body waits to enter', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  let releaseFonts!: () => void;
+  const fontsReady = new Promise<void>((resolve) => (releaseFonts = resolve));
+  await page.route('**/*.woff2', async (request) => {
+    await fontsReady;
+    await request.continue();
+  });
+  try {
+    await page.goto(routes.software, { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('main')).toHaveCSS('visibility', 'hidden');
+    // The tremor can prepare its sliced copies while fonts load. They must inherit the hidden
+    // body's visibility, rather than independently showing bright fragments through the gate.
+    const torn = page.locator('.project-band[data-torn]').first();
+    await expect(torn).toBeAttached({ timeout: 1000 });
+    await expect(torn).toHaveCSS('visibility', 'hidden', { timeout: 250 });
+  } finally {
+    releaseFonts();
+  }
+  await expect(page.locator('html')).not.toHaveAttribute('data-opening-pending', '');
+  // After the entry arrives, its normal torn-band effect remains available.
+  await expect
+    .poll(
+      () =>
+        page
+          .locator('.project-band[data-torn]')
+          .evaluateAll((bands) =>
+            bands.some(
+              (band) =>
+                getComputedStyle(band).visibility === 'visible' &&
+                Number(getComputedStyle(band.closest('[data-project-host]')!).opacity) > 0.9,
+            ),
+          ),
+      { timeout: 7000 },
+    )
+    .toBe(true);
 });
