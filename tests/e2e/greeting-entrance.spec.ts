@@ -387,9 +387,33 @@ test('a slower font and pending images cannot cancel the greeting preparation', 
 });
 
 test('the greeting holds page interactions until it has landed', async ({ page }) => {
+  await page.clock.install();
+  // Catch the short fold as it begins, rather than polling near its last frame.
+  // Hold the real animation so browser round trips cannot outlast the locked phase.
+  await page.addInitScript(() => {
+    const observer = new MutationObserver((mutations) => {
+      const paragraph = mutations
+        .map((mutation) => mutation.target as HTMLElement)
+        .find((element) => element.hasAttribute('data-greeting-folding'));
+      if (!paragraph) return;
+      paragraph
+        .querySelector('.intro-typing')!
+        .getAnimations()
+        .forEach((animation) => animation.pause());
+      observer.disconnect();
+    });
+    observer.observe(document, {
+      attributes: true,
+      attributeFilter: ['data-greeting-folding'],
+      subtree: true,
+    });
+  });
   await page.goto(routes.home);
   const greeting = page.locator('.hero-intro');
   await expect(greeting).toHaveAttribute('data-greeting-folding', '', { timeout: 6000 });
+  // Also hold the bounded fallback while sending real keyboard, wheel and pointer input.
+  await page.clock.pauseAt(new Date(await page.evaluate(() => Date.now() + 50)));
+  await expect(page.locator('html')).toHaveAttribute('data-greeting-locked', '');
   await page.keyboard.press('Tab');
   await page.keyboard.press('PageDown');
   await page.mouse.wheel(0, 700);
@@ -400,6 +424,11 @@ test('the greeting holds page interactions until it has landed', async ({ page }
   await expect(page.locator('.hero-bio [data-typed-text]')).not.toHaveAttribute(
     'data-typing-complete',
   );
+  await expect(page.locator('html')).toHaveAttribute('data-greeting-locked', '');
+  await greeting.locator('.intro-typing').evaluate((element) => {
+    element.getAnimations().forEach((animation) => animation.play());
+  });
+  await page.clock.resume();
   await expect(greeting).not.toHaveAttribute('data-greeting-opening');
   await expect(greeting).not.toHaveAttribute('data-greeting-folding');
   await expect(page.locator('html')).not.toHaveAttribute('data-greeting-locked');
