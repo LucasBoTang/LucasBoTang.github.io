@@ -2,9 +2,11 @@ import { theme } from '../../../data/theme';
 import { arrival, arrivalFrames } from '../../../lib/arrival';
 import type { Timeline } from '../../../lib/timeline';
 import {
+  isHomeReturn,
   openingEvents,
   openingTiming as time,
   part,
+  skipHomeIntro,
   type HomeOpeningGroup,
 } from '../opening/opening';
 import { createNameScramble, nameScrambleDuration } from './name-scramble';
@@ -30,12 +32,14 @@ const ICON_LANDING: Keyframe[] = [
 /**
  * The hero's part of the home opening: the portrait develops as a screen of dots and glitches into the
  * photograph, its lower third turns blue and shifts, the name decodes, and the framing arrives.
- * Everything joins the `identity` group except the call to action, which arrives as the
- * introduction starts to type (`actions`).
+ * The framing joins `identity`; typing runs on its own clock and the action follows the lanes.
  */
 export function addHeroOpening(timeline: Timeline<HomeOpeningGroup>, hero: HTMLElement) {
+  const returning = isHomeReturn();
+  const followAt = time.formStart + arrival.beat;
   hero.setAttribute('data-opening', '');
   hero.setAttribute('data-intro-waiting', '');
+  hero.setAttribute('data-bio-waiting', '');
   // The photograph develops as a screen of dots and glitches in (see portrait-develop.ts); the
   // real image layers stay hidden until the glitch settles on the photograph, then take over.
   const develop = createPortraitDevelop(hero);
@@ -112,18 +116,23 @@ export function addHeroOpening(timeline: Timeline<HomeOpeningGroup>, hero: HTMLE
       time.labelFade,
     );
   });
-  // Text that frames the portrait arrives as the reading units do, rising a little into place.
-  const arrive = (element: Element | null, delay: number, group: HomeOpeningGroup) =>
+  // The affiliation arrives with the portrait's first dots, rising a little into place.
+  const arrive = (element: Element | null, delay: number) =>
     element &&
     timeline.animate(
       element,
       arrivalFrames(element),
       { duration: arrival.duration, delay, easing: arrival.easing },
-      group,
+      'identity',
     );
-  arrive(hero.querySelector('.affiliation'), time.frameAt, 'identity');
-  // The action overlaps the final words of the typed introduction.
-  arrive(hero.querySelector('.hero-actions'), 0, 'actions');
+  arrive(hero.querySelector('.affiliation'), time.formStart);
+  if (returning) {
+    // One reading passage: both paragraphs arrive together, using the site's shared fade and rise.
+    arrive(hero.querySelector('.hero-intro'), followAt);
+    arrive(hero.querySelector('.hero-bio'), followAt);
+  }
+  // The action shares the first research light's arrival, without a separate rising motion.
+  timeline.appear(hero.querySelector('.hero-actions'), 0, 'actions', time.actionFade);
 
   const photo = hero.querySelector<HTMLImageElement>('.portrait');
   return {
@@ -132,28 +141,45 @@ export function addHeroOpening(timeline: Timeline<HomeOpeningGroup>, hero: HTMLE
     start() {
       hero.dataset.openingStarted = String(performance.now());
       scramble?.play();
-      // Without the development, the photograph simply fades in as the opening starts. The signal canvas
-      // is left to its own styles, which show it only while motion runs.
+      // Without the development, the photograph fades in with the affiliation and bio. The
+      // signal canvas is left to its own styles, which show it only while motion runs.
       if (!develop.play())
         photo?.animate([{ opacity: 0 }, { opacity: 1 }], {
           duration: time.plainFade,
+          delay: time.formStart,
           fill: 'forwards',
         });
     },
-    /** Ends the opening state once the shift has settled. */
-    scheduleEnd() {
+    /** The lanes follow the affiliation while fresh prose keeps typing. On returns, the prose
+     * fades in first and the lanes follow it by their shorter beat. */
+    scheduleCues() {
       timeline.later(() => hero.removeAttribute('data-opening'), time.shiftEnd);
+      timeline.later(
+        () => hero.dispatchEvent(new Event(openingEvents.lanesReady)),
+        followAt + (returning ? time.returnLaneDelay : 0),
+      );
+      if (returning) {
+        timeline.later(
+          () => hero.dispatchEvent(new Event(openingEvents.introComplete)),
+          followAt + arrival.duration,
+        );
+      }
     },
-    /** Lets the introduction start typing; the page calls this as the research lanes open. */
+    /** The greeting is the first part of the opening. */
     startTyping() {
       hero.removeAttribute('data-intro-waiting');
+    },
+    /** The bio begins with the affiliation and portrait's first dots. */
+    startBio() {
+      hero.removeAttribute('data-bio-waiting');
     },
     skip() {
       develop.stop();
       scramble?.finish();
       hero.removeAttribute('data-opening');
       hero.removeAttribute('data-intro-waiting');
-      hero.dispatchEvent(new Event(openingEvents.skip));
+      hero.removeAttribute('data-bio-waiting');
+      skipHomeIntro(hero);
     },
   };
 }

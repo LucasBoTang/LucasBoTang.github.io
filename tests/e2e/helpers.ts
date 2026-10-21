@@ -1,4 +1,4 @@
-import type { Page } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
 
 /** One change of a recorded attribute: when, on the page's clock, and whether it was added. */
 type AttributeChange = { at: number; on: boolean };
@@ -19,6 +19,13 @@ export function watchErrors(page: Page) {
       errors.push(message.text());
   });
   return errors;
+}
+
+/** A completed introduction keeps its caret visible and blinking while active. */
+export async function expectBlinkingCaret(caret: Locator) {
+  await expect(caret).toHaveCSS('visibility', 'visible');
+  await expect(caret).toHaveCSS('animation-name', /intro-cursor-blink/);
+  await expect(caret).toHaveCSS('animation-play-state', 'running');
 }
 
 /**

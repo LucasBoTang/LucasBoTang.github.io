@@ -2,6 +2,14 @@ import type { ResourceLink } from './schema.ts';
 
 export type { ResourceLink };
 
+export const conferenceResources = {
+  informs2026: {
+    meeting: 'https://meetings.informs.org/wordpress/annual/',
+    talk: 'https://submissions.mirasmart.com/InformsAnnual2026/Itinerary/PresentationDetail.aspx?evdid=5579',
+    panel: 'https://submissions.mirasmart.com/InformsAnnual2026/Itinerary/EventDetail.aspx?evt=757',
+  },
+} as const;
+
 // Shared destinations for publications, the software catalogue, and home highlights.
 export const projectResources = {
   pyepo: {

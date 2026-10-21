@@ -10,7 +10,7 @@ import { waitForPageReady } from './page-ready';
 // waiting for the introduction to finish typing. The footer arrives last.
 
 /** One reading beat from the introduction's start, overlapping resource preparation. */
-const READING_BEAT = 900;
+const READING_BEAT = 600;
 /** Only the first visible blurred units receive temporary compositor hints. */
 const WARM_UNIT_LIMIT = 2;
 

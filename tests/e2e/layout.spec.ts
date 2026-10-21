@@ -452,6 +452,7 @@ test.describe('measure, spacing, strokes and targets', () => {
   test('running text spans six columns and ends on a column line', async ({ page }) => {
     const checks: [string, string, number][] = [
       ['/', '.hero-intro', 10],
+      ['/', '.hero-bio', 10],
       ['/', '.work-description', 10],
       ['/', '.about-copy', 6],
       ['/research/', '.page-header p', 5],

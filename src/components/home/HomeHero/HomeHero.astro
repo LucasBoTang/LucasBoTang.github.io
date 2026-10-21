@@ -81,10 +81,13 @@ const [inkRed, inkGreen, inkBlue] = blueInk.dark.map((dark, i) => `${dark} ${blu
         <span class="link-label">{profile.institution}</span>
       </a>
     </div>
-    <ResearchNavigator />
     <p class="hero-intro">
-      <TypedText text="I develop machine learning methods and scalable algorithms for mathematical optimization." />
+      <TypedText text={profile.greeting} />
     </p>
+    <p class="hero-bio" data-home-bio>
+      <TypedText text={profile.bio} />
+    </p>
+    <ResearchNavigator />
     <div class="hero-actions">
       <ArrowLink href={routes.research} direction="forward">
         View research
@@ -251,18 +254,26 @@ const [inkRed, inkGreen, inkBlue] = blueInk.dark.map((dark, i) => `${dark} ${blu
   }
   .hero-copy > :global(.research-navigator) {
     grid-column: 1 / -1;
+    margin-top: var(--step-32);
   }
   .affiliation {
-    margin-bottom: var(--step-64);
+    margin-bottom: var(--step-32);
   }
   .affiliation p {
     margin: 0 0 var(--step-8);
     color: var(--muted);
   }
-  .hero-intro {
+  .hero-intro,
+  .hero-bio {
     position: relative;
-    margin: var(--step-64) 0 0;
+    margin: 0;
     color: var(--muted);
+  }
+  .hero-intro :global([data-typing-complete] .intro-cursor) {
+    visibility: hidden;
+  }
+  .hero-bio {
+    margin-top: var(--step-16);
   }
   .hero-actions {
     align-items: center;
@@ -270,7 +281,7 @@ const [inkRed, inkGreen, inkBlue] = blueInk.dark.map((dark, i) => `${dark} ${blu
     flex-wrap: wrap;
     gap: var(--step-8) var(--step-32);
     justify-content: space-between;
-    margin-top: var(--step-32);
+    margin-top: var(--step-24);
   }
   @media (prefers-reduced-motion: no-preference) {
     .name-marks span {
@@ -287,8 +298,6 @@ const [inkRed, inkGreen, inkBlue] = blueInk.dark.map((dark, i) => `${dark} ${blu
     [data-motion-suspended] .name-marks span {
       animation-play-state: paused;
     }
-  }
-  @media (prefers-reduced-motion: no-preference) {
     [data-slip] h1 {
       animation: signal-name-distort var(--signal-burst) steps(1, end) both;
     }
@@ -341,13 +350,13 @@ const [inkRed, inkGreen, inkBlue] = blueInk.dark.map((dark, i) => `${dark} ${blu
       display: block;
     }
     .affiliation {
-      margin-bottom: var(--step-32);
+      margin-bottom: var(--step-24);
     }
-    .hero-intro {
-      margin-top: var(--step-32);
+    .hero-copy > :global(.research-navigator) {
+      margin-top: var(--step-24);
     }
     .hero-actions {
-      margin-top: var(--step-24);
+      margin-top: var(--step-16);
     }
   }
 </style>

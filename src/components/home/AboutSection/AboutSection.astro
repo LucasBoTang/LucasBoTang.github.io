@@ -3,6 +3,7 @@ import DecisionSign from './DecisionSign.astro';
 import ArrowLink from '../../ui/ArrowLink.astro';
 import { routes } from '../../../data/navigation';
 import { profile } from '../../../data/profile';
+import { conferenceResources } from '../../../data/resources';
 ---
 
 <section
@@ -19,15 +20,42 @@ import { profile } from '../../../data/profile';
   </div>
   <div class="about-copy">
     <p>
-      I am a postdoctoral associate at MIT Sloan, working with{' '}
-      <a class="text-link text-link--inline" href={profile.supervisor.url}>
+      I work with{' '}
+      <a class="text-link text-link--inline about-person" href={profile.supervisor.url}>
         <span class="link-label">{profile.supervisor.name}</span>
       </a>
-      .
+      {
+        ' at MIT Sloan. I received my PhD in Operations Research from the University of Toronto in 2025, advised by '
+      }
+      <a class="text-link text-link--inline about-person" href={profile.doctoralAdvisor.url}>
+        <span class="link-label">{profile.doctoralAdvisor.name}</span>
+      </a>
+      {
+        '. During my PhD, I spent summer 2023 as a research intern at Pacific Northwest National Laboratory.'
+      }
     </p>
     <p>
-      I develop machine learning methods and scalable algorithms for mathematical optimization, with
-      a focus on GPU-accelerated optimization, learning to optimize, and decision-focused learning.
+      I'll be at the{' '}
+      <a class="text-link text-link--inline" href={conferenceResources.informs2026.meeting}>
+        <span class="link-label">2026 INFORMS Annual Meeting</span>
+      </a>
+      {' in San Francisco, November 1–4, presenting my work on '}
+      <a
+        class="text-link text-link--inline"
+        href={conferenceResources.informs2026.talk}
+        title="November 3, 4:15–4:27pm, San Francisco time · Moscone South, Room 215"
+      >
+        <span class="link-label">GPU-accelerated linear programming</span>
+      </a>
+      {' and joining a panel on '}
+      <a
+        class="text-link text-link--inline"
+        href={conferenceResources.informs2026.panel}
+        title="November 1, 2:45–4pm, San Francisco time · Marriott Marquis, Sierra A"
+      >
+        <span class="link-label">GPU-accelerated optimization</span>
+      </a>
+      {'.'} If you're attending, I'd be happy to connect.
     </p>
   </div>
   <div class="about-action">
@@ -69,7 +97,7 @@ import { profile } from '../../../data/profile';
   .about-copy p + p {
     margin-top: var(--step-24);
   }
-  .about-copy .text-link--inline {
+  .about-copy .about-person {
     white-space: nowrap;
   }
   /* The link follows on a row of its own, so the sign centres on the two paragraphs alone. */

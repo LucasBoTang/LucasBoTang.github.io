@@ -1,3 +1,4 @@
+import { phonePace } from '../../../lib/breakpoints';
 import type { Timeline } from '../../../lib/timeline';
 import { openingTiming as time, type HomeOpeningGroup } from '../opening/opening';
 
@@ -12,6 +13,8 @@ const LANE_FADE_IN = 0.22;
  * centre, its words starting to drift almost at once, and its light swells in behind it.
  */
 export function addLaneOpening(timeline: Timeline<HomeOpeningGroup>, navigator: HTMLElement) {
+  const pace = phonePace();
+  let started = false;
   const rows = Array.from(navigator.querySelectorAll<HTMLElement>('.research-topic'));
   rows.forEach((row, i) => {
     row.setAttribute('data-connecting', '');
@@ -19,19 +22,19 @@ export function addLaneOpening(timeline: Timeline<HomeOpeningGroup>, navigator: 
     timeline.animate(
       row,
       [{ opacity: 0 }, { opacity: 1, offset: LANE_FADE_IN }, { opacity: 1 }],
-      { duration: time.laneField, easing: 'linear' },
+      { duration: time.laneField * pace, easing: 'linear' },
       group,
     );
     timeline.animate(
       row.querySelector('.lane-field'),
       [{ '--lane-open': '0' }, { '--lane-open': '1' }],
-      { duration: time.laneField, easing: OPEN_EASING },
+      { duration: time.laneField * pace, easing: OPEN_EASING },
       group,
     );
     timeline.animate(
       row.querySelector('.lane-ghosts'),
       [{ opacity: 0 }, { opacity: 1 }],
-      { duration: time.laneField, easing: OPEN_EASING },
+      { duration: time.laneField * pace, easing: OPEN_EASING },
       group,
     );
     timeline.animate(
@@ -40,35 +43,38 @@ export function addLaneOpening(timeline: Timeline<HomeOpeningGroup>, navigator: 
         { '--lane-open': '0', opacity: 0 },
         { '--lane-open': '1', opacity: 1 },
       ],
-      { duration: time.laneLight, delay: time.laneLightDelay, easing: OPEN_EASING },
+      { duration: time.laneLight * pace, delay: time.laneLightDelay * pace, easing: OPEN_EASING },
       group,
     );
   });
 
   return {
-    /** Opens each lane in turn, once it is on screen; calls `begun` as the first one opens and
-     * `opened` once every field is open. */
-    start(begun: () => void, opened: () => void) {
-      let pending = rows.length;
-      if (!pending) {
-        begun();
+    /** Staggers when visible; reports the first light and the last lane's settled opening. */
+    start(lighting: () => void, opened: () => void) {
+      if (started || timeline.finished) return;
+      started = true;
+      if (!rows.length) {
+        lighting();
         opened();
+        return;
       }
-      rows.forEach((row, i) =>
-        timeline.later(
-          () =>
-            timeline.whenVisible(row, () => {
+      timeline.whenVisible(navigator, () => {
+        rows.forEach((row, i) =>
+          timeline.later(
+            () => {
               timeline.start(`lane-${i}`);
-              timeline.later(() => row.removeAttribute('data-connecting'), time.laneDrift);
-              if (i === 0) begun();
-              timeline.later(() => {
-                pending -= 1;
-                if (!pending) opened();
-              }, time.laneField);
-            }),
-          time.laneDelay + (time.laneOffsets[i] ?? 0),
-        ),
-      );
+              timeline.later(() => row.removeAttribute('data-connecting'), time.laneDrift * pace);
+              if (i === 0) timeline.later(lighting, time.laneLightDelay * pace);
+              if (i === rows.length - 1)
+                timeline.later(
+                  opened,
+                  Math.max(time.laneField, time.laneLightDelay + time.laneLight) * pace,
+                );
+            },
+            (time.laneOffsets[i] ?? 0) * pace,
+          ),
+        );
+      });
     },
     skip() {
       rows.forEach((row) => row.removeAttribute('data-connecting'));

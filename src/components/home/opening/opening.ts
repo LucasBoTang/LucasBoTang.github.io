@@ -1,6 +1,8 @@
-// Milliseconds from the start of the home opening, unless a key says it is a duration.
+// Home opening timings. Portrait times are milliseconds after the identity
+// starts (after the desktop greeting, immediately on phones); other keys name their durations.
 export const openingTiming = {
-  /** The pixel picture develops, light parts first, between these moments. */
+  /** The portrait's first dots and affiliation start at `formStart`, releasing the bio once
+   * greeted. The pixel picture develops, light parts first, through `formEnd`. */
   formStart: 250,
   formEnd: 800,
   /** Duration: around its region's moment, each dot switches on within this span, so a region
@@ -22,20 +24,29 @@ export const openingTiming = {
   /** The blue third slides right between these moments, straight out of the glitch. */
   shiftStart: 850,
   shiftEnd: 1150,
-  /** The research lanes swell in slowly once the affiliation above them is in, so the right
-   * column reads from the top, and from top to bottom: the first at `laneDelay`, the others
-   * their `laneOffsets` later. A lane's dim field opens from its centre over `laneField`, its
-   * words drifting from `laneDrift`; its light swells in `laneLightDelay` after it starts, over
-   * `laneLight`. The introduction starts typing as the first lane opens. */
-  laneDelay: 1600,
+  /** The home introduction types slightly faster than page leads, at its own readable pace. */
+  typingKey: 20,
+  /** The greeting has a barely slower cadence before the introduction continues. */
+  greetingKey: 22,
+  thinkBefore: { reliable: 80, reusable: 100 },
+  slipWord: 'scalable',
+  cursorRest: 300,
+  sentencePause: 200,
+  commaPause: 80,
+  /** On a site return, the lanes join this long after the prose starts fading in. */
+  returnLaneDelay: 120,
+  /** The research lanes follow the affiliation by the shared arrival beat, each `laneOffsets`
+   * later. A lane's field opens from its centre over `laneField`, starts drifting at `laneDrift`,
+   * and its light swells in `laneLightDelay` after it starts, over `laneLight`. */
   laneOffsets: [0, 140, 280],
-  laneField: 1100,
-  laneDrift: 220,
-  laneLightDelay: 450,
-  laneLight: 1150,
-  /** The framing comes after the portrait, as the name settles: the site header fades in and the
-   * affiliation arrives at `frameAt`. The name's signal marks fade in as its letters start to
-   * decode. */
+  laneField: 1200,
+  laneDrift: 160,
+  laneLightDelay: 200,
+  laneLight: 1250,
+  /** The research action joins the first light with a short fade. */
+  actionFade: 600,
+  /** The site header fades in as the name settles at `frameAt`. The name's signal marks fade in
+   * as its letters start to decode. */
   frameAt: 1150,
   headerFade: 900,
   marksFade: 600,
@@ -53,12 +64,22 @@ export const openingTiming = {
   readyTimeout: 1000,
 } as const;
 
-// Events the hero dispatches so the page opening can follow the typed introduction.
+// Events the hero dispatches so the page opening can follow the introduction.
 export const openingEvents = {
-  introStart: 'home:intro-start',
+  greetingComplete: 'home:greeting-complete',
+  lanesReady: 'home:lanes-ready',
   introComplete: 'home:intro-complete',
   skip: 'home:skip-opening',
 } as const;
+
+/** SiteLayout consumes the navigation hand-over before home scripts run. */
+export const isHomeReturn = () => document.documentElement.hasAttribute('data-header-persistent');
+
+/** Persist early skips so a later-loaded typing controller also starts with complete prose. */
+export function skipHomeIntro(hero: HTMLElement) {
+  hero.setAttribute('data-intro-skipped', '');
+  hero.dispatchEvent(new Event(openingEvents.skip));
+}
 
 // Elements the page-level opening reaches into across components, marked with `data-opening-part`.
 // Each component animates its own internals; the output check confirms these markers exist.

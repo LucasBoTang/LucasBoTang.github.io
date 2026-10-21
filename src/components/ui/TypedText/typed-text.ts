@@ -14,7 +14,7 @@ import { openingPending } from '../../../lib/opening-gate';
 
 /** A keystroke within a word, in milliseconds, before the word's tempo and a little scatter; the
  * scatter is this share of it either way. */
-const KEY = 62;
+const KEY = 24;
 const SCATTER = 0.14;
 /** Within a word, a common letter pair comes at this share of a keystroke, and a word's first
  * letter at this share; a space takes this share. */
@@ -33,9 +33,9 @@ const TEMPO_DRIFT = 0.3;
  * `NOTICE`, deletes them `BACKSPACE` apart, the second quicker, breathes `BREATH`, retypes them
  * slower by `CAREFUL`, and comes back to speed from `RECOVER`, closing `RECOVERY` of the way back
  * with each word. */
-const NOTICE = 260;
-const BACKSPACE = [95, 75];
-const BREATH = 150;
+const NOTICE = 200;
+const BACKSPACE = [75, 60];
+const BREATH = 100;
 const CAREFUL = 1.3;
 const RECOVER = 1.12;
 const RECOVERY = 0.5;
@@ -43,6 +43,11 @@ const RECOVERY = 0.5;
 const STILL = 160;
 
 export interface TypingRhythm {
+  /** An opening may choose a slightly quicker keystroke than the shared page pace. */
+  keyDelay?: number;
+  /** Pauses between phrases. */
+  sentencePause?: number;
+  commaPause?: number;
   /** Pauses before chosen words, in milliseconds. */
   thinkBefore?: Record<string, number>;
   /** One word whose last two letters are transposed, then corrected. */
@@ -91,7 +96,7 @@ function plan(text: string, rhythm: TypingRhythm): Keystroke[] {
   let n = 0;
   const key = (share: number) => {
     const scatter = 1 + (seeded(n++) * 2 - 1) * SCATTER;
-    return KEY * share * tempo * recovering * scatter;
+    return (rhythm.keyDelay ?? KEY) * share * tempo * recovering * scatter;
   };
   const words = text.match(/\S+|\s+/g) ?? [];
   let count = 0;
@@ -137,15 +142,18 @@ function plan(text: string, rhythm: TypingRhythm): Keystroke[] {
       at += key(1);
       strokes.push({ at, count: ++count });
     }
+    if (/[.!?]$/.test(token)) at += rhythm.sentencePause ?? 0;
+    else if (/[,;:]$/.test(token)) at += rhythm.commaPause ?? 0;
   }
   return strokes;
 }
 
 interface TypingOptions extends TypingRhythm {
+  /** Leave the caret at the final punctuation before handing over to another paragraph. */
+  endDelay?: number;
   /** A page introduction may type beside its title while the body is still being prepared. */
   duringOpening?: boolean;
   held?: () => boolean;
-  onStart?: () => void;
   onComplete?: () => void;
 }
 
@@ -158,6 +166,7 @@ export function createTyping(host: HTMLElement, options: TypingOptions = {}) {
   const text = original.textContent?.trim() ?? '';
   const letters = spell(text, target, Number(host.dataset.mobileBreakAt) || 0);
   const strokes = plan(text, options);
+  const completeAt = (strokes.at(-1)?.at ?? 0) + (options.endDelay ?? 0);
 
   let shown = 0;
   let positions: { x: number; y: number }[] | undefined;
@@ -221,14 +230,13 @@ export function createTyping(host: HTMLElement, options: TypingOptions = {}) {
         if (!started) {
           started = true;
           host.setAttribute('data-typing-started', '');
-          options.onStart?.();
         }
         show(stroke);
         // Like a real caret, the cursor holds steady while keys move and blinks once they stop.
         host.setAttribute('data-typing', '');
       } else if (next > 0 && elapsed - strokes[next - 1].at > STILL)
         host.removeAttribute('data-typing');
-      if (next >= strokes.length) finish();
+      if (next >= strokes.length && elapsed >= completeAt) finish();
     },
     () => (options.held?.() ?? false) || (!options.duringOpening && openingPending()),
   );
@@ -244,7 +252,7 @@ export function createTyping(host: HTMLElement, options: TypingOptions = {}) {
     options.onComplete?.();
   }
 
-  /** Starts or pauses typing; has no effect once the introduction is complete. */
+  /** Toggles typing and caret activity; completed passages never type again. */
   function setRunning(enabled: boolean) {
     host.toggleAttribute('data-typing-suspended', !enabled);
     if (complete) return;

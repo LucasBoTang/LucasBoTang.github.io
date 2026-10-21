@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { routes } from '../../src/data/navigation';
+import { expectBlinkingCaret } from './helpers';
 
 for (const [from, route, title] of [
   ['Research', routes.software, 'Software'],
@@ -129,9 +130,44 @@ for (const route of [routes.home, routes.research]) {
   });
 }
 
-test('a stalled font cannot keep the page hidden or start a late home opening', async ({
-  page,
-}) => {
+for (const width of [1280, 375]) {
+  test(`a stalled font releases home and preserves caret activity at ${width}px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 640 });
+    let releaseFonts!: () => void;
+    const held = new Promise<void>((resolve) => (releaseFonts = resolve));
+    await page.route('**/*.woff2', async (request) => {
+      await held;
+      await request.continue();
+    });
+    try {
+      await page.goto(routes.home, { waitUntil: 'domcontentloaded' });
+      await expect(page.locator('html')).not.toHaveAttribute('data-opening-pending', '', {
+        timeout: 3000,
+      });
+      await expect(page.locator('[data-home-motion]')).not.toHaveAttribute('data-opening-started');
+      await expect(page.locator('.portrait')).toHaveCSS('opacity', '1');
+      await expect(page.locator('[data-home-motion] [data-typing-complete]')).toHaveCount(2, {
+        timeout: 500,
+      });
+    } finally {
+      releaseFonts();
+    }
+    await page.evaluate(() => document.fonts.ready);
+    await expect(page.locator('[data-home-motion]')).not.toHaveAttribute('data-opening-started');
+    const bio = page.locator('.hero-bio');
+    const caret = bio.locator('.intro-cursor');
+    await bio.scrollIntoViewIfNeeded();
+    await expectBlinkingCaret(caret);
+    await page.locator('.site-footer').scrollIntoViewIfNeeded();
+    await expect(caret).toHaveCSS('animation-play-state', 'paused');
+    await bio.scrollIntoViewIfNeeded();
+    await expectBlinkingCaret(caret);
+  });
+}
+
+test('keyboard focus during preparation completes home prose without typing', async ({ page }) => {
   let releaseFonts!: () => void;
   const held = new Promise<void>((resolve) => (releaseFonts = resolve));
   await page.route('**/*.woff2', async (request) => {
@@ -140,16 +176,17 @@ test('a stalled font cannot keep the page hidden or start a late home opening', 
   });
   try {
     await page.goto(routes.home, { waitUntil: 'domcontentloaded' });
-    await expect(page.locator('html')).not.toHaveAttribute('data-opening-pending', '', {
-      timeout: 3000,
+    await expect(page.locator('html')).toHaveAttribute('data-opening-pending', '');
+    await page.keyboard.press('Tab');
+    await expect(page.locator('html')).not.toHaveAttribute('data-opening-pending', '');
+    await expect(page.locator('[data-home-motion] [data-typing-complete]')).toHaveCount(2, {
+      timeout: 500,
     });
+    await expect(page.locator('.intro-letter[data-unseen]')).toHaveCount(0);
     await expect(page.locator('[data-home-motion]')).not.toHaveAttribute('data-opening-started');
-    await expect(page.locator('.portrait')).toHaveCSS('opacity', '1');
   } finally {
     releaseFonts();
   }
-  await page.evaluate(() => document.fonts.ready);
-  await expect(page.locator('[data-home-motion]')).not.toHaveAttribute('data-opening-started');
 });
 
 test('reduced motion releases a page even while its fonts are still loading', async ({ page }) => {

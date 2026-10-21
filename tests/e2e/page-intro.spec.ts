@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { routes } from '../../src/data/navigation';
+import { expectBlinkingCaret } from './helpers';
 
 interface TypingSample {
   text: string;
@@ -182,6 +183,27 @@ for (const { route, scriptDelay } of cases) {
     // Translated rectangles can differ by tiny floating-point fractions without any reflow.
     expect(Math.max(...heights) - Math.min(...heights)).toBeLessThan(0.1);
     expect(samples.at(-1)?.text).toBe(await intro.locator('.intro-copy').textContent());
+    await expectBlinkingCaret(intro.locator('.intro-cursor'));
+  });
+}
+
+for (const width of [1280, 375]) {
+  test(`the home caret keeps blinking after typing and returning to the bio at ${width}px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto(routes.home);
+    const bio = page.locator('.hero-bio [data-typed-text]');
+    await bio.scrollIntoViewIfNeeded();
+    await expect(bio).toHaveAttribute('data-typing-complete', '', { timeout: 12000 });
+    const caret = bio.locator('.intro-cursor');
+    await expectBlinkingCaret(caret);
+    await expect(page.locator('.hero-intro .intro-cursor')).toHaveCSS('visibility', 'hidden');
+
+    await page.locator('.site-footer').scrollIntoViewIfNeeded();
+    await expect(caret).toHaveCSS('animation-play-state', 'paused');
+    await bio.scrollIntoViewIfNeeded();
+    await expect(caret).toHaveCSS('animation-play-state', 'running');
   });
 }
 
@@ -261,12 +283,12 @@ test('the home caret stays aligned after resizing during its typo and correction
 }) => {
   await page.goto(routes.home);
   await page.waitForFunction(
-    () => document.querySelector('[data-intro-typed]')?.textContent?.includes('algorithsm'),
+    () => document.querySelector('.hero-bio [data-intro-typed]')?.textContent?.includes('scalabel'),
     undefined,
-    { timeout: 12000 },
+    { timeout: 16000 },
   );
   await page.setViewportSize({ width: 1000, height: 900 });
-  const host = page.locator('[data-home-motion] [data-typed-text]');
+  const host = page.locator('.hero-bio [data-typed-text]');
   await expect(host).toHaveAttribute('data-typing-complete', '', { timeout: 12000 });
   await expect
     .poll(() =>

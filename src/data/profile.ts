@@ -4,6 +4,8 @@ export type { ContactLink };
 
 export const profile = {
   name: 'Bo Tang',
+  greeting: 'Hello, this is Bo Tang, an operations researcher.',
+  bio: 'My work draws on machine learning and modern computing to develop reliable and scalable methods and reusable computational frameworks for decision-making.',
   role: 'Postdoctoral Associate',
   institution: 'Massachusetts Institute of Technology',
   institutionUrl: 'https://mitsloan.mit.edu/faculty/directory/bo-tang',

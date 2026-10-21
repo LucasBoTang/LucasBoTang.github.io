@@ -94,8 +94,7 @@ const shareImage =
         on `pageswap`, for ways of leaving without a click, such as going back. */}
     <script is:inline>
       (() => {
-        if (!('onpageswap' in window) || matchMedia('(prefers-reduced-motion: reduce)').matches)
-          return;
+        if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
         // The page is named without any fragment, as the next page reads its own address.
         const keep = (address) => {
           const to = address.split('#')[0];
