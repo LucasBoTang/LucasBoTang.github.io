@@ -81,9 +81,12 @@ const sortedPublications = publicationsByYear(area);
     display: grid;
     grid-column: 1 / -1;
     grid-template-columns: subgrid;
-    margin: var(--step-48) 0 0;
+    margin: 0;
     padding: 0;
     list-style: none;
+  }
+  .research-passage + .publication-list {
+    margin-top: var(--step-48);
   }
   @media (max-width: 720px) {
     .research-section,
