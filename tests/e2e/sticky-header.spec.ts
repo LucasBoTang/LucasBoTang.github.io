@@ -42,15 +42,8 @@ for (const width of [1280, 430, 390, 375, 320]) {
   });
 }
 
-for (const [width, oneRow] of [
-  [320, false],
-  [375, false],
-  [390, true],
-  [414, true],
-  [430, true],
-  [720, true],
-] as const) {
-  test(`the mobile header uses ${oneRow ? 'one row' : 'two rows'} at ${width}px without shrinking its labels`, async ({
+for (const width of [320, 375, 390, 414, 430, 720]) {
+  test(`the mobile header wraps only when its labels need more space at ${width}px`, async ({
     page,
   }) => {
     await page.setViewportSize({ width, height: 812 });
@@ -60,13 +53,45 @@ for (const [width, oneRow] of [
     const name = (await page.locator('.site-header-name').boundingBox())!;
     const navigation = page.getByRole('navigation', { name: 'Main navigation' });
     const nav = (await navigation.boundingBox())!;
+    // Font advances differ between platforms. Measure the groups' intrinsic space rather than
+    // assigning a fixed wrap breakpoint; 390px is close enough to fit on only some platforms.
+    const { required, available } = await navigation.evaluate((nav) => {
+      const outerWidth = (element: Element) => {
+        const style = getComputedStyle(element);
+        return (
+          element.getBoundingClientRect().width +
+          parseFloat(style.marginLeft) +
+          parseFloat(style.marginRight)
+        );
+      };
+      const header = nav.parentElement!;
+      const headerStyle = getComputedStyle(header);
+      const links = Array.from(nav.querySelectorAll('a'));
+      const navigationWidth =
+        links.reduce((sum, link) => sum + outerWidth(link), 0) +
+        parseFloat(getComputedStyle(nav).columnGap) * (links.length - 1);
+      return {
+        required:
+          outerWidth(header.querySelector('.site-header-name')!) +
+          parseFloat(headerStyle.columnGap) +
+          navigationWidth,
+        available:
+          header.clientWidth -
+          parseFloat(headerStyle.paddingLeft) -
+          parseFloat(headerStyle.paddingRight),
+      };
+    });
+    const oneRow = required <= available;
+    if (width <= 375) expect(oneRow).toBe(false);
+    if (width >= 414) expect(oneRow).toBe(true);
+    const sizing = `${required}px required, ${available}px available`;
     expect(Math.abs(name.x - header.x)).toBeLessThan(1);
     if (oneRow) {
-      expect(name.y).toBeLessThan(nav.y + nav.height);
-      expect(nav.y).toBeLessThan(name.y + name.height);
+      expect(name.y, sizing).toBeLessThan(nav.y + nav.height);
+      expect(nav.y, sizing).toBeLessThan(name.y + name.height);
       expect(Math.abs(nav.x + nav.width - header.x - header.width)).toBeLessThan(1);
     } else {
-      expect(nav.y).toBeGreaterThanOrEqual(name.y + name.height);
+      expect(nav.y, sizing).toBeGreaterThanOrEqual(name.y + name.height);
       expect(Math.abs(nav.x - header.x)).toBeLessThan(1);
     }
     const links = navigation.getByRole('link');
