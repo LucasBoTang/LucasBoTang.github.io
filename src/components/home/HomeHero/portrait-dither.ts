@@ -1,5 +1,5 @@
 import { hexChannels, theme } from '../../../data/theme';
-import { openingTiming as time } from '../opening/opening';
+import { openingTiming, type PortraitTiming } from '../opening/opening';
 import { luminance, plot, type PixelBuffer } from './raster';
 
 // The pixel picture develops in place, like a print: nothing moves and nothing flickers. Each
@@ -69,7 +69,12 @@ function organicNoise() {
  * uneven, feathered edges into the dark, evenly through the forming time; within a region, the
  * Bayer threshold spreads each cell's moment around it.
  */
-export function revealTimes(softLight: Uint8ClampedArray, columns: number, rows: number) {
+export function revealTimes(
+  softLight: Uint8ClampedArray,
+  columns: number,
+  rows: number,
+  time: PortraitTiming = openingTiming,
+) {
   const count = columns * rows;
   const noise = organicNoise();
   const order = new Float32Array(count);

@@ -4,31 +4,34 @@ import { isHomeReturn, openingEvents, openingTiming as time } from '../opening/o
 import { createGreetingEntrance } from './greeting-entrance';
 import { createGreetingGlitch } from './greeting-glitch';
 
-/** The greeting lands, the bio types, and the portrait follows once its own opening starts. */
+/** The bio joins the greeting's fold; the portrait follows when the greeting lands. */
 export function createIntroTyping(hero: HTMLElement) {
   const greeting = hero.querySelector<HTMLElement>('.hero-intro [data-typed-text]');
   const bio = hero.querySelector<HTMLElement>('.hero-bio [data-typed-text]');
   if (!greeting || !bio) return { start: () => {}, setRunning: () => {}, finish: () => {} };
   const returning = isHomeReturn();
+  const greetingKey = isPhone() ? time.phoneGreetingKey : time.greetingKey;
   const lineHeight = parseFloat(getComputedStyle(greeting).lineHeight);
   let greeted = false;
   let greetingStartsAt = 0;
   let entrance: ReturnType<typeof createGreetingEntrance> | undefined;
   const glitch = createGreetingGlitch(greeting);
   // The page consumes this once; landing also releases it if the fold was interrupted.
-  const releaseFrame = () => hero.dispatchEvent(new Event(openingEvents.frameReady));
+  const releaseFrame = () => {
+    greeted = true;
+    hero.dispatchEvent(new Event(openingEvents.frameReady));
+  };
   const releaseIdentity = () => {
     if (returning || hero.hasAttribute('data-identity-ready')) return;
     hero.dataset.identityReady = '';
-    hero.dispatchEvent(new CustomEvent(openingEvents.identityReady, { detail: body.duration }));
+    hero.dispatchEvent(new Event(openingEvents.identityReady));
   };
   const body = createTyping(bio, {
     held: () => !greeted || hero.hasAttribute('data-bio-waiting'),
-    keyDelay: time.typingKey,
-    sentencePause: time.sentencePause,
-    commaPause: time.commaPause,
+    keyDelay: isPhone() ? time.phoneTypingKey : time.typingKey,
     thinkBefore: time.thinkBefore,
     slipWord: time.slipWord,
+    slipPace: time.slipPace,
     cue: {
       after: ' ',
       onReach: () => document.dispatchEvent(new Event(openingEvents.bioStart)),
@@ -45,7 +48,7 @@ export function createIntroTyping(hero: HTMLElement) {
   });
   const hello = createTyping(greeting, {
     held: () => hero.hasAttribute('data-intro-waiting') || performance.now() < greetingStartsAt,
-    keyDelay: !returning && !isPhone() ? time.greetingOpeningKey : time.greetingKey,
+    keyDelay: !returning && !isPhone() ? time.greetingOpeningKey : greetingKey,
     letterFade: !returning && !isPhone() ? time.greetingLetterFade : 0,
     cue: {
       after: hero.querySelector('h1')?.getAttribute('aria-label') ?? '',
@@ -63,7 +66,6 @@ export function createIntroTyping(hero: HTMLElement) {
       glitch.stop();
       if (entrance) entrance.settle();
       else {
-        greeted = true;
         releaseFrame();
         releaseIdentity();
       }
@@ -99,7 +101,6 @@ export function createIntroTyping(hero: HTMLElement) {
         greeting,
         releaseFrame,
         () => {
-          greeted = true;
           hello.finish();
           releaseIdentity();
         },

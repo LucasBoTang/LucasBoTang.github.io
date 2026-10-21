@@ -283,7 +283,7 @@ test('the home caret stays aligned after resizing during its typo and correction
 }) => {
   await page.goto(routes.home);
   await page.waitForFunction(
-    () => document.querySelector('.hero-bio [data-intro-typed]')?.textContent?.includes('scalabel'),
+    () => document.querySelector('.hero-bio [data-intro-typed]')?.textContent?.includes('learnign'),
     undefined,
     { timeout: 16000 },
   );

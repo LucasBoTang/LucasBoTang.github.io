@@ -1,4 +1,4 @@
-import { openingTiming as time } from '../opening/opening';
+import { openingTiming, type PortraitTiming } from '../opening/opening.ts';
 
 // The glitch from the portrait's pixel picture to the photograph, as a fixed score. The two
 // struggle: the photograph flickers through, takes over, is cut by the picture again, and wins.
@@ -173,7 +173,12 @@ export interface GlitchSources {
  * The score in opening time and device pixels, for a frame `frameHeight` tall at `ratio`, whose
  * blue third shifts `inkShift` CSS px.
  */
-export function glitchFrames(frameHeight: number, ratio: number, inkShift: number) {
+export function glitchFrames(
+  frameHeight: number,
+  ratio: number,
+  inkShift: number,
+  time: PortraitTiming = openingTiming,
+) {
   const span = time.glitchEnd - time.glitchStart;
   return SCORE.map(({ until, bands }) => ({
     until: time.glitchStart + until * span,

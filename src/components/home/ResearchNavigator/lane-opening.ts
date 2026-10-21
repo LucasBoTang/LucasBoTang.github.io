@@ -18,6 +18,9 @@ export function addLaneOpening(
   returning: boolean,
 ) {
   const pace = phonePace();
+  // A fresh opening lights as soon as the field starts, so it is visible at the bio's last word.
+  // Site returns keep their original first-light cue.
+  const lightDelay = returning ? time.laneLightDelay : 0;
   let started = false;
   const rows = Array.from(navigator.querySelectorAll<HTMLElement>('.research-topic'));
   rows.forEach((row, i) => {
@@ -47,7 +50,7 @@ export function addLaneOpening(
         { '--lane-open': '0', opacity: 0 },
         { '--lane-open': '1', opacity: 1 },
       ],
-      { duration: time.laneLight * pace, delay: time.laneLightDelay * pace, easing: OPEN_EASING },
+      { duration: time.laneLight * pace, delay: lightDelay * pace, easing: OPEN_EASING },
       group,
     );
   });
@@ -70,8 +73,7 @@ export function addLaneOpening(
               timeline.later(() => row.removeAttribute('data-connecting'), time.laneDrift * pace);
               if (returning && i === 0) timeline.later(action, time.laneLightDelay * pace);
               if (i === rows.length - 1) {
-                const settled =
-                  Math.max(time.laneField, time.laneLightDelay + time.laneLight) * pace;
+                const settled = Math.max(time.laneField, lightDelay + time.laneLight) * pace;
                 const actionAt = Math.max(0, settled - time.actionLead * pace);
                 if (!returning) timeline.later(action, actionAt);
                 timeline.later(

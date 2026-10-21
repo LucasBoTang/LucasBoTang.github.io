@@ -1,5 +1,5 @@
 import { CALM_STEPS, DECODE_ECHO, decodeNoise, seeded } from '../../../lib/decode';
-import { openingTiming as time } from '../opening/opening';
+import { currentPortraitTiming } from '../opening/opening';
 
 // The name's entrance, as a decode. Each letter is noise until it finds itself: it jumps through
 // stray characters, with solid blocks flashing over it and the odd blink (src/lib/decode.ts, the
@@ -39,6 +39,7 @@ export const nameScrambleDuration = (letters: number) =>
 
 /** Decodes the letters of `.name-base` inside `name` into place. */
 export function createNameScramble(name: HTMLElement) {
+  const time = currentPortraitTiming();
   const base = name.querySelector<HTMLElement>('.name-base');
   let frame = 0;
   let layer: HTMLElement | undefined;

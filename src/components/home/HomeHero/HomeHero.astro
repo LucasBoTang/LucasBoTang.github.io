@@ -290,17 +290,17 @@ const [inkRed, inkGreen, inkBlue] = blueInk.dark.map((dark, i) => `${dark} ${blu
   .hero-bio {
     margin-top: var(--step-16);
   }
-  /* One intact line scales and moves into its measured reading position. The accessible copy keeps
+  /* One intact line scales around its reading anchor. The accessible copy keeps
      reserving the final paragraph geometry; token spans retain their natural word spacing. */
   .hero-intro[data-greeting-opening] :global([data-intro-typed]) {
     display: inline-block;
     clip-path: inset(0);
   }
-  /* Resolve the title tier without inserting a measurement element during the entrance. */
+  /* Resolve the heading tier without inserting a measurement element during the entrance. */
   .hero-intro::before {
     content: '';
     position: absolute;
-    font-size: var(--type-title);
+    font-size: var(--type-heading);
     visibility: hidden;
   }
   .hero-intro :global(.intro-typing)::before,

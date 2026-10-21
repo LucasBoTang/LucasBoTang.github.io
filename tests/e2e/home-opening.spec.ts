@@ -4,7 +4,7 @@ import { routes } from '../../src/data/navigation';
 import { attributeChanges, openingStartedAt, recordAttribute, watchErrors } from './helpers';
 
 // The home opening: the portrait develops and glitches into the photograph and the name decodes;
-// desktop lanes join the bio's tail; the action and reading follow their settled opening.
+// desktop lanes follow the portrait and bio; reading joins the action's fade.
 
 test.beforeEach(async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
@@ -147,7 +147,7 @@ test('the name decodes over its own text, then hands over to it', async ({ page 
   await expect(page.locator('h1')).toHaveAccessibleName('Bo Tang');
 });
 
-test('the complete portrait effect sits halfway between bio typing and the slightly early lanes', async ({
+test('the bio joins the affiliation during the fold and the portrait starts on landing', async ({
   page,
 }, testInfo) => {
   await recordAttribute(page, 'data-typing-started');
@@ -155,6 +155,19 @@ test('the complete portrait effect sits halfway between bio typing and the sligh
   await recordAttribute(page, 'data-greeting-opening');
   await recordAttribute(page, 'data-opening');
   await page.goto('/');
+  // Watch before the greeting lands; starting this sampler after the typing assertions misses
+  // an immediate first frame and reports the test's own polling delay as an entrance delay.
+  const firstPaint = page.locator('[data-portrait-develop]').evaluate(
+    (canvas: HTMLCanvasElement) =>
+      new Promise<number>((resolve) => {
+        const sample = () => {
+          const pixels = canvas.getContext('2d')!.getImageData(0, 0, canvas.width, canvas.height);
+          if (pixels.data.some((value, i) => i % 4 === 3 && value > 0)) resolve(performance.now());
+          else requestAnimationFrame(sample);
+        };
+        sample();
+      }),
+  );
   await expect(page.locator('.hero-bio [data-typed-text]')).toHaveAttribute(
     'data-typing-started',
     '',
@@ -168,41 +181,60 @@ test('the complete portrait effect sits halfway between bio typing and the sligh
     const entrance = element.getAnimations()[0];
     return Number(entrance.startTime) + Number(entrance.effect!.getTiming().delay);
   });
+  await expect(page.locator('.hero-intro')).not.toHaveAttribute('data-greeting-opening');
   const landedAt = (await attributeChanges(page, 'data-greeting-opening')).find(
     ({ on }) => !on,
   )!.at;
   expect(greetedAt - greetingAt).toBeGreaterThan(300);
-  expect(
-    Math.abs(
-      affiliationAt -
-        greetedAt -
-        openingTiming.greetingRest -
-        openingTiming.greetingFrame -
-        openingTiming.formStart,
-    ),
-  ).toBeLessThan(80);
+  expect(Math.abs(affiliationAt - greetedAt - openingTiming.greetingRest)).toBeLessThan(80);
   expect(affiliationAt).toBeLessThan(landedAt);
-  expect(Math.abs(bioAt - landedAt)).toBeLessThan(100);
+  expect(Math.abs(bioAt - affiliationAt)).toBeLessThan(100);
+  expect(landedAt - bioAt).toBeGreaterThan(openingTiming.greetingFold - 100);
   const hero = page.locator('[data-home-motion]');
-  await expect(hero).not.toHaveAttribute('data-opening-started');
   await expect(hero).toHaveAttribute('data-opening-started', /.+/);
   const openingAt = await openingStartedAt(page);
-  const paintedAt = await page.locator('[data-portrait-develop]').evaluate(
+  const paintedAt = await firstPaint;
+  // Reproduce the reported frame: at "scalable", the canvas must still be changing,
+  // rather than merely keeping an opening marker on an already settled photograph.
+  const developing = await page.locator('[data-portrait-develop]').evaluate(
     (canvas: HTMLCanvasElement) =>
-      new Promise<number>((resolve) => {
+      new Promise<boolean>((resolve) => {
         const sample = () => {
-          const pixels = canvas.getContext('2d')!.getImageData(0, 0, canvas.width, canvas.height);
-          if (pixels.data.some((value, i) => i % 4 === 3 && value > 0)) resolve(performance.now());
-          else requestAnimationFrame(sample);
+          const typed = document.querySelector('.hero-bio [data-intro-typed]')!;
+          const visible = [...typed.querySelectorAll('.intro-letter:not([data-unseen])')]
+            .map((letter) => letter.textContent)
+            .join('');
+          if (!visible.includes('scalab')) return void requestAnimationFrame(sample);
+          const context = canvas.getContext('2d')!;
+          const before = context.getImageData(0, 0, canvas.width, canvas.height).data;
+          setTimeout(() => {
+            const after = context.getImageData(0, 0, canvas.width, canvas.height).data;
+            resolve(
+              before.some((value, i) => i % 4 === 3 && value > 0) &&
+                after.some((value, i) => value !== before[i]),
+            );
+          }, 120);
         };
         sample();
       }),
   );
+  expect(developing).toBe(true);
+  await testInfo.attach('portrait-during-bio', {
+    body: await page.screenshot(),
+    contentType: 'image/png',
+  });
   const field = page.locator('.research-topic .lane-field').first();
   await expect
     .poll(() => field.evaluate((element) => element.getAnimations()[0]?.playState))
     .toBe('running');
   const laneAt = await field.evaluate((element) => Number(element.getAnimations()[0].startTime));
+  const lightAt = await page
+    .locator('.research-topic .lane-light-window')
+    .first()
+    .evaluate((element) => {
+      const animation = element.getAnimations()[0];
+      return Number(animation.startTime) + Number(animation.effect!.getTiming().delay);
+    });
   await expect(page.locator('.hero-bio [data-typed-text]')).toHaveAttribute(
     'data-typing-complete',
     '',
@@ -213,18 +245,23 @@ test('the complete portrait effect sits halfway between bio typing and the sligh
     .at(-1)!.at;
   const beforePortrait = paintedAt - bioAt;
   const afterPortrait = laneAt - portraitEnd;
-  expect(Math.abs(beforePortrait - afterPortrait)).toBeLessThan(120);
-  expect(portraitEnd - openingAt).toBeGreaterThan(1100);
-  expect(portraitEnd - openingAt).toBeLessThan(1250);
-  expect(laneAt - portraitEnd).toBeGreaterThan(openingTiming.portraitRest - 40);
-  expect(bioEnd - laneAt).toBeGreaterThan(50);
-  expect(bioEnd - laneAt).toBeLessThan(200);
+  expect(Math.abs(openingAt - landedAt)).toBeLessThan(100);
+  expect(beforePortrait).toBeGreaterThanOrEqual(0);
+  expect(beforePortrait).toBeGreaterThan(openingTiming.greetingFold - 100);
+  expect(beforePortrait).toBeLessThan(openingTiming.greetingFold + 120);
+  expect(portraitEnd - openingAt).toBeGreaterThan(1400);
+  expect(portraitEnd - openingAt).toBeLessThan(1560);
+  expect(bioEnd - portraitEnd).toBeLessThan(650);
+  expect(afterPortrait).toBeGreaterThan(openingTiming.portraitRest - 40);
+  expect(Math.abs(bioEnd - laneAt)).toBeLessThan(300);
+  expect(Math.abs(bioEnd - lightAt)).toBeLessThan(300);
   await testInfo.attach('opening-timing', {
     body: JSON.stringify({
       beforePortrait,
       portraitEffect: portraitEnd - paintedAt,
       afterPortrait,
       laneLead: bioEnd - laneAt,
+      lightLead: bioEnd - lightAt,
     }),
     contentType: 'application/json',
   });
@@ -277,8 +314,41 @@ test('the home bio keeps typing at a readable pace while the portrait develops',
   const bioAt = (await attributeChanges(page, 'data-typing-started'))
     .filter(({ on }) => on)
     .at(-1)!.at;
-  expect(completed[1].at - bioAt).toBeGreaterThan(3000);
-  expect(completed[1].at - bioAt).toBeLessThan(7000);
+  expect(completed[1].at - bioAt).toBeGreaterThan(1800);
+  expect(completed[1].at - bioAt).toBeLessThan(5000);
+});
+
+test('one brief home typo corrects before the portrait starts tearing', async ({ page }) => {
+  await page.goto('/');
+  const correction = await page.locator('.hero-bio [data-typed-text]').evaluate(
+    (host) =>
+      new Promise<{ typoAt?: number; correctedAt?: number; portraitAt: number }>((resolve) => {
+        let typoAt: number | undefined;
+        let correctedAt: number | undefined;
+        const sample = () => {
+          const visible = [...host.querySelectorAll('.intro-letter:not([data-unseen])')]
+            .map((letter) => letter.textContent)
+            .join('');
+          if (visible.includes('learnign')) typoAt ??= performance.now();
+          if (typoAt !== undefined && visible.includes('learning'))
+            correctedAt ??= performance.now();
+          if (host.hasAttribute('data-typing-complete'))
+            resolve({
+              typoAt,
+              correctedAt,
+              portraitAt: Number(
+                host.closest<HTMLElement>('[data-home-motion]')!.dataset.openingStarted,
+              ),
+            });
+          else requestAnimationFrame(sample);
+        };
+        sample();
+      }),
+  );
+  expect(correction.typoAt).toBeDefined();
+  expect(correction.correctedAt! - correction.typoAt!).toBeGreaterThan(160);
+  expect(correction.correctedAt! - correction.typoAt!).toBeLessThan(280);
+  expect(correction.correctedAt! - correction.portraitAt).toBeLessThan(280);
 });
 
 test('the phone portrait opens without waiting for its off-screen greeting', async ({ page }) => {
@@ -349,7 +419,6 @@ test('the bio tail releases the lanes, then the action, then reading', async ({ 
         actionAt: number;
         actionEnd: number;
         textComplete: boolean;
-        typingAtOpening: boolean;
       }>((resolve) => {
         const heading = document.querySelector('#work-heading')!;
         const affiliation = document.querySelector('.affiliation')!;
@@ -362,7 +431,6 @@ test('the bio tail releases the lanes, then the action, then reading', async ({ 
         let affiliationAt: number | undefined;
         let actionAt: number | undefined;
         let actionEnd: number | undefined;
-        let typingAtOpening = false;
         const sample = () => {
           const identity = affiliation.getAnimations()[0];
           if (typeof identity?.startTime === 'number')
@@ -370,9 +438,6 @@ test('the bio tail releases the lanes, then the action, then reading', async ({ 
           const fieldOpening = field.getAnimations()[0];
           if (fieldAt === undefined && typeof fieldOpening?.startTime === 'number') {
             fieldAt = fieldOpening.startTime;
-            typingAtOpening =
-              text.hasAttribute('data-typing-started') &&
-              !text.hasAttribute('data-typing-complete');
           }
           const illumination = light.getAnimations()[0];
           if (typeof illumination?.startTime === 'number')
@@ -400,7 +465,6 @@ test('the bio tail releases the lanes, then the action, then reading', async ({ 
               actionAt,
               actionEnd,
               textComplete: text.hasAttribute('data-typing-complete'),
-              typingAtOpening,
             });
           else requestAnimationFrame(sample);
         };
@@ -408,16 +472,12 @@ test('the bio tail releases the lanes, then the action, then reading', async ({ 
       }),
   );
   expect(reading.textComplete).toBe(true);
-  expect(reading.typingAtOpening).toBe(true);
   expect(reading.fieldAt).toBeGreaterThan(reading.affiliationAt);
   expect(Math.abs(reading.lightEnd - reading.actionAt - openingTiming.actionLead)).toBeLessThan(
     100,
   );
-  expect(reading.at - reading.actionEnd).toBeGreaterThan(-50);
-  // Timers can run just before the animation's next display frame.
-  const finalFieldEnd =
-    reading.fieldAt + openingTiming.laneOffsets.at(-1)! + openingTiming.laneField;
-  expect(reading.at - finalFieldEnd).toBeGreaterThan(-50);
+  expect(Math.abs(reading.at - reading.actionAt - openingTiming.readingDelay)).toBeLessThan(80);
+  expect(reading.at).toBeLessThan(reading.actionEnd);
   await expect(bio).toHaveAttribute('data-typing-complete', '', { timeout: 14000 });
   await expect(page.locator('.research-topic[data-connecting]')).toHaveCount(0);
   const completed = (await attributeChanges(page, 'data-typing-complete'))

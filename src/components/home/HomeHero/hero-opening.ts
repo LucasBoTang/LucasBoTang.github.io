@@ -1,10 +1,12 @@
 import { theme } from '../../../data/theme';
 import { arrival, arrivalFrames } from '../../../lib/arrival';
+import { isPhone } from '../../../lib/breakpoints';
 import type { Timeline } from '../../../lib/timeline';
 import {
   isHomeReturn,
   openingEvents,
   openingTiming as time,
+  currentPortraitTiming,
   part,
   skipHomeIntro,
   type HomeOpeningGroup,
@@ -36,6 +38,7 @@ const ICON_LANDING: Keyframe[] = [
  */
 export function addHeroOpening(timeline: Timeline<HomeOpeningGroup>, hero: HTMLElement) {
   const returning = isHomeReturn();
+  const portrait = currentPortraitTiming();
   const followAt = time.formStart + arrival.beat;
   hero.dataset.opening = '';
   hero.dataset.introWaiting = '';
@@ -43,6 +46,7 @@ export function addHeroOpening(timeline: Timeline<HomeOpeningGroup>, hero: HTMLE
   // The photograph develops as a screen of dots and glitches in (see portrait-develop.ts); the
   // real image layers stay hidden until the glitch settles on the photograph, then take over.
   const develop = createPortraitDevelop(hero);
+  const photo = hero.querySelector<HTMLImageElement>('.portrait');
   const photoLayers = hero.querySelectorAll('.portrait, .portrait-signal');
   // The blue third's height and shift, as HomeHero's styles set them.
   const style = getComputedStyle(hero);
@@ -52,25 +56,29 @@ export function addHeroOpening(timeline: Timeline<HomeOpeningGroup>, hero: HTMLE
     timeline.animate(
       layer,
       [{ opacity: 0 }, { opacity: 0 }],
-      { duration: time.glitchEnd, easing: 'linear' },
+      { duration: portrait.glitchEnd, easing: 'linear' },
       'identity',
     ),
   );
   timeline.animate(
-    hero.querySelector('.portrait'),
+    photo,
     [
       { clipPath: 'inset(0)', offset: 0 },
-      { clipPath: 'inset(0)', offset: time.split / time.shiftEnd },
-      { clipPath: cropped, offset: (time.split + 1) / time.shiftEnd },
+      { clipPath: 'inset(0)', offset: portrait.split / portrait.shiftEnd },
+      { clipPath: cropped, offset: (portrait.split + 1) / portrait.shiftEnd },
       { clipPath: cropped, offset: 1 },
     ],
-    { duration: time.shiftEnd, easing: 'linear' },
+    { duration: portrait.shiftEnd, easing: 'linear' },
     'identity',
   );
   timeline.animate(
     hero.querySelector('.portrait-ink'),
     [{ opacity: 0 }, { opacity: 1 }],
-    { duration: time.blueEnd - time.blueStart, delay: time.blueStart, easing: 'linear' },
+    {
+      duration: portrait.blueEnd - portrait.blueStart,
+      delay: portrait.blueStart,
+      easing: 'linear',
+    },
     'identity',
   );
   // Colour and position jump on the same frame; the rightward channel tear then settles.
@@ -82,7 +90,11 @@ export function addHeroOpening(timeline: Timeline<HomeOpeningGroup>, hero: HTMLE
         { transform: shifted, offset: 0.0034 },
         { transform: shifted, offset: 1 },
       ],
-      { duration: time.shiftEnd - time.shiftStart, delay: time.shiftStart, easing: 'linear' },
+      {
+        duration: portrait.shiftEnd - portrait.shiftStart,
+        delay: portrait.shiftStart,
+        easing: 'linear',
+      },
       'identity',
     ),
   );
@@ -94,15 +106,20 @@ export function addHeroOpening(timeline: Timeline<HomeOpeningGroup>, hero: HTMLE
   timeline.animate(
     nameBase,
     [{ opacity: 0 }, { opacity: 0 }],
-    { duration: time.tearStart + nameScrambleDuration(letters), easing: 'linear' },
+    { duration: portrait.tearStart + nameScrambleDuration(letters), easing: 'linear' },
     'identity',
   );
   // The name's small signal marks start hopping as its letters start to decode.
-  timeline.appear(hero.querySelector('.name-marks'), time.tearStart, 'identity', time.marksFade);
+  timeline.appear(
+    hero.querySelector('.name-marks'),
+    portrait.tearStart,
+    'identity',
+    time.marksFade,
+  );
   // The contact icons land one after another as the name's letters lock; each label follows.
   const contacts = hero.querySelector(part('contacts'));
   contacts?.querySelectorAll('[data-contact-icon]').forEach((icon, i) => {
-    const at = time.shiftStart + time.contactsDelay + i * time.iconStagger;
+    const at = portrait.shiftStart + time.contactsDelay + i * time.iconStagger;
     timeline.animate(
       icon,
       ICON_LANDING,
@@ -116,7 +133,7 @@ export function addHeroOpening(timeline: Timeline<HomeOpeningGroup>, hero: HTMLE
       time.labelFade,
     );
   });
-  // The affiliation keeps its original fade, independently of fresh desktop portrait timing.
+  // Fresh desktop affiliation joins the fold; phones and site returns keep the original delay.
   const arrive = (element: Element | null, delay: number, group: HomeOpeningGroup = 'identity') =>
     element &&
     timeline.animate(
@@ -125,7 +142,7 @@ export function addHeroOpening(timeline: Timeline<HomeOpeningGroup>, hero: HTMLE
       { duration: arrival.duration, delay, easing: arrival.easing },
       group,
     );
-  arrive(hero.querySelector('.affiliation'), time.formStart, 'frame');
+  arrive(hero.querySelector('.affiliation'), returning || isPhone() ? time.formStart : 0, 'frame');
   if (returning) {
     // One reading passage: both paragraphs arrive together, using the site's shared fade and rise.
     arrive(hero.querySelector('.hero-intro'), followAt);
@@ -134,7 +151,6 @@ export function addHeroOpening(timeline: Timeline<HomeOpeningGroup>, hero: HTMLE
   // The action fades in near the last lane's settled opening, without a separate rising motion.
   timeline.appear(hero.querySelector('.hero-actions'), 0, 'actions', time.actionFade);
 
-  const photo = hero.querySelector<HTMLImageElement>('.portrait');
   return {
     /** Settles once the photograph and the pixel picture have decoded, or failed to. */
     ready: Promise.all([photo?.decode().catch(() => {}), develop.ready]),
@@ -146,7 +162,7 @@ export function addHeroOpening(timeline: Timeline<HomeOpeningGroup>, hero: HTMLE
       if (!develop.play())
         photo?.animate([{ opacity: 0 }, { opacity: 1 }], {
           duration: time.plainFade,
-          delay: time.formStart,
+          delay: portrait.formStart,
           fill: 'forwards',
         });
     },
@@ -155,7 +171,7 @@ export function addHeroOpening(timeline: Timeline<HomeOpeningGroup>, hero: HTMLE
       timeline.later(() => {
         delete hero.dataset.opening;
         settled();
-      }, time.shiftEnd);
+      }, portrait.shiftEnd);
       if (returning) {
         timeline.later(
           () => hero.dispatchEvent(new Event(openingEvents.lanesReady)),
@@ -172,7 +188,7 @@ export function addHeroOpening(timeline: Timeline<HomeOpeningGroup>, hero: HTMLE
       delete hero.dataset.introWaiting;
       hero.dispatchEvent(new Event(openingEvents.greetingStart));
     },
-    /** Desktop prose leads the portrait's first dots; phones and returns retain their shared cue. */
+    /** Releases the biography's typing gate; its host chooses the desktop fold or phone cue. */
     startBio() {
       delete hero.dataset.bioWaiting;
     },

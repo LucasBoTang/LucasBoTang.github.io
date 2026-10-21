@@ -240,7 +240,7 @@ test('word spacing survives the large greeting and its final paragraph', async (
   });
 });
 
-test('the one-line greeting shrinks from the screen centre into its original paragraph', async ({
+test('the one-line greeting shrinks around its reading anchor inside the copy field', async ({
   page,
 }) => {
   const errors = watchErrors(page);
@@ -257,9 +257,19 @@ test('the one-line greeting shrinks from the screen centre into its original par
     bio: (await page.locator('.hero-bio').boundingBox())!,
   };
   expect(Math.abs(initial.profession.y - initial.first.y)).toBeLessThan(1);
-  const initialCentre = (initial.first.x + initial.last.x + initial.last.width) / 2;
-  expect(Math.abs(initialCentre - 640)).toBeLessThan(2);
-  expect(initial.first.y).toBeGreaterThan(320);
+  const copy = (await page.locator('.hero-copy').boundingBox())!;
+  const anchor = await first.evaluate((word) => {
+    const paragraph = word.closest('.hero-intro')!;
+    const reading = paragraph.querySelector('.intro-copy')!;
+    const range = document.createRange();
+    range.setStart(reading.firstChild!, 0);
+    range.setEnd(reading.firstChild!, 1);
+    const { x, y } = range.getBoundingClientRect();
+    return { x, y };
+  });
+  expect(Math.abs(initial.first.x - anchor.x)).toBeLessThan(0.25);
+  expect(Math.abs(initial.first.y - anchor.y)).toBeLessThan(0.25);
+  expect(initial.last.x + initial.last.width).toBeLessThanOrEqual(copy.x + copy.width);
   const landing = await greeting.evaluate(async (paragraph) => {
     const letters = Array.from(paragraph.querySelectorAll('.intro-letter'));
     const first = letters[0];
@@ -292,10 +302,10 @@ test('the one-line greeting shrinks from the screen centre into its original par
     last: (await last.boundingBox())!,
     bio: (await page.locator('.hero-bio').boundingBox())!,
   };
-  expect(initial.first.width / final.first.width).toBeGreaterThan(1.5);
-  expect(final.first.y).toBeLessThan(initial.first.y);
-  const finalCentre = (final.first.x + final.last.x + final.last.width) / 2;
-  expect(finalCentre).toBeGreaterThan(initialCentre);
+  expect(initial.first.width / final.first.width).toBeGreaterThan(1);
+  expect(initial.first.width / final.first.width).toBeLessThanOrEqual(1.51);
+  expect(Math.abs(final.first.x - initial.first.x)).toBeLessThan(0.25);
+  expect(Math.abs(final.first.y - initial.first.y)).toBeLessThan(0.25);
   expect(Math.abs(final.first.y - final.profession.y)).toBeLessThan(1);
   expect(Math.abs(final.bio.y - initial.bio.y)).toBeLessThan(0.1);
   await expect(greeting.locator('[data-typed-text]')).toHaveAttribute('data-typing-complete', '');

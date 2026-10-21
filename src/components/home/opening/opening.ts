@@ -1,8 +1,10 @@
+import { isPhone } from '../../../lib/breakpoints.ts';
+
 // Home opening timings. Portrait times are milliseconds after the identity
 // starts (after the desktop greeting, immediately on phones); other keys name their durations.
 export const openingTiming = {
-  /** The portrait's first dots arrive at `formStart`; the frame's affiliation uses the same
-   * delay. The pixel picture develops, light parts first, through `formEnd`. */
+  /** The portrait's first dots arrive at `formStart`; phones and returns use the same delay for
+   * the affiliation. The pixel picture develops, light parts first, through `formEnd`. */
   formStart: 250,
   formEnd: 800,
   /** Duration: around its region's moment, each dot switches on within this span, so a region
@@ -24,10 +26,13 @@ export const openingTiming = {
   /** The blue third slides right between these moments, straight out of the glitch. */
   shiftStart: 850,
   shiftEnd: 1150,
-  /** The home introduction types slightly faster than page leads, at its own readable pace. */
-  typingKey: 17,
-  /** The ordinary greeting keeps its existing cadence on phones. */
+  /** The home bio types briskly while leaving room for the full portrait effect. */
+  typingKey: 9.5,
+  /** The ordinary greeting outside the enlarged desktop opening. */
   greetingKey: 22,
+  /** Phone paragraphs keep their simple typing treatment at a slightly brisker pace. */
+  phoneGreetingKey: 20,
+  phoneTypingKey: 12,
   /** The larger desktop opening gives each word more time to read. */
   greetingOpeningKey: 28,
   /** A new opening letter develops briefly, without blur or a change in its position. */
@@ -38,22 +43,22 @@ export const openingTiming = {
   greetingGlitch: 280,
   /** A quiet opening frame before the first keystroke, while resources prepare. */
   greetingLead: 200,
-  /** A fresh desktop greeting rests at title size, then folds into its reserved paragraph.
-   * The frame joins the fold; the bio starts on landing and leads the portrait. */
+  /** A fresh desktop greeting rests at heading size, then folds around its reading anchor.
+   * The frame and bio join the fold; the portrait starts on landing. */
   greetingRest: 200,
-  greetingFold: 600,
-  greetingEasing: 'cubic-bezier(.22,.75,.25,1)',
-  /** The frame joins the fold; its affiliation keeps its existing `formStart` delay. */
-  greetingFrame: 80,
+  greetingFold: 440,
+  greetingEasing: 'cubic-bezier(.4,.14,.3,1)',
   /** Let the fresh desktop lanes begin just before the bio's final keystroke. */
-  laneLead: 120,
-  /** Let the fresh desktop portrait settle before the research lanes open. */
-  portraitRest: 720,
+  laneLead: 240,
+  /** One short beat separates the fresh portrait's final correction from the research lanes. */
+  portraitRest: 240,
   /** Bounded fallback for a stalled greeting, including a background tab. */
   greetingLimit: 5000,
-  thinkBefore: { reliable: 80, reusable: 100 },
-  slipWord: 'scalable',
-  sentencePause: 200,
+  /** Short breaths at phrase boundaries, with no long stops before adjacent adjectives. */
+  thinkBefore: { develop: 55, reusable: 50, decisionmaking: 60 },
+  /** Correct one early word while the portrait is still developing quietly. */
+  slipWord: 'learning',
+  slipPace: 0.45,
   commaPause: 80,
   /** On a site return, the lanes join this long after the prose starts fading in. */
   returnLaneDelay: 120,
@@ -68,6 +73,8 @@ export const openingTiming = {
   /** The research action starts this far before the last lane settles, then reading follows it. */
   actionLead: 840,
   actionFade: 600,
+  /** Reading follows the action's first light while the lanes finish their full expansion. */
+  readingDelay: 160,
   /** The site header fades in as the name settles at `frameAt`. The name's signal marks fade in
    * as its letters start to decode. */
   frameAt: 1150,
@@ -87,6 +94,40 @@ export const openingTiming = {
   readyTimeout: 1000,
 } as const;
 
+// Phones develop immediately without waiting for the off-screen biography.
+const phonePortraitTiming = {
+  ...openingTiming,
+  formStart: 0,
+  formEnd: 820,
+  glitchStart: 420,
+  glitchEnd: 900,
+  tearStart: 720,
+  blueStart: 900,
+  blueEnd: 901,
+  split: 899,
+  shiftStart: 900,
+  shiftEnd: 1230,
+} as const;
+
+// On desktop, the first interference joins early, while the dots keep forming more slowly.
+// One brief exchange resolves into the blue third, without repeating the interference.
+const freshPortraitTiming = {
+  ...phonePortraitTiming,
+  formEnd: 1000,
+  glitchStart: 280,
+  glitchEnd: 1080,
+  tearStart: 690,
+  blueStart: 1080,
+  blueEnd: 1081,
+  split: 1079,
+  shiftStart: 1080,
+  shiftEnd: 1440,
+} as const;
+
+export const portraitTiming = (returning: boolean, phone = false) =>
+  returning ? openingTiming : phone ? phonePortraitTiming : freshPortraitTiming;
+export type PortraitTiming = ReturnType<typeof portraitTiming>;
+
 // Home opening cues; the bio's first word also releases idle preparation below.
 export const openingEvents = {
   greetingStart: 'home:greeting-start',
@@ -100,6 +141,9 @@ export const openingEvents = {
 
 /** SiteLayout consumes the navigation hand-over before home scripts run. */
 export const isHomeReturn = () => document.documentElement.hasAttribute('data-header-persistent');
+
+/** Every portrait layer chooses the same profile for the current visit and viewport. */
+export const currentPortraitTiming = () => portraitTiming(isHomeReturn(), isPhone());
 
 /** Persist early skips so a later-loaded typing controller also starts with complete prose. */
 export function skipHomeIntro(hero: HTMLElement) {

@@ -75,16 +75,19 @@ function setupHomeOpening(page: HTMLElement) {
 
   let introComplete = !returning && (bio?.hasAttribute('data-typing-complete') ?? false);
   let introEnding = false;
-  let portraitComplete = returning || isPhone();
-  let lanesComplete = false;
+  let portraitComplete = returning;
+  let readingReady = false;
   let identityStarted = false;
-  const revealActions = () => timeline.start('actions');
+  const revealActions = () => {
+    timeline.start('actions');
+    if (!returning) timeline.later(releaseReading, time.readingDelay * readingPace);
+  };
   const revealLanes = () => {
     if (!returning && ((!introComplete && !introEnding) || !portraitComplete)) return;
-    if (lanes) lanes.start(revealActions, completeLanes);
+    if (lanes) lanes.start(revealActions, releaseReading);
     else {
       revealActions();
-      completeLanes();
+      releaseReading();
     }
   };
   let reading = false;
@@ -107,8 +110,8 @@ function setupHomeOpening(page: HTMLElement) {
     }
     firstScreen = false;
   };
-  const completeLanes = () => {
-    lanesComplete = true;
+  const releaseReading = () => {
+    readingReady = true;
     if (introComplete) startReading();
   };
   // A visitor who scrolls on past the hero has moved on from the opening: what they scroll to
@@ -125,7 +128,7 @@ function setupHomeOpening(page: HTMLElement) {
   };
   const pageWatch = onScrollFrame(onScroll);
   // Fresh desktop typing releases the lanes in its tail; returns retain their short fade handoff.
-  // Reading waits for the lanes and action to settle, unless the visitor scrolls on deliberately.
+  // Fresh reading joins the action's fade; returns retain their settled-lane handoff.
   heroElement.addEventListener(
     openingEvents.lanesReady,
     () => {
@@ -137,53 +140,39 @@ function setupHomeOpening(page: HTMLElement) {
   const completeIntro = () => {
     introComplete = true;
     revealLanes();
-    if (lanesComplete) startReading();
+    if (readingReady) startReading();
   };
   heroElement.addEventListener(openingEvents.introComplete, completeIntro, { once: true });
-  const startIdentity = (bioDuration = 0) => {
+  const startIdentity = () => {
     if (identityStarted || timeline.finished || !page.isConnected) return;
     identityStarted = true;
     if (reading) pageWatch.stop();
     timeline.start('frame');
-    const showPortrait = () => {
-      hero.start();
-      timeline.start('identity');
-      hero.scheduleCues(() => {
-        if (!portraitComplete)
-          timeline.later(() => {
-            portraitComplete = true;
-            revealLanes();
-          }, time.portraitRest);
-      });
-    };
-    if (
-      !returning &&
-      !isPhone() &&
-      bio &&
-      bio.getBoundingClientRect().top + parseFloat(getComputedStyle(bio).lineHeight) <
-        window.innerHeight
-    ) {
-      hero.startBio();
-      // Centre the unchanged visible effect between the bio's start and the lane cue.
-      timeline.later(
-        showPortrait,
-        Math.max(0, (bioDuration - time.laneLead - time.formStart - time.shiftEnd) / 2),
-      );
-    } else {
-      showPortrait();
-      timeline.later(hero.startBio, time.formStart);
-    }
+    hero.start();
+    timeline.start('identity');
+    hero.scheduleCues(() => {
+      if (!portraitComplete)
+        timeline.later(() => {
+          portraitComplete = true;
+          revealLanes();
+        }, time.portraitRest);
+    });
+    // Fresh desktop prose joins the fold; phones and returns retain their original cue.
+    // Its typing controller owns visibility, so this gate needs no extra layout measurement.
+    if (!returning && !isPhone()) hero.startBio();
+    else timeline.later(hero.startBio, time.formStart);
   };
-  heroElement.addEventListener(openingEvents.frameReady, () => timeline.start('frame'), {
+  heroElement.addEventListener(
+    openingEvents.frameReady,
+    () => {
+      timeline.start('frame');
+      if (!returning && !isPhone()) hero.startBio();
+    },
+    { once: true },
+  );
+  heroElement.addEventListener(openingEvents.identityReady, () => safely(startIdentity), {
     once: true,
   });
-  heroElement.addEventListener(
-    openingEvents.identityReady,
-    (event) => safely(() => startIdentity((event as CustomEvent<number>).detail)),
-    {
-      once: true,
-    },
-  );
   const startOpening = () => {
     if (timeline.finished || !page.isConnected) return;
     if (!openingPending()) return skipOpening();

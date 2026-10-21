@@ -1,6 +1,6 @@
 import { createLoop } from '../../../lib/loop';
 import { burstDuration, SIGNAL_INTERVAL, slipDuration } from '../../../lib/signal';
-import { openingEvents, openingTiming as time } from '../opening/opening';
+import { currentPortraitTiming, openingEvents } from '../opening/opening';
 import { nameScrambleDuration } from './name-scramble';
 import { createPortraitSignalRenderer } from './portrait-signal-renderer';
 
@@ -20,6 +20,7 @@ const PAINT_INTERVAL = 1000 / 30;
 
 /** Coordinates the portrait's opening, hover bursts and motion lifecycle. */
 export function createPortraitSignal(hero: HTMLElement) {
+  const time = currentPortraitTiming();
   const canvas = hero.querySelector<HTMLCanvasElement>('[data-portrait-signal]');
   const image = hero.querySelector<HTMLImageElement>('.portrait');
   if (!canvas || !image) return { setRunning: () => {} };

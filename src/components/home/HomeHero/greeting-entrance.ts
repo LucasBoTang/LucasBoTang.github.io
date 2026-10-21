@@ -2,7 +2,7 @@ import { onScrollFrame } from '../../../lib/lifecycle';
 import { openingTiming as time } from '../opening/opening';
 import { lockGreeting } from './greeting-lock';
 
-/** Move the entire one-line typing layer from the screen centre into its reading position.
+/** Scale the one-line typing layer around its final reading anchor inside the copy field.
  * The accessible paragraph and the bio retain their normal layout throughout. */
 export function createGreetingEntrance(
   hero: HTMLElement,
@@ -29,49 +29,32 @@ export function createGreetingEntrance(
     const origin = layer.getBoundingClientRect();
     const text = target.getBoundingClientRect();
     const letter = first.getBoundingClientRect();
-    const bounds = hero.getBoundingClientRect();
-    // Resolve the shared title tier through CSS and fit the intact sentence inside the viewport.
-    const titleScale =
+    const bounds = hero.querySelector('.hero-copy')!.getBoundingClientRect();
+    // Fit the shared heading tier within the copy field, keeping the first letter anchored.
+    const headingScale =
       parseFloat(getComputedStyle(paragraph, '::before').fontSize) /
       parseFloat(getComputedStyle(host).fontSize);
     const availableScale = Math.min(
-      bounds.width / text.width,
-      (window.innerHeight * 0.8) / text.height,
+      (bounds.right - letter.left) / text.width,
+      (window.innerHeight - letter.top) / text.height,
     );
-    const scale = Math.min(previous ? previous.width / letter.width : titleScale, availableScale);
-    const left = Math.max(
-      bounds.left,
-      Math.min(
-        previous?.left ?? (window.innerWidth - text.width * scale) / 2,
-        bounds.right - text.width * scale,
-      ),
-    );
-    const top = Math.max(
-      0,
-      Math.min(
-        previous?.top ?? window.innerHeight * 0.46 - (text.height * scale) / 2,
-        window.innerHeight - text.height * scale,
-      ),
-    );
-    const dx = left - origin.left - (letter.left - origin.left) * scale;
-    const dy = top - origin.top - (letter.top - origin.top) * scale;
-    start = `translate(${dx.toFixed(2)}px, ${dy.toFixed(2)}px) scale(${scale})`;
+    const scale = Math.min(previous ? previous.width / letter.width : headingScale, availableScale);
+    start = `scale(${scale})`;
     // Round outwards: a fractional shrink must not wrap the final word during the fold.
     layer.style.width = `${Math.ceil(text.width * 100) / 100}px`;
-    layer.style.transformOrigin = 'top left';
+    layer.style.transformOrigin = `${letter.left - origin.left}px ${letter.top - origin.top}px`;
     layer.style.transform = start;
     paragraph.style.setProperty('--greeting-scale', String(scale));
     remeasureCursor();
   };
   const fold = (duration: number) => {
-    animation = layer.animate(
-      [{ transform: start }, { transform: 'translate(0px, 0px) scale(1)' }],
-      {
-        duration,
-        easing: time.greetingEasing,
-        fill: 'forwards',
-      },
-    );
+    animation = layer.animate([{ transform: start }, { transform: 'scale(1)' }], {
+      duration,
+      easing: time.greetingEasing,
+      fill: 'forwards',
+    });
+    // Finish on the animation's actual last frame, rather than a timer that can run ahead of it.
+    void animation.finished.then(finish, () => {});
   };
   const finish = () => {
     if (finished) return;
@@ -120,8 +103,7 @@ export function createGreetingEntrance(
           paragraph.dataset.greetingFolding = '';
           foldStartedAt = performance.now();
           fold(time.greetingFold);
-          timers.push(window.setTimeout(frame, time.greetingFrame));
-          timers.push(window.setTimeout(finish, time.greetingFold));
+          frame();
         }, time.greetingRest),
       );
     },

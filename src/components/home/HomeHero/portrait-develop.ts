@@ -1,5 +1,5 @@
 import { whenIdle } from '../../../lib/lifecycle';
-import { openingTiming as time } from '../opening/opening';
+import { currentPortraitTiming } from '../opening/opening';
 import { printInBlueInk } from './blue-ink';
 import { createDevelopment, revealTimes } from './portrait-dither';
 import { drawGlitchFrame, glitchFrames, type GlitchSources } from './portrait-glitch';
@@ -25,6 +25,7 @@ const LIGHT_SOFTENING = 10;
  * `data-portrait-pixels` names the pixel picture.
  */
 export function createPortraitDevelop(hero: HTMLElement) {
+  const time = currentPortraitTiming();
   const canvas = hero.querySelector<HTMLCanvasElement>('[data-portrait-develop]');
   const image = hero.querySelector<HTMLImageElement>('.portrait');
   const context = canvas?.getContext('2d');
@@ -74,11 +75,11 @@ export function createPortraitDevelop(hero: HTMLElement) {
     }
     if (!art || !softLight) return undefined;
 
-    const { regionAt, shownAt } = revealTimes(softLight, grid.columns, grid.rows);
+    const { regionAt, shownAt } = revealTimes(softLight, grid.columns, grid.rows, time);
     const development = createDevelopment(art, shownAt, grid);
     // The tear ends with the lower third where HomeHero's styles shift the blue third.
     const inkShift = parseFloat(getComputedStyle(hero).getPropertyValue('--ink-shift')) || 0;
-    const glitch = glitchFrames(grid.frameHeight, ratio, inkShift);
+    const glitch = glitchFrames(grid.frameHeight, ratio, inkShift, time);
 
     // The picture as it has developed, drawn cell by cell as each switches on; for the glitch, the
     // photograph, and the photograph in the blue ink, masked to the regions that have come up so far.
