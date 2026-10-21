@@ -35,7 +35,8 @@ export const publications = {
     title:
       'CaVE: A Cone-Aligned Approach for Fast Predict-then-Optimize with Binary Linear Programs',
     authors: ['Bo Tang', 'Elias B. Khalil'],
-    venue: 'CPAIOR',
+    venue:
+      'Integration of Constraint Programming, Artificial Intelligence, and Operations Research (CPAIOR)',
     year: 2024,
     status: 'Published',
     bibtex: String.raw`@inproceedings{tang2024cave,
