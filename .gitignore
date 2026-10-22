@@ -10,3 +10,9 @@ playwright-report/
 
 # Code conventions, kept locally.
 CONVENTIONS.md
+
+# Brainstorm mockups and plan ledgers, kept locally.
+.superpowers/
+
+# Local source-verification downloads and scripts.
+.verification/

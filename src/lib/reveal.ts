@@ -21,10 +21,7 @@ function setupReveal(page: HTMLElement) {
     liftOpeningGate();
     return;
   }
-  const animations = new Map<Element, Animation>();
-  const pending = new Map<Element, Animation>();
-  const firstScreen: [Element, DOMRect][] = [];
-  const belowScreen: Element[] = [];
+  const animations = new Map<Element, Animation[]>();
   const pace = phonePace();
   const intro = page.querySelector<HTMLElement>('[data-page-intro]');
   const now = performance.now();
@@ -35,7 +32,7 @@ function setupReveal(page: HTMLElement) {
 
   /** Releases both the finished animation and its temporary compositor hint. */
   const release = (element: Element) => {
-    animations.get(element)?.cancel();
+    animations.get(element)?.forEach((animation) => animation.cancel());
     element.removeAttribute('data-arrival-warm');
     animations.delete(element);
   };
@@ -43,14 +40,15 @@ function setupReveal(page: HTMLElement) {
   /** Starts `element`'s arrival: in its turn if it is on screen, at once if already scrolled past,
    * so units in view are never kept waiting behind ones the reader has left. */
   const play = (element: Element, firstScreen = false, box = element.getBoundingClientRect()) => {
-    const animation = pending.get(element);
-    if (!animation) return;
-    pending.delete(element);
+    const group = animations.get(element);
+    if (!group || group[0].playState !== 'paused') return;
     observer.unobserve(element);
     const scrolledPast = box.bottom <= 0;
     const delay = scrolledPast ? 0 : nextArrival(firstScreen);
-    animation.effect?.updateTiming({ delay });
-    animation.play();
+    group.forEach((animation) => {
+      animation.effect?.updateTiming({ delay });
+      animation.play();
+    });
     announceArrival(element, delay);
   };
   // Units scrolled into view together queue in document order. The watched area reaches up without
@@ -63,24 +61,28 @@ function setupReveal(page: HTMLElement) {
         .sort((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1))
         .forEach((element) => play(element));
     },
-    { threshold: 0, rootMargin: '100000px 0px -16px 0px' },
+    { rootMargin: '100000px 0px -16px 0px' },
   );
 
   /** Prepares `element`, last measured at `box`, to arrive: now if the reader has reached it (it is
    * on screen, or already scrolled past), or once they do. */
-  const prepare = (element: Element, box: DOMRect, frames: Keyframe[], duration: number) => {
-    const animation = element.animate(frames, {
-      duration: duration * pace,
-      easing: arrival.easing,
-      fill: 'both',
-    });
-    animation.pause();
-    animations.set(element, animation);
-    pending.set(element, animation);
-    animation.onfinish = () => release(element);
+  const prepare = (element: Element, box: DOMRect, frames: Keyframe[]) => {
+    const group = [
+      element.animate(frames, {
+        duration: arrival.duration * pace,
+        easing: arrival.easing,
+        fill: 'both',
+      }),
+    ];
+    // A component may replace the default presentation while retaining the shared clock.
+    element.dispatchEvent(new CustomEvent('arrival:prepare', { detail: group }));
+    group.forEach((animation) => animation.pause());
+    animations.set(element, group);
+    group[0].onfinish = () => release(element);
     // Use the introduction's reading pause to let Chrome prepare the first blurred text layers.
     // Keep this to two visible units; release each hint when it lands or the opening is skipped.
     if (
+      group.length === 1 &&
       warmed < WARM_UNIT_LIMIT &&
       box.top < innerHeight &&
       box.bottom > 0 &&
@@ -89,26 +91,20 @@ function setupReveal(page: HTMLElement) {
       element.setAttribute('data-arrival-warm', '');
       warmed++;
     }
-    if (box.top < innerHeight) firstScreen.push([element, box]);
-    else belowScreen.push(element);
   };
 
   // Every unit is measured before any is prepared: measuring between preparations would make the
   // browser work out the page's style again for each unit.
   const units = [
-    ...page.querySelectorAll('[data-reveal="lead"]:not([data-page-intro])'),
-    ...page.querySelectorAll('[data-reveal="unit"]'),
+    ...page.querySelectorAll('[data-reveal="lead"]:not([data-page-intro]), [data-reveal="unit"]'),
     ...document.querySelectorAll('.site-footer'),
   ];
   const boxes = units.map((element) => element.getBoundingClientRect());
-  units.forEach((element, i) =>
-    prepare(element, boxes[i], arrivalFrames(element), arrival.duration),
-  );
+  units.forEach((element, i) => prepare(element, boxes[i], arrivalFrames(element)));
 
   const finish = () => {
     observer.disconnect();
     animations.forEach((_, element) => release(element));
-    pending.clear();
     liftOpeningGate();
   };
   // Moving focus by keyboard, anywhere on the page, shows everything at once.
@@ -122,8 +118,10 @@ function setupReveal(page: HTMLElement) {
         finish();
         return;
       }
-      firstScreen.forEach(([element, box]) => play(element, true, box));
-      belowScreen.forEach((element) => observer.observe(element));
+      units.forEach((element, i) => {
+        if (boxes[i].top < innerHeight) play(element, true, boxes[i]);
+        else observer.observe(element);
+      });
       liftOpeningGate();
     }),
   );

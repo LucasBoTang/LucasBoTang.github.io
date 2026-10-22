@@ -1,4 +1,5 @@
 import shapes from '../../../data/research/dfl-polytopes.json';
+import { whenFigureReady } from '../../../lib/figure-ready';
 import { createLoop } from '../../../lib/loop';
 import { watchActivity } from '../../../lib/motion';
 import { ambientSwing, updateDatasetAmbient } from './ambient';
@@ -393,10 +394,12 @@ if (root) {
   });
   surfaces.forEach(({ canvas }) => observer.observe(canvas));
   root.addEventListener('dfl:layout', () => draw(loop.elapsed));
-  watchActivity(root, ({ inView, hidden, reduced: preference }) => {
-    reduced = preference;
-    if (inView.has(root) && !hidden && !reduced) loop.start();
-    else loop.stop();
-    draw(loop.elapsed);
-  });
+  whenFigureReady(() =>
+    watchActivity(root, ({ inView, hidden, reduced: preference }) => {
+      reduced = preference;
+      if (inView.has(root) && !hidden && !reduced) loop.start();
+      else loop.stop();
+      draw(loop.elapsed);
+    }),
+  );
 }

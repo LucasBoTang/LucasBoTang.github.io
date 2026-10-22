@@ -1,0 +1,24 @@
+/** Start an embedded figure at its first frame after the host's entrance has settled.
+ * Standalone figures and hosts without an entrance start immediately. The host's opening
+ * fallback and keyboard/reduced-motion skip both release the same gate. */
+export function whenFigureReady(start: () => void): void {
+  const screen = window.frameElement?.closest('.screen-reveal');
+  if (!screen) {
+    start();
+    return;
+  }
+  const page = screen.ownerDocument.documentElement;
+  const waiting = () =>
+    page.hasAttribute('data-opening-pending') || screen.hasAttribute('data-screen-pending');
+  if (!waiting()) {
+    start();
+    return;
+  }
+  const observer = new MutationObserver(() => {
+    if (waiting()) return;
+    observer.disconnect();
+    start();
+  });
+  observer.observe(page, { attributes: true, attributeFilter: ['data-opening-pending'] });
+  observer.observe(screen, { attributes: true, attributeFilter: ['data-screen-pending'] });
+}

@@ -8,6 +8,8 @@ export type PlaybackBrowser = Pick<
 >;
 
 interface PlaybackOptions {
+  /** Draw the first frame immediately, but defer its clock until the host is ready. */
+  startWhen?: (start: () => void) => void;
   rate?: number;
   maxFrameDelta?: number;
   threshold?: number;
@@ -24,10 +26,17 @@ export function createPlayback(
   target: Element,
   browser: PlaybackBrowser,
   draw: (elapsed: number, reducedMotion: boolean) => void,
-  { rate = 1, maxFrameDelta = Infinity, threshold = 0, reducedTime }: PlaybackOptions = {},
+  {
+    rate = 1,
+    maxFrameDelta = Infinity,
+    threshold = 0,
+    reducedTime,
+    startWhen,
+  }: PlaybackOptions = {},
 ) {
   const motion = browser.matchMedia('(prefers-reduced-motion: reduce)');
   let visible = false;
+  let ready = !startWhen;
   let elapsed = 0;
   let previousTime: number | null = null;
   let frameId: number | null = null;
@@ -64,7 +73,7 @@ export function createPlayback(
       elapsed = reducedTime;
     }
     redraw();
-    if (!disposed && visible && !browser.document.hidden && !motion.matches) {
+    if (!disposed && ready && visible && !browser.document.hidden && !motion.matches) {
       frameId = browser.requestAnimationFrame(frame);
     }
   }
@@ -81,6 +90,10 @@ export function createPlayback(
   motion.addEventListener('change', synchronize);
   browser.document.addEventListener('visibilitychange', synchronize);
   synchronize();
+  startWhen?.(() => {
+    ready = true;
+    synchronize();
+  });
 
   return {
     redraw,

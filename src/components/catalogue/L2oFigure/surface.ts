@@ -1,4 +1,5 @@
 import recorded from '../../../data/research/l2o-training-snapshots.json';
+import { whenFigureReady } from '../../../lib/figure-ready';
 import { enhanceNear } from '../../../lib/lifecycle';
 import { createLoop } from '../../../lib/loop';
 import { reducedMotionQuery, watchActivity } from '../../../lib/motion';
@@ -726,10 +727,12 @@ function init(root: HTMLElement) {
     render();
   });
   resize();
-  watchActivity(root, ({ inView, hidden, reduced: nextReduced }) => {
-    reduced = nextReduced;
-    if (!hidden && !reduced && inView.has(root)) loop.start();
-    else loop.stop();
-    if (reduced) render();
-  });
+  whenFigureReady(() =>
+    watchActivity(root, ({ inView, hidden, reduced: nextReduced }) => {
+      reduced = nextReduced;
+      if (!hidden && !reduced && inView.has(root)) loop.start();
+      else loop.stop();
+      if (reduced) render();
+    }),
+  );
 }

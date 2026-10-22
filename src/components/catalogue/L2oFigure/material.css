@@ -1,20 +1,17 @@
-/* An opt-in material study; the original illustration retains its flat finish. */
-:is(main.surface-page.material-study, section.l2o-material[data-l2o-material])
-  .training-composition {
+/* Etched plates, recessed readings and transient light for the L2O illustration. */
+section.l2o-material[data-l2o-material] .training-composition {
   --plate-ink: #10171c;
   --reading: #c5ced4;
   --readout-bg: #14202b;
   isolation: isolate;
 }
-:is(main.surface-page.material-study, section.l2o-material[data-l2o-material])
-  .training-composition
-  h2 {
+section.l2o-material[data-l2o-material] .training-composition h2 {
   color: #7891ad;
 }
-:is(main.surface-page.material-study, section.l2o-material[data-l2o-material]) .problem {
+section.l2o-material[data-l2o-material] .problem {
   color: #a3a9ae;
 }
-:is(main.surface-page.material-study, section.l2o-material[data-l2o-material]) .instrument-panel {
+section.l2o-material[data-l2o-material] .instrument-panel {
   background: linear-gradient(135deg, #29333a99, #161d24e8 72%);
   box-shadow:
     inset 0 1px #d6e1e923,
@@ -25,8 +22,7 @@
   -webkit-backdrop-filter: blur(6px) saturate(100%);
   backdrop-filter: blur(6px) saturate(100%);
 }
-:is(main.surface-page.material-study, section.l2o-material[data-l2o-material])
-  .instrument-panel::after {
+section.l2o-material[data-l2o-material] .instrument-panel::after {
   content: '';
   inset: 0;
   position: absolute;
@@ -35,25 +31,22 @@
   opacity: 0.025;
   pointer-events: none;
 }
-:is(main.surface-page.material-study, section.l2o-material[data-l2o-material]) .network-face {
+section.l2o-material[data-l2o-material] .network-face {
   background: linear-gradient(145deg, #b4c0cbd4, #98a9b5bd);
   box-shadow:
     inset 0 1px #eef4f754,
     inset 1px 0 #eef4f712;
   color: #111a21;
 }
-:is(main.surface-page.material-study, section.l2o-material[data-l2o-material])
-  .correction
-  .network-face {
+section.l2o-material[data-l2o-material] .correction .network-face {
   background: linear-gradient(145deg, #abbacbd4, #8da0b5bd);
   color: #111a21;
 }
-:is(main.surface-page.material-study, section.l2o-material[data-l2o-material]) .network-face h3 {
+section.l2o-material[data-l2o-material] .network-face h3 {
   text-shadow: 0 1px #ffffff12;
   color: #10171c;
 }
-:is(main.surface-page.material-study, section.l2o-material[data-l2o-material])
-  .network-face::after {
+section.l2o-material[data-l2o-material] .network-face::after {
   content: '';
   position: absolute;
   right: -2px;
@@ -63,41 +56,35 @@
   background: #d4dfe94a;
   transform: rotate(45deg);
 }
-:is(main.surface-page.material-study, section.l2o-material[data-l2o-material]) .network-node {
+section.l2o-material[data-l2o-material] .network-node {
   stroke: none;
 }
-:is(main.surface-page.material-study, section.l2o-material[data-l2o-material]) .network-edge {
+section.l2o-material[data-l2o-material] .network-edge {
   opacity: 0.27;
 }
-:is(main.surface-page.material-study, section.l2o-material[data-l2o-material])
-  [data-layer].is-lit
-  .network-node {
+section.l2o-material[data-l2o-material] [data-layer].is-lit .network-node {
   fill: #dce7ed;
   filter: none;
   stroke: #28343c;
   stroke-width: 0.65px;
 }
-:is(main.surface-page.material-study, section.l2o-material[data-l2o-material])
-  .network-edge.is-lit {
+section.l2o-material[data-l2o-material] .network-edge.is-lit {
   opacity: 0.55;
   stroke: #e1e8ed;
 }
-:is(main.surface-page.material-study, section.l2o-material[data-l2o-material]) .panel-readout {
+section.l2o-material[data-l2o-material] .panel-readout {
   background: linear-gradient(180deg, #0c11174a, #0c111778);
 }
-:is(main.surface-page.material-study, section.l2o-material[data-l2o-material])
-  .panel-readout
-  .eyeline {
+section.l2o-material[data-l2o-material] .panel-readout .eyeline {
   color: #aeb9c1;
   opacity: 1;
 }
-:is(main.surface-page.material-study, section.l2o-material[data-l2o-material]) .instrument-value {
+section.l2o-material[data-l2o-material] .instrument-value {
   color: #cdd7df;
 }
-:is(main.surface-page.material-study, section.l2o-material[data-l2o-material]) .operation,
-:is(main.surface-page.material-study, section.l2o-material[data-l2o-material]) .integer-operation,
-:is(main.surface-page.material-study, section.l2o-material[data-l2o-material])
-  .operation.is-active {
+section.l2o-material[data-l2o-material] .operation,
+section.l2o-material[data-l2o-material] .integer-operation,
+section.l2o-material[data-l2o-material] .operation.is-active {
   padding-left: 0;
   padding-right: 0;
   background: none;
@@ -105,108 +92,90 @@
   color: #10171c;
   transition: none;
 }
-:is(main.surface-page.material-study, section.l2o-material[data-l2o-material]) .operation-heading {
+section.l2o-material[data-l2o-material] .operation-heading {
   color: #17232c;
 }
-:is(main.surface-page.material-study, section.l2o-material[data-l2o-material])
-  .operation-body
-  > svg {
+section.l2o-material[data-l2o-material] .operation-body > svg {
   right: 0;
   color: #10171c;
 }
-:is(main.surface-page.material-study, section.l2o-material[data-l2o-material]) .panel-readout {
+section.l2o-material[data-l2o-material] .panel-readout {
   transition: none;
   cursor: default;
 }
-:is(main.surface-page.material-study, section.l2o-material[data-l2o-material]) .training-loss {
+section.l2o-material[data-l2o-material] .training-loss {
   background: linear-gradient(115deg, #343e4782, #1c252ed9);
 }
-:is(main.surface-page.material-study, section.l2o-material[data-l2o-material])
-  .loss-explanation
-  h3 {
+section.l2o-material[data-l2o-material] .loss-explanation h3 {
   border-right: 1px solid #15233024;
   background: transparent;
   box-shadow: none;
-  color: #cdd7df;
   color: #10171c;
 }
-:is(main.surface-page.material-study, section.l2o-material[data-l2o-material]) .loss-readings {
+section.l2o-material[data-l2o-material] .loss-readings {
   border-left-color: #a5c8dc26;
 }
-:is(main.surface-page.material-study, section.l2o-material[data-l2o-material])
-  .loss-readings
-  .eyeline {
+section.l2o-material[data-l2o-material] .loss-readings .eyeline {
   color: #aabecb;
 }
-:is(main.surface-page.material-study, section.l2o-material[data-l2o-material])
-  .training-connections
-  path:not(.signal) {
+section.l2o-material[data-l2o-material] .training-connections path:not(.signal) {
   opacity: 0.65;
   stroke: #7d95a5;
 }
-:is(main.surface-page.material-study, section.l2o-material[data-l2o-material])
-  .training-connections
-  polygon {
+section.l2o-material[data-l2o-material] .training-connections polygon {
   fill: #b3ccd7;
 }
-:is(main.surface-page.material-study, section.l2o-material[data-l2o-material])
-  .training-connections
-  .signal {
+section.l2o-material[data-l2o-material] .training-connections .signal {
   filter: none;
   stroke: #dae5ec;
 }
-:is(main.surface-page.material-study, section.l2o-material[data-l2o-material]) .hud-value {
+section.l2o-material[data-l2o-material] .hud-value {
   color: #d2e1ea;
 }
-:is(main.surface-page.material-study, section.l2o-material[data-l2o-material]) .hud-readouts {
+section.l2o-material[data-l2o-material] .hud-readouts {
   border-top-color: #b2d5e62b;
 }
 @media (prefers-reduced-transparency: reduce) {
-  :is(main.surface-page.material-study, section.l2o-material[data-l2o-material]) .instrument-panel {
+  section.l2o-material[data-l2o-material] .instrument-panel {
     background: #192733;
     backdrop-filter: none;
   }
-  :is(main.surface-page.material-study, section.l2o-material[data-l2o-material]) .network-face {
+  section.l2o-material[data-l2o-material] .network-face {
     background: #9baab5;
   }
-  :is(main.surface-page.material-study, section.l2o-material[data-l2o-material])
-    .correction
-    .network-face {
+  section.l2o-material[data-l2o-material] .correction .network-face {
     background: #93a5b9;
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  :is(main.surface-page.material-study, section.l2o-material[data-l2o-material]) .instrument-panel,
-  :is(main.surface-page.material-study, section.l2o-material[data-l2o-material]) .operation {
+  section.l2o-material[data-l2o-material] .instrument-panel,
+  section.l2o-material[data-l2o-material] .operation {
     transition: none;
   }
 }
 
 /* Light optical plates carry dark, engraved markings; readings remain recessed. */
-:is(main.surface-page.material-study, section.l2o-material[data-l2o-material]) .variable-visual {
+section.l2o-material[data-l2o-material] .variable-visual {
   background: linear-gradient(145deg, #aebdcbd4, #92a5b7bd);
   box-shadow: inset 0 1px #eef4f754;
   color: #10171c;
 }
-:is(main.surface-page.material-study, section.l2o-material[data-l2o-material])
-  .variable-visual
-  > h3 {
+section.l2o-material[data-l2o-material] .variable-visual > h3 {
   text-shadow: 0 1px #ffffff12;
   color: #10171c;
 }
-:is(main.surface-page.material-study, section.l2o-material[data-l2o-material]) .loss-explanation {
+section.l2o-material[data-l2o-material] .loss-explanation {
   padding: 0 8px 0 0; /* optical: spacing within the illustration, independent of the page grid. */
   background: linear-gradient(145deg, #b4c0cbd4, #98a9b5bd);
   box-shadow: inset 0 1px #eef4f754;
   color: #10171c;
 }
-:is(main.surface-page.material-study, section.l2o-material[data-l2o-material]) .loss-terms svg {
+section.l2o-material[data-l2o-material] .loss-terms svg {
   color: #10171c;
 }
 
 /* A short etched rule separates the two operations without boxing them in. */
-:is(main.surface-page.material-study, section.l2o-material[data-l2o-material])
-  .integer-operation::before {
+section.l2o-material[data-l2o-material] .integer-operation::before {
   content: '';
   left: 0;
   position: absolute;
@@ -217,8 +186,7 @@
   pointer-events: none;
 }
 @container (max-width: 560px) {
-  :is(main.surface-page.material-study, section.l2o-material[data-l2o-material])
-    .integer-operation::before {
+  section.l2o-material[data-l2o-material] .integer-operation::before {
     bottom: auto;
     left: 64px;
     right: 38px;
@@ -229,55 +197,47 @@
 }
 
 /* Center the two loss terms as a single equation within the silver plate. */
-:is(main.surface-page.material-study, section.l2o-material[data-l2o-material]) .loss-terms {
+section.l2o-material[data-l2o-material] .loss-terms {
   align-items: center;
   justify-content: center;
 }
-:is(main.surface-page.material-study, section.l2o-material[data-l2o-material]) .loss-plus {
+section.l2o-material[data-l2o-material] .loss-plus {
   align-self: center;
   padding-left: 0;
 }
 /* The body and its light travel together, then fade before returning to their start. */
-:is(main.surface-page.material-study, section.l2o-material[data-l2o-material]) .icon-motion {
+section.l2o-material[data-l2o-material] .icon-motion {
   color: #f2f8fc;
   filter: drop-shadow(0 0 1.2px #f1f7ff90);
   opacity: 0;
   pointer-events: none;
 }
-:is(main.surface-page.material-study, section.l2o-material[data-l2o-material])
-  :is(.slider, .slider-light) {
+section.l2o-material[data-l2o-material] :is(.slider, .slider-light) {
   --icon-travel: l2o-slider-travel;
 }
-:is(main.surface-page.material-study, section.l2o-material[data-l2o-material])
-  :is(.snap, .snap-light) {
+section.l2o-material[data-l2o-material] :is(.snap, .snap-light) {
   --icon-travel: l2o-integer-snap;
 }
-:is(main.surface-page.material-study, section.l2o-material[data-l2o-material])
-  :is(.objective-ball, .objective-ball-light) {
+section.l2o-material[data-l2o-material] :is(.objective-ball, .objective-ball-light) {
   --icon-easing: linear;
   --icon-travel: l2o-objective-roll;
 }
-:is(main.surface-page.material-study, section.l2o-material[data-l2o-material])
-  :is(.constraint-ball, .constraint-ball-light) {
+section.l2o-material[data-l2o-material] :is(.constraint-ball, .constraint-ball-light) {
   --icon-travel: l2o-constraint-tighten;
 }
-:is(main.surface-page.material-study, section.l2o-material[data-l2o-material])
+section.l2o-material[data-l2o-material]
   :is(.operation, .training-loss).is-active
   :is(.icon-body, .icon-motion) {
   animation: var(--icon-travel) var(--l2o-action-duration, 0.48s) var(--icon-easing, ease-in-out)
     both;
 }
-:is(main.surface-page.material-study, section.l2o-material[data-l2o-material])
-  :is(.operation, .training-loss).is-active
-  .icon-body {
+section.l2o-material[data-l2o-material] :is(.operation, .training-loss).is-active .icon-body {
   animation-duration: var(--l2o-action-duration, 0.48s), var(--l2o-action-duration, 0.48s);
   animation-fill-mode: both;
   animation-name: var(--icon-travel), l2o-ink-presence;
   animation-timing-function: var(--icon-easing, ease-in-out), linear;
 }
-:is(main.surface-page.material-study, section.l2o-material[data-l2o-material])
-  :is(.operation, .training-loss).is-settling
-  .icon-body {
+section.l2o-material[data-l2o-material] :is(.operation, .training-loss).is-settling .icon-body {
   animation: l2o-ink-return calc(var(--l2o-pulse-duration, 0.24s) / 2) ease-out both;
 }
 @keyframes l2o-ink-presence {
@@ -297,8 +257,7 @@
     opacity: 1;
   }
 }
-:is(main.surface-page.material-study, section.l2o-material[data-l2o-material])
-  .constraint-distance {
+section.l2o-material[data-l2o-material] .constraint-distance {
   --icon-travel: l2o-distance-tighten;
   transform-origin: 11px 11px;
 }
@@ -397,13 +356,13 @@
 }
 
 /* Stable character windows refresh like a compact electronic instrument. */
-:is(main.surface-page.material-study, section.l2o-material[data-l2o-material]) .readout-strip {
+section.l2o-material[data-l2o-material] .readout-strip {
   display: inline-block;
   line-height: 1.3;
   vertical-align: top;
   white-space: pre;
 }
-:is(main.surface-page.material-study, section.l2o-material[data-l2o-material]) .readout-cell {
+section.l2o-material[data-l2o-material] .readout-cell {
   position: relative;
   display: inline-block;
   height: 1.3em;
@@ -411,21 +370,18 @@
   width: 1ch;
   vertical-align: top;
 }
-:is(main.surface-page.material-study, section.l2o-material[data-l2o-material])
-  .readout-cell
-  > span {
+section.l2o-material[data-l2o-material] .readout-cell > span {
   left: 0;
   position: absolute;
   top: 0;
   display: block;
   line-height: 1.3;
 }
-:is(main.surface-page.material-study, section.l2o-material[data-l2o-material]) .hud-state {
+section.l2o-material[data-l2o-material] .hud-state {
   height: 13px;
   overflow: hidden;
 }
-:is(main.surface-page.material-study, section.l2o-material[data-l2o-material])
-  :is(.hud-status-old, .hud-status-current) {
+section.l2o-material[data-l2o-material] :is(.hud-status-old, .hud-status-current) {
   inset: 0;
   position: absolute;
   display: block;

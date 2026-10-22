@@ -92,3 +92,24 @@ test('background tabs and reduced motion suppress animation and retain a static 
   env.motion.dispatchEvent(new Event('change'));
   assert.equal(env.frames.size, 0);
 });
+
+test('the host entrance holds the clock while the static first frame is already drawn', () => {
+  const env = harness(),
+    readings = [];
+  let release;
+  const playback = createPlayback({}, env.browser, (time) => readings.push(time), {
+    startWhen: (start) => {
+      release = start;
+    },
+  });
+  env.visible(true);
+  env.frame(100);
+  env.frame(200);
+  assert.deepEqual(readings, [0, 0], 'preparing the picture must not advance its clock');
+  assert.equal(env.frames.size, 0);
+  release();
+  env.frame(10000);
+  env.frame(10100);
+  assert.equal(readings.at(-1), 100, 'time waiting for the entrance is excluded');
+  playback.dispose();
+});

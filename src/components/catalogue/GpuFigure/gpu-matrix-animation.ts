@@ -1,3 +1,4 @@
+import { whenFigureReady } from '../../../lib/figure-ready';
 import { smoothstep as smooth } from './easing.ts';
 import { MATRIX, SCAN_BAND } from './gpu-layout.ts';
 import { createPlayback } from './playback.ts';
@@ -203,5 +204,5 @@ export function initializeGpuFigure(
     setOpacity(flowAT, reducedMotion || phase === 0 ? 0 : arrows);
   }
 
-  return createPlayback(root, browser, render);
+  return createPlayback(root, browser, render, { startWhen: whenFigureReady });
 }

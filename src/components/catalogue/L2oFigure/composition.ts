@@ -80,9 +80,7 @@ enhance<HTMLElement>('[data-l2o-material] [data-training-composition]', (root) =
     const network = root
       .querySelector<SVGSVGElement>('.mapping .training-network')!
       .getBoundingClientRect();
-    const connectionY = root.closest('.material-study, [data-l2o-material]')
-      ? network.top - origin.top + network.height / 2
-      : map.y + (mobile ? 54 : 52);
+    const connectionY = network.top - origin.top + network.height / 2;
     if (mobile) {
       const branchY = map.y - 18;
       const inputCenter = readings.left - origin.x + readings.width / 2;

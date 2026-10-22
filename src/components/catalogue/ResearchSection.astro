@@ -4,6 +4,7 @@ import L2oFigure from './L2oFigure/L2oFigure.astro';
 import GpuFigure from './GpuFigure/GpuFigure.astro';
 import DflFigure from './DflFigure/DflFigure.astro';
 import PublicationItem from './PublicationItem.astro';
+import ScreenReveal from './ScreenReveal/ScreenReveal.astro';
 import { publicationsByYear, type ResearchArea } from '../../data/research';
 
 interface Props {
@@ -25,13 +26,10 @@ const sortedPublications = publicationsByYear(area);
     </div>
   )}
   {area.id === 'learning-to-optimize' && (
-    <figure
-      id="bo-l2o-study"
-      class="research-figure"
-      data-reveal="unit"
-      aria-describedby="l2o-caption"
-    >
-      <L2oFigure />
+    <figure id="bo-l2o-study" class="research-figure" aria-describedby="l2o-caption">
+      <ScreenReveal>
+        <L2oFigure />
+      </ScreenReveal>
       <figcaption id="l2o-caption">
         Training a solution map with differentiable integer correction.
       </figcaption>
@@ -48,13 +46,10 @@ const sortedPublications = publicationsByYear(area);
     </figure>
   )}
   {area.id === 'first-order-methods' && (
-    <figure
-      id="bo-gpu-study"
-      class="research-figure"
-      data-reveal="unit"
-      aria-describedby="gpu-context-caption"
-    >
-      <GpuFigure />
+    <figure id="bo-gpu-study" class="research-figure" aria-describedby="gpu-context-caption">
+      <ScreenReveal>
+        <GpuFigure />
+      </ScreenReveal>
       <figcaption id="gpu-context-caption">
         Scaling optimization with GPU-accelerated sparse linear algebra.
       </figcaption>
@@ -83,8 +78,10 @@ const sortedPublications = publicationsByYear(area);
   )}
 
   {area.id === 'decision-focused-learning' && (
-    <figure id="bo-dfl-study" class="research-figure" data-reveal="unit">
-      <DflFigure />
+    <figure id="bo-dfl-study" class="research-figure">
+      <ScreenReveal>
+        <DflFigure />
+      </ScreenReveal>
       <figcaption>Train predictions for the decisions they inform.</figcaption>
       <details>
         <summary>Figure details &amp; credits</summary>
