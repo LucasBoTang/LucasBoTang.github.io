@@ -1,6 +1,6 @@
 # botang-website
 
-Personal academic site, built with Astro. The output is static HTML and CSS. The home page adds small scripts for its animations, and every page still works without them.
+Personal academic site, built with Astro. The output is static HTML, CSS and JavaScript. Scripts add animations and interactions across the site; core content and navigation remain available without JavaScript.
 
 ## Run
 
@@ -25,13 +25,16 @@ SITE_URL=https://example.org npm run build
 
 ## Editing content
 
-Everything lives in `src/data/`:
+Shared content records live in `src/data/`:
 
 - `publications.ts`: papers. IDs are used as page anchors, so don't rename them.
 - `research.ts`: research themes and which papers belong to each. Themes with `featured: true` appear on the home page.
 - `software.ts`: projects, upstream contributions, and how each project's name is drawn (`wordmark`).
 - `selected-work.ts`: the three highlights on the home page.
-- `profile.ts`: name, affiliation and contact links.
+- `profile.ts`: name, bio, affiliation, people and contact links.
+- `resources.ts`: shared links to papers, software, documentation and conference events.
+
+Page-specific prose and descriptions live in `src/pages/`. The homepage's About copy lives in `src/components/home/AboutSection/AboutSection.astro`; the full About page is `src/pages/about.astro`. Update both when changing shared background facts.
 
 The CV is `public/files/Bo-Tang-CV.pdf` and the portrait is `src/assets/bo-tang.jpg`. Replace the files to update them.
 

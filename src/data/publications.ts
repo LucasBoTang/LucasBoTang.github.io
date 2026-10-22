@@ -12,7 +12,7 @@ export const publications = {
   pyepo: {
     id: 'pyepo',
     title:
-      'PyEPO: A PyTorch-based End-to-End Predict-then-Optimize Library for Linear and Integer Programming',
+      'PyEPO: a PyTorch-based end-to-end predict-then-optimize library for linear and integer programming',
     authors: ['Bo Tang', 'Elias B. Khalil'],
     venue: 'Mathematical Programming Computation',
     year: 2024,
@@ -33,7 +33,7 @@ export const publications = {
   cave: {
     id: 'cave',
     title:
-      'CaVE: A Cone-Aligned Approach for Fast Predict-then-Optimize with Binary Linear Programs',
+      'CaVE: A Cone-Aligned Approach for Fast Predict-then-optimize with Binary Linear Programs',
     authors: ['Bo Tang', 'Elias B. Khalil'],
     venue:
       'Integration of Constraint Programming, Artificial Intelligence, and Operations Research (CPAIOR)',
@@ -62,7 +62,7 @@ export const publications = {
   },
   multiTaskPredictThenOptimize: {
     id: 'multi-task-predict-then-optimize',
-    title: 'Multi-Task Predict-then-Optimize',
+    title: 'Multi-task Predict-then-Optimize',
     authors: ['Bo Tang', 'Elias B. Khalil'],
     venue: 'Learning and Intelligent Optimization (LION)',
     year: 2023,

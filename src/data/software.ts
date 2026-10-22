@@ -23,7 +23,7 @@ export const projects = {
     wordmark: { glyphs: 'long' },
     role: 'Joint work with Haihao Lu',
     description:
-      'A matrix-free GPU solver for large-scale LP, returning either optimal solutions or verifiable certificates of infeasibility or unboundedness.',
+      'A matrix-free GPU solver for large-scale linear programming, computing optimal solutions or certificates of primal or dual infeasibility.',
     publication: publications.hPdlp,
     ...projectResources.hPdlp,
   }),
