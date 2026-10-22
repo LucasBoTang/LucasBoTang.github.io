@@ -1,0 +1,251 @@
+---
+import { MATRIX, SCAN_BAND } from './gpu-layout';
+
+interface Props {
+  maskId: string;
+}
+const { maskId } = Astro.props;
+---
+
+<div class="gpu-study">
+  <svg
+    viewBox="0 85 600 365"
+    role="img"
+    aria-labelledby={`${maskId}-title`}
+    aria-describedby={`${maskId}-desc`}
+  >
+    <title id={`${maskId}-title`}>
+      Matrix products Ax and Aᵀy on the rail4284 linear program
+    </title>
+    <desc id={`${maskId}-desc`}>
+      Matrix products on rail4284. Bars show continuous small illustrative jitter around saved
+      reference profiles. Aᵀy uses a fixed expanded display range. Color and opacity are constant;
+      motion is not solver telemetry.
+    </desc>
+    <defs>
+      <mask id={maskId}>
+        <image
+          href={'/images/research/rail4284-density.png'}
+          x={MATRIX.x}
+          y={MATRIX.y}
+          width={MATRIX.width}
+          height={MATRIX.height}
+          preserveAspectRatio="none"
+          style="filter:invert(1) brightness(1.25)"
+        />
+      </mask>
+      <linearGradient id={`${maskId}-scan-down`} x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="var(--scan)" stop-opacity="0" />
+        <stop offset=".5" stop-color="var(--scan)" stop-opacity="1" />
+        <stop offset="1" stop-color="var(--scan)" stop-opacity="0" />
+      </linearGradient>
+      <linearGradient id={`${maskId}-scan-right`} x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="var(--scan)" stop-opacity="0" />
+        <stop offset=".5" stop-color="var(--scan)" stop-opacity="1" />
+        <stop offset="1" stop-color="var(--scan)" stop-opacity="0" />
+      </linearGradient>
+    </defs>
+    <g data-vector="x">
+      <foreignObject data-math-label x="16" y="112" width="55" height="32">
+        <div class="gpu-math-label" style="justify-content:flex-end">
+          <math xmlns="http://www.w3.org/1998/Math/MathML"><mi>x</mi></math>
+        </div>
+      </foreignObject>
+      {Array.from({ length: 96 }, (_, i) => (
+        <rect
+          data-x
+          x={MATRIX.x + (i * MATRIX.width) / 96}
+          y="114"
+          width="3.5"
+          height="21"
+          fill="var(--blue)"
+        />
+      ))}
+    </g>
+    <g mask={`url(#${maskId})`}>
+      <rect class="matrix-density" {...MATRIX} />
+    </g>
+    <!-- A separate density-masked pass strengthens only existing nonzero marks. -->
+    <g mask={`url(#${maskId})`}>
+      <rect
+        data-matrix-scan="down"
+        x={MATRIX.x}
+        y={MATRIX.y - SCAN_BAND.height}
+        width={MATRIX.width}
+        height={SCAN_BAND.height}
+        fill={`url(#${maskId}-scan-down)`}
+        opacity="0"
+      />
+      <rect
+        data-matrix-scan="right"
+        x={MATRIX.x - SCAN_BAND.width}
+        y={MATRIX.y}
+        width={SCAN_BAND.width}
+        height={MATRIX.height}
+        fill={`url(#${maskId}-scan-right)`}
+        opacity="0"
+      />
+    </g>
+    <g data-vector="a">
+      <foreignObject data-math-label x="563" y="244" width="37" height="32">
+        <div class="gpu-math-label" style="justify-content:flex-start">
+          <math xmlns="http://www.w3.org/1998/Math/MathML"><mi>A</mi><mi>x</mi></math>
+        </div>
+      </foreignObject>
+      {Array.from({ length: 72 }, (_, i) => (
+        <rect
+          data-a
+          x="531"
+          y={MATRIX.y + (i * MATRIX.height) / 72}
+          width="24"
+          height="2.6"
+          fill="var(--blue)"
+        />
+      ))}
+    </g>
+    <g data-vector="y">
+      <foreignObject data-math-label x="40" y="112" width="40" height="32">
+        <div class="gpu-math-label" style="justify-content:center">
+          <math xmlns="http://www.w3.org/1998/Math/MathML"><mi>y</mi></math>
+        </div>
+      </foreignObject>
+      {Array.from({ length: 72 }, (_, i) => (
+        <rect
+          data-y
+          x="45"
+          y={MATRIX.y + (i * MATRIX.height) / 72}
+          width="24"
+          height="2.6"
+          fill="var(--blue)"
+        />
+      ))}
+    </g>
+    <g data-vector="at">
+      <foreignObject data-math-label x="11" y="396" width="60" height="32">
+        <div class="gpu-math-label" style="justify-content:flex-end">
+          <math xmlns="http://www.w3.org/1998/Math/MathML"><msup><mi>A</mi><mo>⊤</mo></msup><mi>y</mi></math>
+        </div>
+      </foreignObject>
+      {Array.from({ length: 96 }, (_, i) => (
+        <rect
+          data-at
+          x={MATRIX.x + (i * MATRIX.width) / 96}
+          y="401"
+          width="3.5"
+          height="21"
+          fill="var(--blue)"
+        />
+      ))}
+    </g>
+    <g data-flow="a" fill="none" stroke="var(--flow)" stroke-width=".85">
+      {Array.from({ length: 10 }, (_, i) => (
+        <g stroke-linecap="round" stroke-linejoin="round">
+          <path
+            d={`M${106 + i * 43} 139v8m-2.5-3 2.5 3 2.5-3`}
+            stroke="var(--surface)"
+            stroke-width="2.3"
+            stroke-opacity=".8"
+          />
+          <path d={`M${106 + i * 43} 139v8m-2.5-3 2.5 3 2.5-3`} />
+        </g>
+      ))}
+      {Array.from({ length: 8 }, (_, i) => (
+        <g data-flow-output="a" stroke-linecap="round" stroke-linejoin="round">
+          <path
+            d={`M519 ${166 + i * 29}h8m-3-2.5 3 2.5-3 2.5`}
+            stroke="var(--surface)"
+            stroke-width="2.3"
+            stroke-opacity=".8"
+          />
+          <path d={`M519 ${166 + i * 29}h8m-3-2.5 3 2.5-3 2.5`} />
+        </g>
+      ))}
+    </g>
+    <g data-flow="at" fill="none" stroke="var(--flow)" stroke-width=".85">
+      {Array.from({ length: 8 }, (_, i) => (
+        <g stroke-linecap="round" stroke-linejoin="round">
+          <path
+            d={`M73 ${166 + i * 29}h8m-3-2.5 3 2.5-3 2.5`}
+            stroke="var(--surface)"
+            stroke-width="2.3"
+            stroke-opacity=".8"
+          />
+          <path d={`M73 ${166 + i * 29}h8m-3-2.5 3 2.5-3 2.5`} />
+        </g>
+      ))}
+      {Array.from({ length: 10 }, (_, i) => (
+        <g data-flow-output="at" stroke-linecap="round" stroke-linejoin="round">
+          <path
+            d={`M${106 + i * 43} 389v8m-2.5-3 2.5 3 2.5-3`}
+            stroke="var(--surface)"
+            stroke-width="2.3"
+            stroke-opacity=".8"
+          />
+          <path d={`M${106 + i * 43} 389v8m-2.5-3 2.5 3 2.5-3`} />
+        </g>
+      ))}
+    </g>
+  </svg>
+</div>
+
+<style>
+  [data-x],
+  [data-y],
+  [data-a],
+  [data-at] {
+    stroke: rgb(16 17 19 / 0.75);
+    stroke-width: 0.65px;
+    paint-order: stroke fill;
+  }
+  .matrix-density {
+    fill: var(--signal-light);
+    opacity: 1;
+  }
+  .gpu-study {
+    --flow: var(--signal-light);
+    --scan: var(--paper);
+    margin-top: 0;
+    width: 100%;
+  }
+  svg {
+    display: block;
+    width: 100%;
+    font-family: inherit;
+  }
+  text {
+    fill: var(--muted);
+  }
+
+  .formula {
+    font-family: var(--font);
+    font-size: 17px;
+    font-weight: 400;
+    fill: var(--blue);
+    stroke: none;
+    stroke-linejoin: round;
+    stroke-width: 0;
+    paint-order: stroke fill;
+  }
+  @container (max-width: 480px) {
+    .formula {
+      font-size: 23px;
+    }
+  }
+  .gpu-math-label {
+    align-items: center;
+    display: flex;
+    height: 100%;
+    font:
+      17px Georgia,
+      serif;
+    color: var(--blue);
+  }
+  .gpu-math-label math {
+    font: inherit;
+  }
+  @container (max-width:480px) {
+    .gpu-math-label {
+      font-size: 23px;
+    }
+  }
+</style>

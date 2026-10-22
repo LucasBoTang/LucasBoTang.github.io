@@ -1,5 +1,8 @@
 ---
 import '@fontsource-variable/bodoni-moda/opsz.css';
+import L2oFigure from './L2oFigure/L2oFigure.astro';
+import GpuFigure from './GpuFigure/GpuFigure.astro';
+import DflFigure from './DflFigure/DflFigure.astro';
 import PublicationItem from './PublicationItem.astro';
 import { publicationsByYear, type ResearchArea } from '../../data/research';
 
@@ -21,6 +24,85 @@ const sortedPublications = publicationsByYear(area);
       {area.introduction && <p class="research-introduction">{area.introduction}</p>}
     </div>
   )}
+  {area.id === 'learning-to-optimize' && (
+    <figure
+      id="bo-l2o-study"
+      class="research-figure"
+      data-reveal="unit"
+      aria-describedby="l2o-caption"
+    >
+      <L2oFigure />
+      <figcaption id="l2o-caption">
+        Training a solution map with differentiable integer correction.
+      </figcaption>
+      <details>
+        <summary>Figure details</summary>
+        <p>
+          Training predictions from a rerun of the{' '}
+          <a href="https://github.com/pnnl/L2O-MINLP/blob/6dd2a901144ae9892cf545a88f54fe60caef9ebe/test/Training%20Iterations%20for%20Rosenbrock.ipynb">
+            L2O-MINLP Rosenbrock example
+          </a>
+          . Surface height is log(1 + f).
+        </p>
+      </details>
+    </figure>
+  )}
+  {area.id === 'first-order-methods' && (
+    <figure
+      id="bo-gpu-study"
+      class="research-figure"
+      data-reveal="unit"
+      aria-describedby="gpu-context-caption"
+    >
+      <GpuFigure />
+      <figcaption id="gpu-context-caption">
+        Scaling optimization with GPU-accelerated sparse linear algebra.
+      </figcaption>
+      <details>
+        <summary>Figure details &amp; credits</summary>
+        <p>
+          The real rail4284 standard-form matrix has 4,284 rows, 1,096,894 columns and 11,284,032
+          nonzeros. It is a set-covering problem from Italian railways, contributed by Paolo Nobili
+          to{' '}
+          <a href="https://people.brunel.ac.uk/~mastjjb/jeb/orlib/scpinfo.html">
+            Beasley’s OR-Library
+          </a>
+          .
+        </p>
+        <p>
+          Photo:{' '}
+          <a href="https://commons.wikimedia.org/wiki/File:Aerial_view_of_West_Oakland_rail_yards,_December_2022.JPG">
+            Pi.1415926535 / Wikimedia Commons
+          </a>
+          , under the <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>,
+          cropped and color-adjusted; the photographic adaptation remains CC BY-SA 4.0. The yard is
+          illustrative, not the source location of rail4284.
+        </p>
+      </details>
+    </figure>
+  )}
+
+  {area.id === 'decision-focused-learning' && (
+    <figure id="bo-dfl-study" class="research-figure" data-reveal="unit">
+      <DflFigure />
+      <figcaption>Train predictions for the decisions they inform.</figcaption>
+      <details>
+        <summary>Figure details &amp; credits</summary>
+        <p>
+          Predictions are trained through downstream decision quality. Based on{' '}
+          <a href="https://arxiv.org/html/2206.14234v3#S3">PyEPO, Section 3</a>.
+        </p>
+        <p>
+          Photo:{' '}
+          <a href="https://www.pexels.com/photo/a-person-using-a-calculator-8297018/">
+            Mikhail Nilov / Pexels
+          </a>
+          . Cropped and color-adjusted.
+        </p>
+      </details>
+    </figure>
+  )}
+
   {area.publications.length > 0 && (
     <ul class="publication-list">
       {sortedPublications.map((publication) => (
@@ -96,6 +178,47 @@ const sortedPublications = publicationsByYear(area);
     }
     .research-section + .research-section {
       margin-top: var(--step-96);
+    }
+  }
+
+  .research-figure {
+    grid-column: 1/-2;
+    margin: calc(5 * var(--step-8)) 0 0;
+    min-width: 0;
+    scroll-margin-top: calc(var(--site-header-height) + var(--site-header-fade) + var(--step-24));
+  }
+  .research-figure + .publication-list {
+    margin-top: var(--step-48);
+  }
+  .research-figure figcaption {
+    margin-top: var(--step-24);
+    max-width: 62ch;
+    font-size: var(--type-body);
+    line-height: var(--line-body);
+    color: var(--muted);
+  }
+  .research-figure details {
+    margin-top: var(--step-16);
+    font-size: var(--type-label);
+    line-height: var(--line-label-block);
+    color: var(--muted);
+  }
+  .research-figure summary {
+    width: fit-content;
+    font-family: var(--font-mono);
+    cursor: pointer;
+  }
+  .research-figure details p {
+    margin: var(--step-16) 0;
+  }
+  .research-figure details a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  @media (max-width: 720px) {
+    .research-figure {
+      grid-column: 1/-1;
+      margin-top: var(--step-32);
     }
   }
 </style>

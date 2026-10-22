@@ -1,0 +1,14 @@
+{
+  "instance": "Mittelmann/rail4284",
+  "rows": 4284,
+  "columns": 1096894,
+  "nonzeros": 11284032,
+  "bins": [720, 560],
+  "maxBinCount": 4736,
+  "ordering": "original Matrix Market row and column order",
+  "intensity": "(log(1+bin_count)/log(1+max_bin_count))^0.85",
+  "representation": "SuiteSparse standard-form LP; columns include auxiliary variables",
+  "source": "https://sparse.tamu.edu/Mittelmann/rail4284",
+  "download": "https://www.cise.ufl.edu/research/sparse/MM/Mittelmann/rail4284.tar.gz",
+  "archiveSha256": "084d77a0ef65b86cab1766dc7246b43a281fcc96bc3982e515aa76275caa3707"
+}

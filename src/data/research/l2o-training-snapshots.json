@@ -1,0 +1,75 @@
+{
+  "source": "https://github.com/pnnl/L2O-MINLP/blob/6dd2a901144ae9892cf545a88f54fe60caef9ebe/test/Training%20Iterations%20for%20Rosenbrock.ipynb",
+  "kind": "new recorded reproduction; not the notebook original run",
+  "parameters": {
+    "a": 3.898444652557373,
+    "b": 5.810980796813965
+  },
+  "optimum": {
+    "x": -1.7226116250568955,
+    "y": 3,
+    "objective": 31.649441637182292
+  },
+  "savedIndices": [99, 199, 499, 8999],
+  "steps": [100, 200, 500, 9000],
+  "relaxed": [
+    [0.2074778527021408, -0.1141216829419136],
+    [-0.2164936363697052, 0.9417895078659058],
+    [-1.3911916017532349, 3.694368362426758],
+    [-1.125247597694397, 2.8885672092437744]
+  ],
+  "corrected": [
+    [0.06676508486270905, -1.0],
+    [-0.5728992223739624, 1.0],
+    [-1.9104101657867432, 4.0],
+    [-1.8091800212860107, 3.0]
+  ],
+  "sampling": "Four checkpoints at updates 100, 200, 500 and 9000, following the original notebook early/middle/late timing at clean integer steps. Coordinates are unchanged raw observations.",
+  "totalUpdates": 11000,
+  "rawArraysSha256": "400c021bb277cd587708cb110c11ca3dc233461424f829b10c685679baf668e2",
+  "runMetadata": {
+    "source": "https://github.com/pnnl/L2O-MINLP/blob/6dd2a901144ae9892cf545a88f54fe60caef9ebe/test/Training%20Iterations%20for%20Rosenbrock.ipynb",
+    "kind": "new recorded reproduction; not the notebook original run",
+    "seed": 42,
+    "device": "cuda",
+    "torch": "2.10.0+cu128",
+    "gpu": "NVIDIA GeForce RTX 5080",
+    "a": 3.898444652557373,
+    "b": 5.810980796813965,
+    "steps": 11000,
+    "epochs": 88,
+    "best_validation": 21.685352087020874,
+    "elapsed_seconds": 105.32625985145569,
+    "settings": {
+      "hidden_solution": [4, 4, 4, 4, 4],
+      "hidden_correction": [4, 4, 4, 4],
+      "batch_size": 64,
+      "lr": 0.001,
+      "penalty": 100,
+      "optimizer": "AdamW",
+      "warmup": 20,
+      "patience": 20,
+      "max_epochs": 200
+    },
+    "adaptation": "MLP, data wrapper and scalar loss expressed directly in PyTorch; official layer.py/rnd.py/ste.py unchanged. Framework and hardware differ from the original notebook, so pointwise equality is not claimed.",
+    "arrays_sha256": "400c021bb277cd587708cb110c11ca3dc233461424f829b10c685679baf668e2"
+  },
+  "hidden": [
+    [-0.14071276783943176, -0.19735047221183777],
+    [-0.3564055860042572, 0.06373442709445953],
+    [-0.5192186236381531, 0.2379581779241562],
+    [-0.6839324831962585, 8.600313186645508]
+  ],
+  "hiddenRecording": {
+    "method": "Forward hook during a deterministic replay. No additional model calls or random draws.",
+    "verification": {
+      "relaxed": true,
+      "integer": true,
+      "step": true,
+      "epoch": true,
+      "batch_loss": true,
+      "hidden_count_matches": true
+    },
+    "rawArraysSha256": "d916e4a376e21de0128590cafdfe5efc0e9e062ce6bdf80fb9a8812c6a1bfc88"
+  }
+}

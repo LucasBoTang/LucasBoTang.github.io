@@ -1,0 +1,42 @@
+---
+import '@fontsource-variable/bodoni-moda/opsz.css';
+import '@fontsource-variable/geist';
+import '@fontsource-variable/geist-mono';
+import '../../styles/global.css';
+import { themeVariables } from '../../data/theme';
+
+interface Props {
+  title: string;
+  description: string;
+  bleed?: number;
+}
+const { title, description, bleed = 0 } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en" style={themeVariables}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <meta name="robots" content="noindex" />
+    <title>{title}</title>
+  </head>
+  <body>
+    <main style={`--figure-bleed:${bleed}px`}>
+      <slot />
+    </main>
+  </body>
+</html>
+
+<style is:global>
+  html,
+  body {
+    margin: 0;
+    overflow: hidden;
+    background: var(--ink);
+  }
+  main {
+    padding-inline: var(--figure-bleed);
+  }
+</style>

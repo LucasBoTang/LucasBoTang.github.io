@@ -8,8 +8,19 @@ import { filesUnder } from './files.mjs';
 
 /** Artwork sets its own letters inside a box that the grid places: no size, weight or tracking rule. */
 const ARTWORK = new Set([
+  'src/components/catalogue/DflFigure/Illustration.astro',
+  'src/components/catalogue/GpuFigure/Illustration.astro',
+  'src/components/catalogue/GpuFigure/Matrix.astro',
+
   'src/components/catalogue/ProjectWordmark/ProjectWordmark.astro',
   'src/components/home/AboutSection/DecisionSign.astro',
+  // The scientific illustration owns its internal type scale; the figure caption uses site tokens.
+  'src/components/catalogue/L2oFigure/L2oFigure.astro',
+  'src/components/catalogue/L2oFigure/Illustration.astro',
+  'src/components/catalogue/L2oFigure/TrainingComposition.astro',
+  'src/components/catalogue/L2oFigure/MathSymbol.astro',
+  'src/components/catalogue/L2oFigure/Network.astro',
+  'src/components/catalogue/L2oFigure/material.css',
 ]);
 
 const SIZE = /^var\(--type-(label|body|heading|title|display|name|lane)\)$/;
@@ -33,7 +44,7 @@ function withoutVars(value) {
 function problem(path, property, value, comment) {
   const artwork = ARTWORK.has(path);
   if (property === 'font-size') return artwork || value === 'inherit' || SIZE.test(value);
-  if (property === 'line-height') return value === 'inherit' || LEADING.test(value);
+  if (property === 'line-height') return artwork || value === 'inherit' || LEADING.test(value);
   if (property === 'font-weight') return artwork || value === '400' || value === 'inherit';
   if (property === 'letter-spacing') return artwork || TRACKING.test(value);
   if (property === 'text-transform')

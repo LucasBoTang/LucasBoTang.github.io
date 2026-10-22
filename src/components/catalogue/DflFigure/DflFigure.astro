@@ -1,0 +1,40 @@
+---
+import { figurePaths } from '../../../data/research/figures';
+---
+
+<div class="figure-viewport">
+  <div class="figure-frame">
+    <iframe
+      src={figurePaths.dfl}
+      title="Learning for better decisions"
+      loading="lazy"
+      tabindex="-1"
+    ></iframe>
+  </div>
+</div>
+
+<style>
+  .figure-viewport {
+    margin-inline: calc(-1 * var(--gutter));
+    overflow: clip;
+    padding-inline: var(--gutter);
+  }
+
+  .figure-frame {
+    width: 100%;
+    container-type: inline-size;
+  }
+  iframe {
+    display: block;
+    border: 0;
+    height: 539px;
+    margin-left: -32px; /* optical: preserve the artwork's existing overhang */
+    width: calc(100% + 64px);
+    pointer-events: none;
+  }
+  @container (max-width:420px) {
+    iframe {
+      height: 704px;
+    }
+  }
+</style>

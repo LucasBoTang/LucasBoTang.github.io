@@ -1,0 +1,55 @@
+---
+interface Props {
+  id: string;
+}
+const { id } = Astro.props;
+const layers = [3, 4, 3].map((count, i) =>
+  Array.from({ length: count }, (_, j) => ({ x: 18 + i * 49, y: 46 + (j - (count - 1) / 2) * 22 })),
+);
+---
+
+<svg class="training-network" viewBox="0 0 134 92" aria-hidden="true" data-network={id}>
+  {layers
+    .slice(0, -1)
+    .map((layer, i) =>
+      layer.map((p) =>
+        layers[i + 1].map((q) => (
+          <path d={`M${p.x} ${p.y}L${q.x} ${q.y}`} class="network-edge" data-layer-edge={i} />
+        )),
+      ),
+    )}
+  {layers.map((layer, i) => (
+    <g data-layer={i}>
+      {layer.map((p) => (
+        <circle cx={p.x} cy={p.y} r="7" class="network-node" />
+      ))}
+    </g>
+  ))}
+</svg>
+
+<style>
+  .training-network {
+    display: block;
+    height: auto;
+    width: 100%;
+  }
+  .network-edge {
+    fill: none;
+    opacity: 0.35;
+    stroke: currentColor;
+    stroke-width: 2;
+  }
+  .network-node {
+    fill: currentColor;
+    transition: fill 0.14s;
+  }
+  .network-edge.is-lit {
+    opacity: 0.8;
+    stroke: #f5f7fa;
+  }
+  [data-layer].is-lit .network-node {
+    fill: #f6f7f6;
+    stroke: #24323f;
+    stroke-width: 1;
+  }
+</style>

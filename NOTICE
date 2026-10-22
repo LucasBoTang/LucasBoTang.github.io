@@ -19,3 +19,15 @@ license of their respective publishers.
 
 The site uses third-party fonts from Fontsource, each distributed under
 its own license (SIL Open Font License 1.1).
+
+Research figure assets retain their respective terms:
+
+- src/assets/research/railway-oakland.webp: Pi.1415926535, "Aerial view
+  of West Oakland rail yards, December 2022", Wikimedia Commons,
+  https://commons.wikimedia.org/wiki/File:Aerial_view_of_West_Oakland_rail_yards,_December_2022.JPG
+  CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/).
+  Cropped and color-adjusted; the adaptation remains CC BY-SA 4.0.
+- public/images/research/decision-costs.webp: Mikhail Nilov / Pexels,
+  https://www.pexels.com/photo/a-person-using-a-calculator-8297018/
+  Pexels License (https://www.pexels.com/license/).
+  Resized and compressed; displayed with a crop and color adjustment.

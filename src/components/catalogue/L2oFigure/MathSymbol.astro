@@ -1,0 +1,34 @@
+---
+interface Props {
+  base: string;
+  accent?: 'bar' | 'hat';
+  sub?: string;
+  readout?: boolean;
+}
+const { base, accent, sub, readout = false } = Astro.props;
+const escape = (s: string) =>
+  s.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+const token = `<mi>${escape(base)}</mi>`;
+const body = accent
+  ? `<mover accent="true">${token}<mo stretchy="true">${accent === 'bar' ? '¯' : '^'}</mo></mover>`
+  : sub
+    ? `<msub>${token}<mi>${escape(sub)}</mi></msub>`
+    : token;
+// A shared native math strut reserves the same ascent/descent for all instrument symbols.
+// MathML itself positions the accents and scripts; no CSS offsets are applied.
+const strut =
+  '<mpadded width="0px"><mphantom><mover accent="true"><mi>y</mi><mo stretchy="true">^</mo></mover><msub><mi>h</mi><mi>y</mi></msub></mphantom></mpadded>';
+const content = readout ? `<mrow>${strut}${body}</mrow>` : body;
+---
+
+<math xmlns="http://www.w3.org/1998/Math/MathML" class="research-math-symbol" set:html={content} />
+
+<style>
+  .research-math-symbol {
+    font-family: Georgia, serif;
+    font-size: 1em;
+    vertical-align: baseline;
+    color: inherit;
+    math-style: compact;
+  }
+</style>
