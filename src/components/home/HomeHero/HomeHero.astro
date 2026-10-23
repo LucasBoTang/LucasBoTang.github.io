@@ -306,7 +306,7 @@ const [inkRed, inkGreen, inkBlue] = blueInk.dark.map((dark, i) => `${dark} ${blu
     position: absolute;
     top: 0.12em;
     height: 1em;
-    margin-left: 3px;
+    margin-left: 3px; /* optical: match the typing cursor's inset during the opening wait. */
     width: 2px;
     background: var(--blue);
     visibility: visible;
