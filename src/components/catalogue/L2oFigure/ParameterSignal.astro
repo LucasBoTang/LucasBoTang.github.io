@@ -23,6 +23,7 @@ const numeric = name.endsWith('-value');
 
 <style>
   .parameter-signal {
+    --jitter-body-cut: var(--input-a-body-cut, none);
     --jitter-cut: var(--input-a-cut, inset(40% 0 40%));
     --jitter-echo: var(--input-a-echo, 0);
     --jitter-opacity: var(--input-a-opacity, 1);
@@ -30,16 +31,14 @@ const numeric = name.endsWith('-value');
     --jitter-x: var(--input-a-x, 0px);
     --jitter-y: var(--input-a-y, 0px);
     --signal-echo-strength: 1;
-    --signal-strength: 1;
+    --signal-lateral-strength: 1;
     position: relative;
     display: inline-block;
     vertical-align: baseline;
-    transform: translate(
-      calc(var(--jitter-x) * var(--signal-strength)),
-      calc(var(--jitter-y) * var(--signal-strength))
-    );
+    transform: translate(calc(var(--jitter-x) * var(--signal-lateral-strength)), var(--jitter-y));
   }
   .parameter-signal[data-parameter='b'] {
+    --jitter-body-cut: var(--input-b-body-cut, none);
     --jitter-cut: var(--input-b-cut, inset(40% 0 40%));
     --jitter-echo: var(--input-b-echo, 0);
     --jitter-opacity: var(--input-b-opacity, 1);
@@ -48,6 +47,7 @@ const numeric = name.endsWith('-value');
     --jitter-y: var(--input-b-y, 0px);
   }
   .parameter-signal[data-parameter='a-value'] {
+    --jitter-body-cut: var(--input-a-value-body-cut, none);
     --jitter-cut: var(--input-a-value-cut, inset(40% 0 40%));
     --jitter-echo: var(--input-a-value-echo, 0);
     --jitter-opacity: var(--input-a-value-opacity, 1);
@@ -59,6 +59,7 @@ const numeric = name.endsWith('-value');
     --jitter-y: var(--input-a-value-y, 0px);
   }
   .parameter-signal[data-parameter='b-value'] {
+    --jitter-body-cut: var(--input-b-value-body-cut, none);
     --jitter-cut: var(--input-b-value-cut, inset(40% 0 40%));
     --jitter-echo: var(--input-b-value-echo, 0);
     --jitter-opacity: var(--input-b-value-opacity, 1);
@@ -71,10 +72,11 @@ const numeric = name.endsWith('-value');
   }
   .is-formula {
     --signal-echo-strength: 0.7;
-    --signal-strength: 0.6;
+    --signal-lateral-strength: 0.6;
   }
   .signal-body {
     display: block;
+    clip-path: var(--jitter-body-cut);
     opacity: var(--jitter-opacity);
   }
   .signal-trail,

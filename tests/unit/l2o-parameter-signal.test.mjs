@@ -12,10 +12,10 @@ test('parameter symbols and numeric readouts move independently with occasional 
   );
   for (const frames of samples)
     for (const frame of frames) {
-      assert.ok(Math.abs(frame.x) <= 0.7);
-      assert.ok(Math.abs(frame.y) <= 0.5);
+      assert.ok(Math.abs(frame.x) <= 0.8);
+      assert.ok(Math.abs(frame.y) <= 1.6);
       assert.ok(frame.opacity >= 0.9 && frame.opacity <= 1);
-      assert.ok(frame.tearOpacity === 0 || frame.tearOpacity <= 0.5);
+      assert.ok(frame.tearOpacity === 0 || frame.tearOpacity <= 1);
     }
   assert.ok(new Set(samples.map(([a]) => `${a.x},${a.y}`)).size > 100);
   assert.ok(samples.filter(([a, b]) => a.x !== b.x || a.y !== b.y).length > 180);
@@ -23,7 +23,7 @@ test('parameter symbols and numeric readouts move independently with occasional 
   assert.ok(samples.filter(([, b, , value]) => b.x !== value.x || b.y !== value.y).length > 180);
   const tears = samples.filter(([a]) => a.tearOpacity > 0).length;
   assert.ok(
-    tears > 5 && tears < 40,
+    tears > 5 && tears < 55,
     'tearing stays occasional while the underlying letter keeps moving',
   );
 });
@@ -42,7 +42,7 @@ test('symbol and numeric signals preserve the recorded values', () => {
   );
   assert.equal(
     root.style.getPropertyValue('--input-b-y'),
-    `${sampleParameterSignal(0.25, 'b').y}px`,
+    `${sampleParameterSignal(0.25, 'a-value').y}px`,
   );
   assert.equal(
     root.style.getPropertyValue('--input-a-value-x'),
@@ -50,7 +50,7 @@ test('symbol and numeric signals preserve the recorded values', () => {
   );
   assert.equal(
     root.style.getPropertyValue('--input-b-value-y'),
-    `${sampleParameterSignal(0.25, 'b-value').y}px`,
+    `${sampleParameterSignal(0.25, 'a-value').y}px`,
   );
   assert.equal(root.innerHTML, content);
   update(1.2);
@@ -72,6 +72,7 @@ test('reduced motion restores both symbols and their echoes to a steady state', 
     assert.equal(root.style.getPropertyValue(`--input-${parameter}-y`), '0px');
     assert.equal(root.style.getPropertyValue(`--input-${parameter}-opacity`), '1');
     assert.equal(root.style.getPropertyValue(`--input-${parameter}-echo`), '0');
+    assert.equal(root.style.getPropertyValue(`--input-${parameter}-body-cut`), 'none');
     if (parameter.endsWith('-value')) {
       assert.equal(root.style.getPropertyValue(`--input-${parameter}-trail-opacity`), '0');
       assert.equal(root.style.getPropertyValue(`--input-${parameter}-trail-x`), '0px');
@@ -94,5 +95,35 @@ test('numeric afterimages cluster around faults and clear while the quiet signal
     assert.ok(intervals.length >= 4);
     assert.ok(Math.max(...intervals) - Math.min(...intervals) > 0.15, 'faults cannot form a beat');
     assert.ok(frames.every((frame) => frame.trailOpacity <= 0.28));
+  }
+});
+
+test('faults move actual ink slices and restore complete glyphs between them', () => {
+  for (const channel of ['a', 'b', 'a-value', 'b-value']) {
+    const frames = Array.from({ length: 1200 }, (_, i) => sampleParameterSignal(i / 120, channel));
+    const torn = frames.filter((frame) => frame.tearOpacity > 0);
+    assert.ok(torn.length > 40, 'short displaced slices must remain visible at reading size');
+    assert.ok(torn.length < frames.length * 0.3, 'complete glyphs dominate the signal');
+    assert.ok(torn.every((frame) => frame.bodyCut.startsWith('polygon(')));
+    assert.ok(
+      frames.filter((frame) => frame.tearOpacity === 0).every((frame) => frame.bodyCut === 'none'),
+    );
+    assert.ok(
+      frames.filter((frame) => Math.abs(frame.y) >= 0.85).length > 50,
+      'faults must produce clear vertical displacement rather than only subpixel blur',
+    );
+  }
+});
+
+test('the input row shares its vertical registration even when local disturbance frames hold', () => {
+  const { document } = parseHTML('<div id="root"></div>');
+  const root = document.getElementById('root');
+  const update = createParameterSignals(root);
+  for (let i = 0; i < 600; i++) {
+    const time = i / 120;
+    update(time);
+    const shared = root.style.getPropertyValue('--input-a-value-y');
+    for (const channel of ['a', 'b', 'b-value'])
+      assert.equal(root.style.getPropertyValue(`--input-${channel}-y`), shared);
   }
 });
