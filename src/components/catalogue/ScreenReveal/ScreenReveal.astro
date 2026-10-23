@@ -6,12 +6,13 @@
 </div>
 
 <script>
+  import { ARRIVAL_PREPARE_EVENT } from '../../../lib/arrival';
   import { enhance } from '../../../lib/lifecycle';
   import { screenArrival } from './arrival';
 
   enhance('[data-screen-reveal]', (screen) => {
     const trigger = screen.querySelector('[data-reveal="unit"]');
-    trigger?.addEventListener('arrival:prepare', (event) => {
+    trigger?.addEventListener(ARRIVAL_PREPARE_EVENT, (event) => {
       const group = (event as CustomEvent<Animation[]>).detail;
       const replacement = screenArrival(screen.closest('figure')!);
       if (!replacement) return;

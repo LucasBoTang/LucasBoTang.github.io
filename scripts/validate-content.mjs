@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { getPaperUrl } from '../src/data/publications.ts';
-import { siteContentSchema } from '../src/data/schema.ts';
+import { researchFigureSchema, siteContentSchema } from '../src/data/schema.ts';
 
 // Rules that span records. The shape of each record, including the form of its ID, is checked by
 // the schema first.
@@ -48,7 +48,7 @@ function checkBibtex(publication) {
   }
 }
 
-export function validateContent(content) {
+export function validateContent(content, figures = {}) {
   const parsed = siteContentSchema.safeParse(content);
   assert.ok(
     parsed.success,
@@ -143,6 +143,14 @@ export function validateContent(content) {
       work.links.find((link) => link.label === 'Code')?.href,
       work.project.code.href,
       `${work.title}: selected work Code must match its project`,
+    );
+  }
+
+  for (const figure of Object.values(figures)) {
+    researchFigureSchema.parse(figure);
+    assert.ok(
+      researchAreas.some((area) => area.id === figure.area),
+      `Unknown figure research area: ${figure.area}`,
     );
   }
 

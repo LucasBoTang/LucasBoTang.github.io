@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { validateContent } from '../../scripts/validate-content.mjs';
+import { researchFigures } from '../../src/data/research/figures.ts';
 import { contentFixture } from './fixtures.mjs';
 
 test('accepts separate project and reproduction repositories without network access', () => {
@@ -103,4 +104,22 @@ test("requires a published paper's BibTeX DOI to match its paper link", () => {
     .replace('@misc{', '@article{')
     .replace('10.48550/arXiv.2601.00001', '10.1000/example');
   assert.throws(() => validateContent(content), /DOI must match the paper link/);
+});
+
+test('figure validation rejects malformed geometry and unknown research areas', () => {
+  const content = contentFixture();
+  const figure = { ...researchFigures.l2o, area: 'example-area' };
+  assert.doesNotThrow(() => validateContent(content, { l2o: figure }));
+  assert.throws(() =>
+    validateContent(content, {
+      l2o: { ...figure, canvas: { width: 0, height: 10, bleed: 0 } },
+    }),
+  );
+  assert.throws(
+    () =>
+      validateContent(content, {
+        l2o: { ...figure, area: 'missing-area' },
+      }),
+    /unknown figure research area/i,
+  );
 });

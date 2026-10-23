@@ -12,7 +12,7 @@ const { width, height, bleed } = canvas;
 const dimensions = `--figure-canvas-width:${width}px;--figure-canvas-height:${height}px;--figure-canvas-bleed:${bleed}px`;
 ---
 
-<div class:list={['figure-viewport', { 'has-bleed': bleed > 0 }]}>
+<div class:list={{ 'has-bleed': bleed > 0 }}>
   <div
     class="figure-frame"
     data-scalable-figure={kind}

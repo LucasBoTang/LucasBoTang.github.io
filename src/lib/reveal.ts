@@ -1,4 +1,10 @@
-import { announceArrival, arrival, arrivalFrames, createArrivalQueue } from './arrival';
+import {
+  ARRIVAL_PREPARE_EVENT,
+  announceArrival,
+  arrival,
+  arrivalFrames,
+  createArrivalQueue,
+} from './arrival';
 import { phonePace } from './breakpoints';
 import { enhance } from './lifecycle';
 import { onKeyboardFocus, reducedMotionQuery } from './motion';
@@ -75,7 +81,7 @@ function setupReveal(page: HTMLElement) {
       }),
     ];
     // A component may replace the default presentation while retaining the shared clock.
-    element.dispatchEvent(new CustomEvent('arrival:prepare', { detail: group }));
+    element.dispatchEvent(new CustomEvent(ARRIVAL_PREPARE_EVENT, { detail: group }));
     group.forEach((animation) => animation.pause());
     animations.set(element, group);
     group[0].onfinish = () => release(element);

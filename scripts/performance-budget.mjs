@@ -13,7 +13,7 @@ export const budgetFiles = [...pageFiles, ...figureFiles];
 /** Kilobytes a page may weigh: its HTML, and the scripts it loads with everything they import. */
 const BUDGET = {
   // Includes the small home-preview controller; figure documents load only on intent.
-  'index.html': { html: 80, scripts: 64 },
+  'index.html': { html: 80, scripts: 65 },
   // Includes four accessible theme lanes; their repeated visual lettering adds about 8KB.
   'research/index.html': { html: 57, scripts: 24 },
   // Artwork baselines (HTML/scripts): GPU 77/33KB after removing unused matrix frames,

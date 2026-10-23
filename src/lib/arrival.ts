@@ -81,6 +81,7 @@ export function arrivalFrames(element: Element): Keyframe[] {
 /** The event an element receives as its arrival is set going, with `detail.delay`, the
  * milliseconds until it starts to move, so what it holds can arrive in step with it. */
 export const ARRIVAL_EVENT = 'arrival';
+export const ARRIVAL_PREPARE_EVENT = 'arrival:prepare';
 
 /** Tells `element` its arrival starts in `delay` milliseconds. */
 export function announceArrival(element: Element, delay = 0) {

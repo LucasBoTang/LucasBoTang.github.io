@@ -1,11 +1,11 @@
 import { enhanceNear, whenIdle } from '../../../lib/lifecycle';
 import { createLoop } from '../../../lib/loop';
 import { watchActivity } from '../../../lib/motion';
-import { openingPending } from '../../../lib/opening-gate';
 import { openingEvents } from '../opening/opening';
 import { createBand } from './sign-band';
 import { createCollision } from './sign-collision';
 import { createDots } from './sign-dots';
+import { whenSignVisible } from './sign-opening';
 import { createSurface } from './sign-surface';
 import { createSwitch } from './sign-switch';
 
@@ -33,8 +33,6 @@ const timing = {
 };
 /** Frames are painted at most this often. */
 const PAINT_INTERVAL = 1000 / 60;
-/** The sign waits while the home opening holds its section below this opacity. */
-const HIDDEN_OPACITY = 0.05;
 
 function setupDecisionSign(svg: SVGSVGElement) {
   if (svg.dataset.signReady !== undefined) return;
@@ -109,23 +107,21 @@ function setupDecisionSign(svg: SVGSVGElement) {
     dots.place(phase - impact);
   };
 
-  // The sign waits, dark, until the home opening has shown its section; once shown, it stays shown,
-  // so the section's style is no longer read on every frame.
   const section = svg.closest<HTMLElement>('[data-opening-part="about"]');
   let shown = false;
-  const hiddenByOpening = () => {
-    shown ||=
-      !openingPending() &&
-      (section === null || Number(getComputedStyle(section).opacity) >= HIDDEN_OPACITY);
-    return !shown;
-  };
+  whenSignVisible(section, () => {
+    shown = true;
+  });
   let lastPaint = -Infinity;
-  const loop = createLoop((elapsed) => {
-    // Frame times are coarse, so a millisecond's slack keeps every frame at the display's rate.
-    if (elapsed - lastPaint < PAINT_INTERVAL - 1) return;
-    lastPaint = elapsed;
-    paint(elapsed % cycle);
-  }, hiddenByOpening);
+  const loop = createLoop(
+    (elapsed) => {
+      // Frame times are coarse, so a millisecond's slack keeps every frame at the display's rate.
+      if (elapsed - lastPaint < PAINT_INTERVAL - 1) return;
+      lastPaint = elapsed;
+      paint(elapsed % cycle);
+    },
+    () => !shown,
+  );
 
   watchActivity(svg, (activity) => {
     if (activity.reduced) {
