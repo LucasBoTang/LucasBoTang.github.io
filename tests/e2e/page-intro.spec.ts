@@ -87,9 +87,13 @@ for (const width of [1280, 375]) {
           );
         document.addEventListener('DOMContentLoaded', () => {
           const intro = document.querySelector('[data-page-intro] [data-typed-text]')!;
-          const body = document.querySelector<HTMLElement>(
+          const unit = document.querySelector<HTMLElement>(
             '[data-reveal-root] [data-reveal]:not([data-reveal="title"]):not([data-page-intro])',
           )!;
+          // Phone Research reveals individual lanes, so sample their first visible row.
+          const body = matchMedia('(max-width: 720px)').matches
+            ? (unit.querySelector<HTMLElement>('[data-lane-row]') ?? unit)
+            : unit;
           const sample = (now: number) => {
             if (intro.hasAttribute('data-typing-started') && !body.dataset.testTypingAt)
               body.dataset.testTypingAt = String(now);

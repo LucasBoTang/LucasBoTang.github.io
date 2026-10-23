@@ -1,11 +1,7 @@
 import { phonePace } from '../../../lib/breakpoints';
 import type { Timeline } from '../../../lib/timeline';
+import { laneAnimations } from '../../ui/ResearchLanes/lane-opening';
 import { openingTiming as time, type HomeOpeningGroup } from './opening';
-
-/** The lanes open quick to leave and slow to settle. */
-const OPEN_EASING = 'cubic-bezier(.3,0,.2,1)';
-/** How far through its opening a lane reaches full opacity. */
-const LANE_FADE_IN = 0.22;
 
 /**
  * The research lanes' part of the home opening: one slow swell, each lane on its own clock
@@ -26,33 +22,13 @@ export function addLaneOpening(
   rows.forEach((row, i) => {
     row.setAttribute('data-connecting', '');
     const group = `lane-${i}` as const;
-    timeline.animate(
+    for (const animation of laneAnimations(
       row,
-      [{ opacity: 0 }, { opacity: 1, offset: LANE_FADE_IN }, { opacity: 1 }],
-      { duration: time.laneField * pace, easing: 'linear' },
-      group,
-    );
-    timeline.animate(
-      row.querySelector('[data-lane-field]'),
-      [{ '--lane-open': '0' }, { '--lane-open': '1' }],
-      { duration: time.laneField * pace, easing: OPEN_EASING },
-      group,
-    );
-    timeline.animate(
-      row.querySelector('[data-lane-ghosts]'),
-      [{ opacity: 0 }, { opacity: 1 }],
-      { duration: time.laneField * pace, easing: OPEN_EASING },
-      group,
-    );
-    timeline.animate(
-      row.querySelector('[data-lane-light]'),
-      [
-        { '--lane-open': '0', opacity: 0 },
-        { '--lane-open': '1', opacity: 1 },
-      ],
-      { duration: time.laneLight * pace, delay: lightDelay * pace, easing: OPEN_EASING },
-      group,
-    );
+      time.laneField * pace,
+      time.laneLight * pace,
+      lightDelay * pace,
+    ))
+      timeline.animate(animation.element, animation.frames, animation.timing, group);
   });
 
   return {

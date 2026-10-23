@@ -1,4 +1,5 @@
 import { isPhone } from '../../../lib/breakpoints.ts';
+import { laneTiming } from '../../ui/ResearchLanes/lane-opening.ts';
 
 // Home opening timings. Portrait times are milliseconds after the identity
 // starts (after the desktop greeting, immediately on phones); other keys name their durations.
@@ -70,10 +71,10 @@ export const openingTiming = {
    * later. A lane's field opens from its centre over `laneField`, starts drifting at `laneDrift`,
    * and its light swells in `laneLightDelay` after it starts, over `laneLight`. */
   laneOffsets: [0, 140, 280],
-  laneField: 1200,
-  laneDrift: 160,
+  laneField: laneTiming.field,
+  laneDrift: laneTiming.drift,
   laneLightDelay: 200,
-  laneLight: 1250,
+  laneLight: laneTiming.light,
   /** The research action starts this far before the last lane settles, then reading follows it. */
   actionLead: 840,
   actionFade: 600,

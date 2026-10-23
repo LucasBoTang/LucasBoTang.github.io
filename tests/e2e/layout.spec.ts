@@ -362,6 +362,7 @@ test.describe('on a phone', () => {
     await expect(lanes).toHaveAttribute('data-motion-ready', '');
     const current = page.locator('.research-index nav a[aria-current="location"]');
     await expect(current).toHaveCount(1);
+    await expect(current.locator('..')).not.toHaveAttribute('data-connecting', '');
     const state = await current.evaluate((link) => ({
       animations: link
         .getAnimations({ subtree: true })
@@ -380,10 +381,38 @@ test.describe('on a phone', () => {
       plate: 'none',
       marker: 'none',
       tear: 'none',
-      light: cssColors['signal-light'],
+      light: cssColors.blue,
     });
     await expect(current.locator('.lane-static')).toBeHidden();
     await expect(current.locator('.lane-visual')).toBeVisible();
+  });
+
+  test('Research phone lanes open from their centres before drifting, with four staggered rows', async ({
+    page,
+  }) => {
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    await page.addInitScript(() => {
+      const animate = Element.prototype.animate;
+      (window as any).laneOpenings = [];
+      Element.prototype.animate = function (frames, options) {
+        if (this.hasAttribute('data-lane-field'))
+          (window as any).laneOpenings.push({ frames, options });
+        return animate.call(this, frames, options);
+      };
+    });
+    await page.goto(routes.research);
+    await expect.poll(() => page.evaluate(() => (window as any).laneOpenings.length)).toBe(4);
+    const openings = await page.evaluate(() => (window as any).laneOpenings);
+    for (const opening of openings) {
+      expect(opening.frames[0]['--lane-open']).toBe('0');
+      expect(opening.frames.at(-1)['--lane-open']).toBe('1');
+      expect(opening.options.duration).toBeGreaterThan(900);
+    }
+    expect(openings[1].frames[1].offset).toBeGreaterThan(openings[0].frames[0].offset);
+    const nav = page.getByRole('navigation', { name: 'Research themes' });
+    await nav.getByRole('link', { name: 'Other research' }).click();
+    const light = nav.locator('[aria-current="location"] .lane-foreground');
+    await expect(light).toHaveCSS('color', cssColors.blue);
   });
 
   test('the Research index shows static labels when motion is reduced', async ({ page }) => {

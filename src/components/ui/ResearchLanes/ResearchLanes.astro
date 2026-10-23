@@ -313,21 +313,5 @@ const laneStyle = (index: number, title: string) => {
       padding-block: var(--step-8);
       width: 100%;
     }
-    .research-navigator--index .research-link[aria-current='location'] .lane-foreground {
-      color: var(--signal-light);
-    }
   }
 </style>
-
-<script>
-  import { enhance } from '../../../lib/lifecycle';
-  import { watchActivity } from '../../../lib/motion';
-
-  // Home already owns its lanes' activity and opening through the hero controller.
-  enhance<HTMLElement>('[data-research-lanes]', (lanes) => {
-    watchActivity(lanes, ({ inView, hidden, reduced }) => {
-      lanes.toggleAttribute('data-motion-ready', !reduced);
-      lanes.toggleAttribute('data-motion-suspended', hidden || inView.size === 0);
-    });
-  });
-</script>
