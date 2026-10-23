@@ -17,6 +17,7 @@ import { selectedWork } from '../../data/selected-work';
         data-opening-part="work-entry"
         data-arrival="cascade"
         data-project-host
+        data-paper-entry
         data-lit
       >
         <WorkPreview project={work.project.id} name={work.project.name}>
@@ -28,7 +29,7 @@ import { selectedWork } from '../../data/selected-work';
         </WorkPreview>
         <div class="work-details">
           <p class="work-title heading-text">
-            <a class="work-title-link" href={work.href}>
+            <a class="work-title-link paper-title-link" href={work.href}>
               {work.title}
             </a>
           </p>
@@ -77,15 +78,6 @@ import { selectedWork } from '../../data/selected-work';
   .work-title {
     margin: 0;
     text-wrap: pretty;
-  }
-  .work-title-link {
-    position: relative;
-    display: block;
-    text-decoration: none;
-    color: inherit;
-  }
-  .work-title-link:is(:hover, :focus-visible) {
-    color: var(--blue);
   }
   /* A venue can run to two lines, so it takes the label's leading for blocks. */
   .work-note {

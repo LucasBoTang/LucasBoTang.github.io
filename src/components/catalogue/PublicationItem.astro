@@ -11,14 +11,20 @@ const { publication } = Astro.props;
 const resources = publication.links.filter((link) => link.label !== 'Paper');
 ---
 
-<li class="publication" id={publication.id} data-reveal="unit" data-arrival="cascade">
+<li
+  class="publication"
+  id={publication.id}
+  data-reveal="unit"
+  data-arrival="cascade"
+  data-paper-entry
+>
   <div class="publication-year label-text">
     {publication.year}
     {publication.status === 'Preprint' && <span>{publication.status}</span>}
   </div>
   <div class="publication-body">
     <h3 class="heading-text">
-      <a class="publication-title-link" href={getPaperUrl(publication)}>
+      <a class="publication-title-link paper-title-link" href={getPaperUrl(publication)}>
         {publication.title}
       </a>
     </h3>
@@ -67,9 +73,6 @@ const resources = publication.links.filter((link) => link.label !== 'Paper');
   h3 {
     margin: 0;
     text-wrap: pretty;
-  }
-  .publication-title-link {
-    text-decoration: none;
   }
   .publication-authors {
     margin: var(--step-16) 0 0;
