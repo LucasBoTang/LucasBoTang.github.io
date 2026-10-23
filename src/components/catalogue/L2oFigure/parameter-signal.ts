@@ -22,12 +22,12 @@ function quietSignal(time: number, seed: number, interval: number) {
   }
   return {
     step,
-    x: round((seeded(seed + step * 19 + 1) * 2 - 1) * 0.18),
-    y: round((seeded(seed + step * 19 + 2) * 2 - 1) * 0.1),
+    x: round((seeded(seed + step * 19 + 1) * 2 - 1) * 0.13),
+    y: round((seeded(seed + step * 19 + 2) * 2 - 1) * 0.32),
   };
 }
 
-/** A brief displacement, recoil and recovery share one fault; echoes clear between faults. */
+/** Vertical fault clusters break the baseline; narrow ink slices register sideways, then clear. */
 export function sampleParameterSignal(time: number, channel: SignalChannel, reducedMotion = false) {
   if (reducedMotion)
     return {
@@ -37,6 +37,7 @@ export function sampleParameterSignal(time: number, channel: SignalChannel, redu
       opacity: 1,
       tearX: 0,
       tearOpacity: 0,
+      bodyCut: 'none',
       trailX: 0,
       trailY: 0,
       trailOpacity: 0,
@@ -50,14 +51,11 @@ export function sampleParameterSignal(time: number, channel: SignalChannel, redu
   const local = shifted - packet * period;
   const packetSeed = seed + packet * 137;
   const noise = (offset: number) => seeded(packetSeed + offset);
-  const quiet = quietSignal(local, packetSeed, interval);
+  const quiet = quietSignal(local, packetSeed, interval * 0.7);
   const start = period * (0.1 + noise(3) * 0.42);
-  const durations = [
-    0.035 + noise(4) * 0.035,
-    0.03 + noise(5) * 0.03,
-    0.045 + noise(6) * 0.04,
-    0.07 + noise(7) * 0.07,
-  ];
+  const pulses = noise(13) > 0.4 ? [1, -0.6, 0, 0.8, -0.3] : [1, -0.55, 0.18];
+  const durations = pulses.map((_, i) => 0.035 + noise(4 + i) * 0.035);
+  durations.push(0.045 + noise(14) * 0.04);
   let age = local - start;
   let stage = 0;
   while (stage < durations.length && age >= durations[stage]) age -= durations[stage++];
@@ -68,27 +66,27 @@ export function sampleParameterSignal(time: number, channel: SignalChannel, redu
     trailY = 0,
     trailOpacity = 0;
   if (active) {
-    const anchor = quietSignal(start, packetSeed, interval);
+    const anchor = quietSignal(start, packetSeed, interval * 0.7);
     const direction = noise(8) > 0.5 ? 1 : -1;
-    const vertical = (noise(9) * 2 - 1) * 0.28;
-    const pulses = [1, -0.5, 0.35];
+    const horizontal = (noise(9) * 2 - 1) * 0.42;
+    const amplitude = 1.1 + noise(16) * 0.45;
     const position = (pulse: number) => ({
-      x: anchor.x * (1 - Math.abs(pulse)) + direction * 0.7 * pulse,
-      y: anchor.y * (1 - Math.abs(pulse)) + vertical * pulse,
+      x: anchor.x * (1 - Math.abs(pulse)) + horizontal * pulse,
+      y: anchor.y * (1 - Math.abs(pulse)) + direction * amplitude * pulse,
     });
-    const current = position(pulses[Math.min(stage, 2)]);
-    const recovery = stage === 3 ? smoothstep(age / durations[3]) : 0;
+    const current = position(pulses[Math.min(stage, pulses.length - 1)]);
+    const recovery = stage === pulses.length ? smoothstep(age / durations[stage]) : 0;
     x = current.x + (quiet.x - current.x) * recovery;
     y = current.y + (quiet.y - current.y) * recovery;
     if (channel.endsWith('-value')) {
-      const prior = stage === 0 ? anchor : position(pulses[Math.min(stage - 1, 1)]);
-      const echoAge = stage === 3 ? durations[2] + age : age;
+      const prior = stage === 0 ? anchor : position(pulses[Math.min(stage - 1, pulses.length - 1)]);
+      const echoAge = stage === pulses.length ? durations[stage - 1] + age : age;
       trailX = prior.x - x;
       trailY = prior.y - y;
       trailOpacity = 0.28 * Math.max(0, 1 - echoAge / 0.095) ** 2;
     }
   }
-  const tear = active && stage < 2 ? Math.max(0, 1 - age / 0.045) : 0;
+  const tear = active && stage < pulses.length && Math.abs(pulses[stage]) >= 0.5 && age < 0.055;
   const top = Math.round(20 + noise(10) * 45);
   const cutHeight = Math.round(12 + noise(11) * 6);
   return {
@@ -96,9 +94,14 @@ export function sampleParameterSignal(time: number, channel: SignalChannel, redu
       packet * 100000 + quiet.step * 1000 + (active ? (stage + 1) * 100 + Math.floor(age * 60) : 0),
     x: round(x),
     y: round(y),
-    opacity: round(active ? 0.93 + (1 - tear) * 0.07 : 1),
-    tearX: tear ? round((noise(8) > 0.5 ? 1 : -1) * (1.2 + noise(12) * 0.6)) : 0,
-    tearOpacity: round(tear * 0.42),
+    opacity: tear ? 0.96 : 1,
+    tearX: tear
+      ? round((noise(8) > 0.5 ? 1 : -1) * Math.sign(pulses[stage]) * (0.9 + noise(12) * 0.5))
+      : 0,
+    tearOpacity: tear ? 0.9 : 0,
+    bodyCut: tear
+      ? `polygon(0 0,100% 0,100% ${top}%,0 ${top}%,0 ${top + cutHeight}%,100% ${top + cutHeight}%,100% 100%,0 100%)`
+      : 'none',
     trailX: round(trailX),
     trailY: round(trailY),
     trailOpacity: round(trailOpacity),
@@ -107,7 +110,7 @@ export function sampleParameterSignal(time: number, channel: SignalChannel, redu
   };
 }
 
-/** Repeated letters share a signal; each numeric readout moves independently without changing value. */
+/** The input row shares vertical registration; local tears and lateral noise keep separate clocks. */
 export function createParameterSignals(root: HTMLElement) {
   const previous: Record<SignalChannel, number> = {
     a: NaN,
@@ -115,23 +118,30 @@ export function createParameterSignals(root: HTMLElement) {
     'a-value': NaN,
     'b-value': NaN,
   };
+  let previousMotion: ReturnType<typeof sampleParameterSignal> | undefined;
   return (time: number, reducedMotion = false) => {
+    const sampled = sampleParameterSignal(time, 'a-value', reducedMotion);
+    const moved = sampled.step !== previousMotion?.step;
+    const motion = moved ? sampled : (previousMotion ?? sampled);
+    previousMotion = motion;
     for (const channel of channelNames) {
-      const frame = sampleParameterSignal(time, channel, reducedMotion);
-      if (frame.step === previous[channel]) continue;
+      const frame =
+        channel === 'a-value' ? motion : sampleParameterSignal(time, channel, reducedMotion);
+      if (!moved && frame.step === previous[channel]) continue;
       previous[channel] = frame.step;
       const write = (name: string, value: string | number) =>
         root.style.setProperty(`--input-${channel}-${name}`, String(value));
       write('x', `${frame.x}px`);
-      write('y', `${frame.y}px`);
+      write('y', `${motion.y}px`);
       write('opacity', frame.opacity);
       write('tear-x', `${frame.tearX}px`);
       write('echo', frame.tearOpacity);
       write('cut', `inset(${frame.top}% 0 ${frame.bottom}%)`);
+      write('body-cut', frame.bodyCut);
       if (channel.endsWith('-value')) {
         write('trail-x', `${frame.trailX}px`);
-        write('trail-y', `${frame.trailY}px`);
-        write('trail-opacity', frame.trailOpacity);
+        write('trail-y', `${motion.trailY}px`);
+        write('trail-opacity', motion.trailOpacity);
       }
     }
   };
