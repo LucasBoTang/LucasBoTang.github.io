@@ -51,9 +51,8 @@ export async function createSurfaceScene(
 ): Promise<SurfaceScene | null> {
   // Keep the approved construction yields so loading does not monopolize scrolling.
   const yieldToBrowser = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
-  const ctx = overlay.getContext('2d')!;
-  const annotations = document.createElement('canvas');
-  const labelContext = annotations.getContext('2d')!;
+  // The overlay holds only the constraint labels: drawn on resize, never touched by a frame.
+  const labelContext = overlay.getContext('2d')!;
   const gl = canvas.getContext('webgl', {
     antialias: true,
     alpha: true,
@@ -244,8 +243,6 @@ export async function createSurfaceScene(
     }
     renderer.resizeViewport(canvas.width, canvas.height);
     fitCamera();
-    annotations.width = overlay.width;
-    annotations.height = overlay.height;
     drawAnnotations();
   }
   function drawLabel(
@@ -302,10 +299,6 @@ export async function createSurfaceScene(
         trajectoryPoint(travelling.points, travelling.lengths, progress),
       );
     }
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.clearRect(0, 0, overlay.width, overlay.height);
-    // An embedded canvas can briefly have no dimensions while its host is being fitted.
-    if (annotations.width && annotations.height) ctx.drawImage(annotations, 0, 0);
   }
   return { timeline, resize, render };
 }

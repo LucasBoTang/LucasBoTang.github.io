@@ -65,8 +65,15 @@ function requireElement(root: ParentNode, selector: string): Element {
   return element;
 }
 
+/** Write an attribute only when its rounded value changes: about a third of this figure's
+ * writes repeat the value already there, and each write still invalidates the element's style. */
+function setAttribute(element: Element, name: string, value: number | string) {
+  const text = typeof value === 'number' ? String(Math.round(value * 1000) / 1000) : value;
+  if (element.getAttribute(name) !== text) element.setAttribute(name, text);
+}
+
 function setOpacity(element: Element, value: number) {
-  element.setAttribute('opacity', String(value));
+  setAttribute(element, 'opacity', value);
 }
 
 /**
@@ -132,7 +139,7 @@ export function initializeGpuFigure(root: HTMLElement, products: MatrixProductRe
       if (!visible && !vector.wasVisible) continue;
       vector.wasVisible = visible;
       setOpacity(vector.group, alpha);
-      vector.group.setAttribute('visibility', visible ? 'visible' : 'hidden');
+      setAttribute(vector.group, 'visibility', visible ? 'visible' : 'hidden');
       vector.bars.forEach(({ element: bar, seed, period, offset }, index) => {
         const magnitude = vector.magnitudes[index];
         // Smooth deterministic irregular motion, with a different clock per bar.
@@ -144,10 +151,10 @@ export function initializeGpuFigure(root: HTMLElement, products: MatrixProductRe
           ? 0
           : 1.6 * (noise(segment) * (1 - mix) + noise(segment + 1) * mix);
         const size = visible ? BAR.minimumSize + BAR.sizeRange * magnitude + jitter : 0;
-        bar.setAttribute(vector.dimension, String(size));
+        setAttribute(bar, vector.dimension, size);
         // Input vectors keep their matrix-facing edge fixed.
         if (vector.edge !== undefined && vector.anchor !== undefined) {
-          bar.setAttribute(vector.edge, String(vector.anchor - size));
+          setAttribute(bar, vector.edge, vector.anchor - size);
         }
       });
     }
@@ -156,13 +163,15 @@ export function initializeGpuFigure(root: HTMLElement, products: MatrixProductRe
     const scanProgress = smooth((phraseSeconds - SCAN.start) / SCAN.duration);
     const scanning =
       !reducedMotion && phraseSeconds >= SCAN.start && phraseSeconds < SCAN.start + SCAN.duration;
-    scanDown.setAttribute(
+    setAttribute(
+      scanDown,
       'y',
-      String(MATRIX.y - SCAN_BAND.height + (MATRIX.height + SCAN_BAND.height) * scanProgress),
+      MATRIX.y - SCAN_BAND.height + (MATRIX.height + SCAN_BAND.height) * scanProgress,
     );
-    scanRight.setAttribute(
+    setAttribute(
+      scanRight,
       'x',
-      String(MATRIX.x - SCAN_BAND.width + (MATRIX.width + SCAN_BAND.width) * scanProgress),
+      MATRIX.x - SCAN_BAND.width + (MATRIX.width + SCAN_BAND.width) * scanProgress,
     );
     const scanAlpha =
       smooth((phraseSeconds - SCAN.start) / 0.18) *
@@ -185,9 +194,10 @@ export function initializeGpuFigure(root: HTMLElement, products: MatrixProductRe
       const reveal = reducedMotion ? 0 : smooth(age / 0.38);
       const nudge =
         age > 0.38 && age < 0.94 ? 1.5 * Math.sin((Math.PI * (age - 0.38)) / 0.56) ** 2 : 0;
-      group.setAttribute('transform', `translate(${down ? 0 : nudge} ${down ? nudge : 0})`);
+      const shift = Math.round(nudge * 1000) / 1000;
+      setAttribute(group, 'transform', `translate(${down ? 0 : shift} ${down ? shift : 0})`);
       for (const path of paths) {
-        path.setAttribute('stroke-dashoffset', String(1 - reveal));
+        setAttribute(path, 'stroke-dashoffset', 1 - reveal);
       }
     }
 
@@ -204,9 +214,10 @@ export function initializeGpuFigure(root: HTMLElement, products: MatrixProductRe
         (1 - smooth((travel - BUS_PULSE.fadeOutStart) / BUS_PULSE.fadeOutFraction));
     setOpacity(bus, BUS_PULSE.opacity * busOpacity);
     for (const pulse of pulses) {
-      pulse.setAttribute(
+      setAttribute(
+        pulse,
         'stroke-dashoffset',
-        String(BUS_PULSE.initialOffset - BUS_PULSE.travelDistance * travel),
+        BUS_PULSE.initialOffset - BUS_PULSE.travelDistance * travel,
       );
     }
     const arrows = envelope(ENVELOPE.arrowsStart);
