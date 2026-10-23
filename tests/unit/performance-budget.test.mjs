@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import * as budget from '../../scripts/performance-budget.mjs';
 import { checkMarkup, scriptsOf } from '../../scripts/performance-budget.mjs';
+import { figurePaths } from '../../src/data/research/figures.ts';
 
 const fonts = (count) =>
   Array.from(
@@ -58,4 +60,20 @@ test('a page without them fetches that font only while idle', () => {
 test('reads only the text a reader sees', () => {
   const html = '<style>.ň{}</style><script>"ň"</script><p title="ň">Bo</p>';
   assert.deepEqual(checkMarkup('a.html', fonts(3) + idleExtended + html), []);
+});
+
+test('lazy figure documents have their own enforced delivery budgets', () => {
+  for (const route of Object.values(figurePaths)) {
+    const file = `${route.slice(1)}index.html`;
+    assert.ok(budget.budgetFiles?.includes(file), `Missing budget for ${file}`);
+    const problems = budget.checkSize(file, 256, 256);
+    assert.match(problems.join(), /HTML.*over/);
+    assert.match(problems.join(), /scripts.*over/);
+  }
+});
+
+test('standalone figures check drawing precision without the site font-preload contract', () => {
+  const file = 'figures/gpu-optimization/index.html';
+  assert.deepEqual(checkMarkup(file, '<path d="M0 1.25L3.5 4"/>'), []);
+  assert.match(checkMarkup(file, '<path d="M0 1.23456"/>').join(), /too many decimals/);
 });

@@ -1,39 +1,49 @@
 ---
+import './readouts.css';
 import Network from './Network.astro';
 import Symbol from './MathSymbol.astro';
 import recording from '../../../data/research/l2o-training-snapshots.json';
-
-interface Props {
-  presentation?: boolean;
-}
-const { presentation = false } = Astro.props;
 ---
 
 <div class="training-composition" data-training-composition>
-  <h1 class="training-title">
-    Learning to generate
-    <br />
-    integer solutions
-  </h1>
   <div class="landscape">
     <slot />
   </div>
   <div class="problem" data-module="problem">
+    <h1 class="problem-family">Parametric MINLP</h1>
     <math
       xmlns="http://www.w3.org/1998/Math/MathML"
       display="block"
-      aria-label="Parametric mixed-integer problem"
-    ><mtable columnalign="center left" columnspacing=".55em" rowspacing=".4em"><mtr><mtd><munder><mo>min</mo><mrow><mi>x</mi><mo>∈</mo><mi>ℝ</mi><mo>,</mo><mi>y</mi><mo>∈</mo><mi>ℤ</mi></mrow></munder></mtd><mtd><msup><mrow><mo>(</mo><mi>a</mi><mo>−</mo><mi>x</mi><mo>)</mo></mrow><mn>2</mn></msup><mo>+</mo><mn>50</mn><msup><mrow><mo>(</mo><mi>y</mi><mo>−</mo><msup><mi>x</mi><mn>2</mn></msup><mo>)</mo></mrow><mn>2</mn></msup></mtd></mtr><mtr><mtd><mtext>s.t.</mtext></mtd><mtd><mi>y</mi><mo>≥</mo><mfrac><mi>b</mi><mn>2</mn></mfrac><mo>,</mo><msup><mi>x</mi><mn>2</mn></msup><mo>≤</mo><mi>b</mi><mo>,</mo><mi>x</mi><mo>≤</mo><mn>0</mn><mo>,</mo><mi>y</mi><mo>≥</mo><mn>0</mn></mtd></mtr></mtable></math>
+      aria-label="Minimize (a minus x) squared plus 50 times (y minus x squared) squared, over real x and integer y, subject to y at least b over 2, x squared at most b, x at most zero and y at least zero. a and b are problem parameters."
+    >
+      <mtable columnalign="right left" columnspacing=".75em" rowspacing=".55em">
+        <mtr>
+          <mtd><munder><mo>min</mo><mrow><mi>x</mi><mo>∈</mo><mi>ℝ</mi><mo>,</mo><mi>y</mi><mo>∈</mo><mi>ℤ</mi></mrow></munder></mtd>
+          <mtd><msup><mrow><mo>(</mo><mpadded class="problem-parameter" width=".85em" lspace=".14em" height=".85em" depth=".2em"><mi>a</mi></mpadded><mo>−</mo><mi>x</mi><mo>)</mo></mrow><mn>2</mn></msup><mo>+</mo><mn>50</mn><msup><mrow><mo>(</mo><mi>y</mi><mo>−</mo><msup><mi>x</mi><mn>2</mn></msup><mo>)</mo></mrow><mn>2</mn></msup></mtd>
+        </mtr>
+        <mtr>
+          <mtd><mtext>s.t.</mtext></mtd>
+          <mtd><mi>y</mi><mo>≥</mo><mfrac><mpadded class="problem-parameter" width=".85em" lspace=".14em" height=".85em" depth=".2em"><mi>b</mi></mpadded><mn>2</mn></mfrac><mo>,</mo><mspace width=".45em"/><msup><mi>x</mi><mn>2</mn></msup><mo>≤</mo><mpadded class="problem-parameter" width=".85em" lspace=".14em" height=".85em" depth=".2em"><mi>b</mi></mpadded></mtd>
+        </mtr>
+        <mtr>
+          <mtd></mtd><mtd><mi>x</mi><mo>≤</mo><mn>0</mn><mo>,</mo><mspace width=".45em"/><mi>y</mi><mo>≥</mo><mn>0</mn></mtd>
+        </mtr>
+      </mtable>
+    </math>
   </div>
   <div class="parameters" data-module="parameters">
-    <p class="eyeline">Input parameters</p>
+    <p class="eyeline">Instance parameters</p>
     <div class="parameter-values">
       <span>
-        <Symbol base="a" />
+        <span class="parameter-chip">
+          <Symbol base="a" readout />
+        </span>
         <b>{recording.parameters.a.toFixed(3)}</b>
       </span>
       <span>
-        <Symbol base="b" />
+        <span class="parameter-chip">
+          <Symbol base="b" readout />
+        </span>
         <b>{recording.parameters.b.toFixed(3)}</b>
       </span>
     </div>
@@ -47,13 +57,7 @@ const { presentation = false } = Astro.props;
       <h3>Relaxed mapping</h3>
       <Network id="relaxed-mapping" />
     </div>
-    <div
-      class="panel-readout"
-      data-module="relaxed"
-      data-focus-kind={presentation ? undefined : 'relaxed'}
-      tabindex={presentation ? undefined : 0}
-      aria-label={presentation ? undefined : 'Highlight relaxed prediction'}
-    >
+    <div class="panel-readout" data-module="relaxed">
       <p class="eyeline">Relaxed prediction</p>
       <div class="prediction-readings">
         <span>
@@ -80,7 +84,7 @@ const { presentation = false } = Astro.props;
       <h3>Integer correction</h3>
       <Network id="integer-correction" />
     </div>
-    <div class="hidden-state panel-readout" data-module="hidden">
+    <div class="panel-readout" data-module="hidden">
       <p class="eyeline">Hidden state</p>
       <div class="prediction-readings">
         <span>
@@ -112,7 +116,6 @@ const { presentation = false } = Astro.props;
         <div class="operation-body">
           <svg viewBox="0 0 48 30" aria-hidden="true">
             <path d="M4 22H44M4 17V27M44 17V27" />
-            {!presentation && <path d="M12 6H35L30 2M35 6L30 10" />}
             <circle class="icon-body slider" cx="12" cy="22" r="4" />
             <circle class="icon-motion slider-light" cx="12" cy="22" r="4" />
           </svg>
@@ -136,13 +139,7 @@ const { presentation = false } = Astro.props;
         </div>
       </div>
     </div>
-    <div
-      class="panel-readout integer-output"
-      data-module="integer"
-      data-focus-kind={presentation ? undefined : 'integer'}
-      tabindex={presentation ? undefined : 0}
-      aria-label={presentation ? undefined : 'Highlight integer prediction'}
-    >
+    <div class="panel-readout integer-output" data-module="integer">
       <p class="eyeline">Integer prediction</p>
       <div class="prediction-readings">
         <span>
@@ -169,7 +166,7 @@ const { presentation = false } = Astro.props;
       <h3>Loss</h3>
       <div class="loss-terms">
         <div>
-          <svg class="objective-icon" viewBox="0 0 28 22" aria-hidden="true">
+          <svg viewBox="0 0 28 22" aria-hidden="true">
             <path d="M2 2V20H27M6 5C9 5 10 17 16 17S22 10 26 6" />
             <circle class="icon-body objective-ball" cx="9.88" cy="11" r="2" />
             <circle class="icon-motion objective-ball-light" cx="9.88" cy="11" r="2" />
@@ -178,8 +175,8 @@ const { presentation = false } = Astro.props;
         </div>
         <span class="loss-plus">+</span>
         <div>
-          <svg class="constraint-icon" viewBox="0 0 28 22" aria-hidden="true">
-            <g class="constraint-boundary">
+          <svg viewBox="0 0 28 22" aria-hidden="true">
+            <g>
               <path d="M11 2V20" />
               <path d="M3 3L11 7M3 9L11 13M3 15L11 19" opacity=".35" />
               <path class="icon-body constraint-distance" d="M11 11H21" stroke-dasharray="2 1.6" />
@@ -218,32 +215,24 @@ const { presentation = false } = Astro.props;
 
 <style>
   .training-composition {
-    --plate-blue: #7f9ab5;
-    --plate-ink: #182b3d;
-    --plate-light: #aebdc9;
-    --reading: #c8d0d7;
-    --readout-bg: #182027;
+    --label-ink: #a2afbf;
+    --module-field: #879bb2;
+    --module-ink: #101b29;
+    --output-field: #141b24;
+    --reading: #c3cedd;
+    --readout-size: 13px;
+    --signal-core: #e0eafa;
+    --value-ink: #d3dfef;
+    isolation: isolate;
     position: relative;
     height: clamp(520px, 91.6667cqw, 539px);
     width: 100%;
     color: var(--muted);
     container-type: inline-size;
   }
-  .training-title,
   h3,
   p {
     margin: 0;
-  }
-  .training-composition .training-title {
-    left: 0;
-    position: absolute;
-    top: 0;
-    z-index: 2;
-    font: 400 clamp(26px, 5.65cqw, 35px)/1.05 var(--font-serif);
-    font-optical-sizing: none;
-    font-variation-settings: 'opsz' 11;
-    letter-spacing: var(--tracking-title);
-    color: var(--blue);
   }
   .landscape {
     left: auto;
@@ -262,17 +251,38 @@ const { presentation = false } = Astro.props;
   }
   .problem {
     left: 0;
-    top: 18.5%;
-    width: 43%;
-    color: var(--muted);
+    top: 5px;
+    display: grid;
+    gap: 14px; /* optical: separate the problem family from its definition. */
+    width: 49%;
+    color: #adb5c0;
   }
   .problem math {
     display: block;
     margin: 0;
     width: max-content;
     font-family: Georgia, serif;
-    font-size: 14px;
+    font-size: 19px;
     text-align: left;
+  }
+  .problem-family {
+    margin: 0;
+    font: 500 15px/1.2 var(--font);
+    letter-spacing: -0.015em;
+    color: var(--blue);
+  }
+  .problem-parameter {
+    color: var(--blue);
+  }
+  .parameter-chip {
+    display: inline-grid;
+    place-items: center;
+    height: 22px;
+    width: 20px;
+    color: var(--blue);
+  }
+  .parameter-chip :global(math) {
+    color: inherit;
   }
   .problem mtd:nth-child(2) {
     text-align: left;
@@ -301,13 +311,13 @@ const { presentation = false } = Astro.props;
     font-size: 17px;
   }
   .parameter-values b {
-    font: 400 14px/1.3 var(--font-mono);
+    font: 400 var(--readout-size)/1.3 var(--font-mono);
     font-variant-numeric: tabular-nums;
   }
   .instrument-panel {
     min-width: 0;
     width: 29%;
-    background: var(--readout-bg);
+    background: var(--output-field);
     clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%);
     color: var(--reading);
   }
@@ -329,12 +339,9 @@ const { presentation = false } = Astro.props;
   .network-face {
     position: relative;
     height: 112px;
-    background: var(--plate-light);
+    background: var(--module-field);
     clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%);
-    color: var(--plate-ink);
-  }
-  .correction .network-face {
-    background: var(--plate-blue);
+    color: var(--module-ink);
   }
   h3 {
     font: 600 12px/1.2 var(--font);
@@ -344,6 +351,8 @@ const { presentation = false } = Astro.props;
     left: 10px;
     position: absolute;
     top: 10px;
+    font-weight: 500;
+    color: var(--module-ink);
   }
   .network-face :global(svg) {
     left: 50%;
@@ -362,34 +371,26 @@ const { presentation = false } = Astro.props;
     min-width: 0;
     outline-offset: 3px;
     padding: 8px 10px; /* optical: spacing within the illustration, independent of the page grid. */
-    transition: background 0.15s;
-  }
-  .panel-readout[data-focus-kind] {
-    cursor: pointer;
-  }
-  .panel-readout[data-focus-kind]:hover,
-  .panel-readout[data-focus-kind]:focus-visible {
-    background: #26323d;
+    background: var(--output-field);
   }
   .panel-readout .eyeline {
     font-size: 10px;
-    opacity: 0.85;
+    color: var(--label-ink);
+    opacity: 1;
   }
   .prediction-readings {
     display: grid;
-    gap: 10px; /* optical: spacing within the illustration, independent of the page grid. */
+    gap: 4px; /* optical: keep the paired full-size readouts inside their shared field. */
     grid-template-columns: 1fr 1fr;
     height: 24px;
     margin: 0;
-    font:
-      16px/24px Georgia,
-      serif;
+    font: 400 var(--readout-size)/24px var(--font-mono);
   }
   .prediction-readings > span {
     align-items: baseline;
     display: grid;
-    gap: 4px; /* optical: spacing within the illustration, independent of the page grid. */
-    grid-template-columns: 18px minmax(0, 1fr);
+    gap: 2px; /* optical: align the fixed symbol and value lanes across all readouts. */
+    grid-template-columns: 16px minmax(0, 1fr);
     height: 24px;
     white-space: nowrap;
   }
@@ -402,10 +403,11 @@ const { presentation = false } = Astro.props;
     display: inline-block;
     height: 1.3em;
     overflow: hidden;
-    font: 400 13px/1.3 var(--font-mono);
+    font: 400 var(--readout-size)/1.3 var(--font-mono);
     font-variant-numeric: tabular-nums;
     letter-spacing: 0;
     white-space: nowrap;
+    color: var(--value-ink);
   }
   .instrument-value :global(.readout-current),
   .instrument-value :global(.readout-old) {
@@ -427,27 +429,34 @@ const { presentation = false } = Astro.props;
     grid-template-rows: 14px 40px 40px;
     height: 112px;
     padding: 10px 10px 0; /* optical: spacing within the illustration, independent of the page grid. */
+    background: var(--module-field);
+    color: var(--module-ink);
   }
   .variable-visual > h3 {
     margin: 0;
     font-size: 12px;
+    font-weight: 500;
     line-height: 14px;
+    color: var(--module-ink);
   }
   .operation {
     position: relative;
     min-height: 0;
     min-width: 0;
     padding: 4px 6px; /* optical: spacing within the illustration, independent of the page grid. */
-    background: var(--plate-light);
-    color: var(--plate-ink);
+    padding-left: 0;
+    padding-right: 0;
+    background: none;
+    color: var(--module-ink);
   }
   .integer-operation {
     margin: 0;
-    background: var(--plate-blue);
+    background: none;
   }
   .operation-heading {
     height: 11px;
     font: 9px/11px var(--font);
+    color: #1c2b3e;
   }
   .operation-body {
     align-items: center;
@@ -457,11 +466,12 @@ const { presentation = false } = Astro.props;
   }
   .operation-body > svg {
     position: absolute;
-    right: 5px;
+    right: 0;
     top: 2px;
     flex: none;
     height: 17px;
     width: 28px;
+    color: var(--module-ink);
     fill: none;
     stroke: currentColor;
     stroke-width: 1.7;
@@ -488,26 +498,33 @@ const { presentation = false } = Astro.props;
     height: 70px;
     padding: 10px 12px; /* optical: spacing within the illustration, independent of the page grid. */
     width: 90%;
-    background: #1c252d;
+    background: var(--output-field);
   }
   .loss-explanation {
     align-items: center;
     display: flex;
     gap: 10px; /* optical: spacing within the illustration, independent of the page grid. */
+    padding: 0 8px 0 0; /* optical: centre the terms beside the loss label. */
+    background: var(--module-field);
+    color: var(--module-ink);
   }
   .loss-explanation h3 {
     align-self: stretch;
     display: grid;
     place-items: center;
+    border-right: 1px solid #263b552b;
     min-width: 40px;
     font-size: 13px;
-    background: var(--plate-light);
-    color: var(--plate-ink);
+    font-weight: 500;
+    background: transparent;
+    color: var(--module-ink);
   }
   .loss-terms {
+    align-items: center;
     display: flex;
     flex-direction: column;
     gap: 1px; /* optical: spacing within the illustration, independent of the page grid. */
+    justify-content: center;
     font: 11.5px/1.25 var(--font);
   }
   .loss-terms > div {
@@ -519,6 +536,7 @@ const { presentation = false } = Astro.props;
     flex: none;
     height: 18px;
     width: 22px;
+    color: var(--module-ink);
     fill: none;
     stroke: currentColor;
     stroke-width: 1.4;
@@ -528,7 +546,9 @@ const { presentation = false } = Astro.props;
     stroke: none;
   }
   .loss-plus {
-    padding-left: 0; /* optical: spacing within the illustration, independent of the page grid. */
+    align-self: center;
+    padding-left: 0;
+    /* optical: spacing within the illustration, independent of the page grid. */
     font:
       14px/8px Georgia,
       serif;
@@ -539,6 +559,7 @@ const { presentation = false } = Astro.props;
     gap: 8px; /* optical: spacing within the illustration, independent of the page grid. */
     grid-template-columns: 1.15fr 1fr 0.8fr;
     border-left: 1px solid #aebdc92b;
+    border-left-color: #9aaac12b;
     padding-left: 12px; /* optical: spacing within the illustration, independent of the page grid. */
   }
   .loss-readings > div {
@@ -548,9 +569,7 @@ const { presentation = false } = Astro.props;
   }
   .loss-readings .eyeline {
     font-size: 10px;
-  }
-  .loss-readings .instrument-value {
-    font-size: 15px;
+    color: var(--label-ink);
   }
   .training-connections {
     inset: 0;
@@ -568,39 +587,57 @@ const { presentation = false } = Astro.props;
     vector-effect: non-scaling-stroke;
   }
   .training-connections :global(polygon) {
+    fill: #9caab9;
     stroke: none;
   }
   .training-composition :global(.signal) {
     opacity: 0;
-    stroke: #e9f0f6;
     stroke-width: 2.5;
+    filter: none;
+    stroke: var(--signal-core);
   }
   @container (max-width:560px) {
     .training-composition {
+      --compact-instrument-width: min(100%, 264px);
+      --update-icon-lane: 34px;
+      --update-label-width: 54px;
       aspect-ratio: auto;
-      height: calc(635px + 83.3333cqw);
-    }
-    .training-composition .training-title {
-      font-size: 28px;
+      height: calc(517px + 83.3333cqw);
     }
     .landscape {
       left: 0;
       right: 0;
-      top: 126px;
+      top: 50px;
       max-width: none;
       width: 100%;
     }
     .problem {
-      top: 78px;
-      padding: 8px 10px; /* optical: position the corner equation against the plot. */
+      top: calc(83.3333cqw - 58px);
+      gap: 6px; /* optical: nest the compact equation in the surface's lower-left negative space. */
+      padding: 0;
       width: max-content;
+      text-shadow:
+        -1px -1px 0 var(--ink),
+        0 -1px 0 var(--ink),
+        1px -1px 0 var(--ink),
+        -1px 0 0 var(--ink),
+        1px 0 0 var(--ink),
+        -1px 1px 0 var(--ink),
+        0 1px 0 var(--ink),
+        1px 1px 0 var(--ink);
     }
     .problem math {
       font-size: 12px;
     }
+    .problem-family {
+      font-size: 12px;
+    }
+    .problem-parameter {
+      text-shadow: none;
+    }
     .parameters {
       left: 50%;
-      top: calc(114px + 83.3333cqw);
+      top: calc(50px + 83.3333cqw);
       display: block;
       height: 48px;
       padding: 0;
@@ -614,14 +651,8 @@ const { presentation = false } = Astro.props;
       margin-top: 8px; /* optical: align the input readings under their shared label. */
       width: max-content;
     }
-    .parameter-values > span {
-      gap: 9px; /* optical: spacing within the illustration, independent of the page grid. */
-    }
     .parameter-values :global(math) {
       font-size: 16px;
-    }
-    .parameter-values b {
-      font-size: 13px;
     }
     .parameters .eyeline {
       font-size: 9px;
@@ -634,16 +665,13 @@ const { presentation = false } = Astro.props;
       grid-template-rows: 94px 48px;
       height: 142px;
     }
-    .correction-operations {
-      height: auto;
-    }
     .mapping {
       left: 0;
-      top: calc(190px + 83.3333cqw);
+      top: calc(126px + 83.3333cqw);
     }
     .correction {
       left: 55%;
-      top: calc(190px + 83.3333cqw);
+      top: calc(126px + 83.3333cqw);
     }
     .network-face {
       height: 94px;
@@ -662,59 +690,54 @@ const { presentation = false } = Astro.props;
       gap: 4px; /* optical: spacing within the illustration, independent of the page grid. */
       grid-template-rows: 10px 20px;
       height: 48px;
-      padding: 6px 8px; /* optical: spacing within the illustration, independent of the page grid. */
+      padding: 6px; /* optical: preserve room for two equal full-size readings. */
     }
     .prediction-readings {
-      gap: 7px; /* optical: spacing within the illustration, independent of the page grid. */
+      gap: 4px; /* optical: group two readings without shrinking their digits. */
       height: 20px;
-      line-height: 20px;
+      font: 400 var(--readout-size)/20px var(--font-mono);
     }
     .prediction-readings > span {
-      gap: 3px; /* optical: spacing within the illustration, independent of the page grid. */
+      gap: 2px; /* optical: a fixed symbol lane keeps every value on one baseline. */
       grid-template-columns: 16px minmax(0, 1fr);
       height: 20px;
     }
     .prediction-readings :global(math) {
-      font-size: 14px;
-    }
-    .instrument-value {
-      font-size: 10px;
+      font-size: 16px;
     }
     .panel-readout .eyeline {
-      font-size: 8px;
+      font-size: 9px;
     }
     .correction-operations {
       left: 50%;
       right: auto;
-      top: calc(350px + 83.3333cqw);
+      top: calc(286px + 83.3333cqw);
       display: grid;
-      grid-template-rows: 96px 48px;
+      grid-template-rows: 76px 44px;
+      height: auto;
       padding: 0;
-      width: clamp(min(100%, 288px), calc(100% - 24px), 360px);
+      width: var(--compact-instrument-width);
       transform: translateX(-50%);
     }
     .variable-visual {
       display: grid;
-      gap: 4px; /* optical: each mobile update occupies one clear, aligned row. */
+      gap: 3px; /* optical: compact the two formulas without crowding their baselines. */
       grid-template-columns: minmax(0, 1fr);
-      grid-template-rows: 14px 32px 32px;
-      height: 96px;
-      padding: 8px 10px 2px; /* optical: header and operation rows share one left edge. */
+      grid-template-rows: 12px 24px 24px;
+      height: 76px;
+      padding: 8px 10px 2px; /* optical: a compact face leaves the results their own clear strip. */
     }
     .variable-visual > h3 {
       grid-column: 1/-1;
       margin: 0;
       font-size: 11px;
-      line-height: 14px;
-    }
-    .integer-operation {
-      margin: 0;
+      line-height: 12px;
     }
     .operation {
       align-items: center;
       display: grid;
-      grid-template-columns: 64px minmax(0, 1fr);
-      height: 32px;
+      grid-template-columns: var(--update-label-width) minmax(0, 1fr);
+      height: 24px;
       padding: 0;
     }
     .operation-heading {
@@ -723,101 +746,275 @@ const { presentation = false } = Astro.props;
       line-height: 1.2;
     }
     .operation-body {
-      height: 32px;
+      height: 24px;
       margin-top: 0;
-      padding-right: 38px; /* optical: reserve a common lane for both update icons. */
+      padding-right: var(
+        --update-icon-lane
+      ); /* optical: reserve a common lane for both update icons. */
     }
     .operation-body > math {
       font-size: 12px;
     }
     .operation-body > svg {
       right: 0;
-      top: 7px;
+      top: 3px;
       height: 18px;
       width: 28px;
     }
     .integer-output {
+      gap: 1px; /* optical: group the shared label closely with the two readings. */
+      grid-template-rows: 11px 20px;
+      height: 44px;
+      padding: 6px 10px; /* optical: fit the shared label and readings in a compact strip. */
       width: 100%;
     }
+    .integer-output .eyeline {
+      font-size: 9px;
+      text-align: center;
+    }
     .integer-output .prediction-readings {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      height: 20px;
+    }
+    .integer-output .prediction-readings > span {
+      gap: 6px; /* optical: separate each variable from its fixed-width reading. */
+      grid-template-columns: 16px 6ch;
+      justify-content: center;
+      height: 20px;
+    }
+    .integer-output .prediction-readings :global(math) {
+      font-size: 16px;
     }
 
     .training-loss {
       bottom: auto;
       left: 50%;
-      top: calc(515px + 83.3333cqw);
+      top: calc(427px + 83.3333cqw);
       gap: 0;
       grid-template-columns: minmax(0, 1fr);
-      grid-template-rows: 68px 52px;
-      height: 120px;
+      grid-template-rows: 46px 44px;
+      height: 90px;
       padding: 0;
-      width: clamp(min(100%, 288px), calc(100% - 24px), 360px);
+      width: var(--compact-instrument-width);
       transform: translateX(-50%);
     }
     .loss-explanation {
       display: grid;
-      gap: 8px; /* optical: give the equation its own full-width plate beside the title. */
-      grid-template-columns: 42px minmax(0, 1fr);
+      gap: 4px; /* optical: centre the equation in the space beside its compact name plate. */
+      grid-template-columns: 36px minmax(0, 1fr);
     }
     .loss-explanation h3 {
       min-width: 0;
-      font-size: 12px;
+      font-size: 11px;
     }
     .loss-terms {
-      display: grid;
-      gap: 4px; /* optical: two aligned terms, with the plus preceding the second row. */
-      grid-template-columns: 8px minmax(0, 1fr);
-      font-size: 10.5px;
-      line-height: 1.3;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      font-size: 10px;
+      line-height: 1.2;
     }
     .loss-terms > div {
-      gap: 5px; /* optical: consistent clearance between an animated icon and its label. */
-      grid-column: 2;
-    }
-    .loss-terms > div:first-child {
-      grid-row: 1;
-    }
-    .loss-terms > div:last-child {
-      grid-row: 2;
+      gap: 4px; /* optical: the two terms form one centred expression. */
+      justify-content: center;
     }
     .loss-terms svg {
-      height: 17px;
-      width: 21px;
+      height: 15px;
+      width: 19px;
     }
     .loss-plus {
-      grid-column: 1;
-      grid-row: 2;
       padding-left: 0;
-      font-size: 13px;
-      line-height: 1;
+      font-size: 12px;
+      line-height: 8px;
     }
     .loss-readings {
-      gap: 8px; /* optical: three equally weighted readings below the equation. */
+      gap: 6px; /* optical: equal columns with enough room for the longest objective value. */
       grid-template-columns: repeat(3, minmax(0, 1fr));
       border-left: 0;
-      padding: 8px 12px; /* optical: match the inset of the other mobile readout strips. */
+      padding: 6px 10px; /* optical: labels and values share the update strip inset. */
     }
     .loss-readings > div {
-      gap: 4px; /* optical: keep each label visibly attached to its number. */
+      align-items: center;
+      gap: 2px; /* optical: attach each label closely to its value. */
+      text-align: center;
     }
     .loss-readings .eyeline {
-      font-size: 10px;
+      font-size: 9px;
     }
-    .loss-readings .instrument-value {
-      font-size: 14px;
-    }
-  }
-  @container (min-width:561px) and (max-width:587px) {
-    .prediction-readings .instrument-value {
-      font-size: 12px;
+    .parameter-chip {
+      height: 20px;
+      width: 18px;
     }
   }
-  @media (prefers-reduced-motion: reduce) {
-    .slider,
-    .snap {
-      transition: none;
+  .training-connections :global(path:not(.signal)) {
+    opacity: 0.65;
+    stroke: #7b8798;
+  }
+  .integer-operation::before {
+    content: '';
+    left: 0;
+    position: absolute;
+    right: 18px;
+    top: -3px;
+    height: 1px;
+    background: #263b5538;
+    pointer-events: none;
+  }
+  @container (max-width: 560px) {
+    .integer-operation::before {
+      bottom: auto;
+      left: var(--update-label-width);
+      right: var(--update-icon-lane);
+      top: -2px;
+      height: 1px;
+      width: auto;
+    }
+  }
+  /* The body and its light travel together, then fade before returning to their start. */
+  .icon-motion {
+    color: var(--signal-core);
+    filter: drop-shadow(0 0 1.2px #7d9fc980);
+    opacity: 0;
+    pointer-events: none;
+  }
+  :is(.slider, .slider-light) {
+    --icon-travel: l2o-slider-travel;
+  }
+  :is(.snap, .snap-light) {
+    --icon-travel: l2o-integer-snap;
+  }
+  :is(.objective-ball, .objective-ball-light) {
+    --icon-easing: linear;
+    --icon-travel: l2o-objective-roll;
+  }
+  :is(.constraint-ball, .constraint-ball-light) {
+    --icon-travel: l2o-constraint-tighten;
+  }
+  :is(.operation, .training-loss).is-active :is(.icon-body, .icon-motion) {
+    animation: var(--icon-travel) var(--l2o-action-duration, 0.48s) var(--icon-easing, ease-in-out)
+      both;
+  }
+  :is(.operation, .training-loss).is-active .icon-body {
+    animation-duration: var(--l2o-action-duration, 0.48s), var(--l2o-action-duration, 0.48s);
+    animation-fill-mode: both;
+    animation-name: var(--icon-travel), l2o-ink-presence;
+    animation-timing-function: var(--icon-easing, ease-in-out), linear;
+  }
+  :is(.operation, .training-loss).is-settling .icon-body {
+    animation: l2o-ink-return calc(var(--l2o-pulse-duration, 0.24s) / 2) ease-out both;
+  }
+  @keyframes l2o-ink-presence {
+    0%,
+    70% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+    }
+  }
+  @keyframes l2o-ink-return {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+  .constraint-distance {
+    --icon-travel: l2o-distance-tighten;
+    transform-origin: 11px 11px;
+  }
+  @keyframes l2o-distance-tighten {
+    0% {
+      transform: scaleX(1);
+    }
+    70%,
+    82%,
+    100% {
+      transform: scaleX(0);
+    }
+  }
+  @keyframes l2o-slider-travel {
+    0% {
+      opacity: 0;
+      transform: translateX(0);
+    }
+    12% {
+      opacity: 1;
+    }
+    75% {
+      opacity: 1;
+      transform: translateX(23px);
+    }
+    100% {
+      opacity: 0;
+      transform: translateX(23px);
+    }
+  }
+  @keyframes l2o-integer-snap {
+    0% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+    12% {
+      opacity: 1;
+    }
+    30% {
+      transform: translate(0, 0);
+    }
+    54% {
+      transform: translate(13px, 0);
+    }
+    76% {
+      opacity: 1;
+      transform: translate(13px, -10px);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(13px, -10px);
+    }
+  }
+  @keyframes l2o-objective-roll {
+    0% {
+      opacity: 0;
+      transform: translate(0, 0);
+    }
+    12% {
+      opacity: 1;
+      transform: translate(0.4px, 0.9px);
+    }
+    30% {
+      transform: translate(1.88px, 3.41px);
+    }
+    55% {
+      transform: translate(3.06px, 4.75px);
+    }
+    75%,
+    85% {
+      opacity: 1;
+      transform: translate(6.12px, 6px);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(6.12px, 6px);
+    }
+  }
+  @keyframes l2o-constraint-tighten {
+    0% {
+      opacity: 0;
+      transform: translateX(0);
+    }
+    12% {
+      opacity: 1;
+    }
+    70%,
+    82% {
+      opacity: 1;
+      transform: translateX(-10px);
+    }
+    100% {
+      opacity: 0;
+      transform: translateX(-10px);
     }
   }
 </style>

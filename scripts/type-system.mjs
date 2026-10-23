@@ -16,12 +16,11 @@ const ARTWORK = new Set([
   'src/components/catalogue/ProjectWordmark/ProjectWordmark.astro',
   'src/components/home/AboutSection/DecisionSign.astro',
   // The scientific illustration owns its internal type scale; the figure caption uses site tokens.
-  'src/components/catalogue/L2oFigure/L2oFigure.astro',
   'src/components/catalogue/L2oFigure/Illustration.astro',
   'src/components/catalogue/L2oFigure/TrainingComposition.astro',
   'src/components/catalogue/L2oFigure/MathSymbol.astro',
   'src/components/catalogue/L2oFigure/Network.astro',
-  'src/components/catalogue/L2oFigure/material.css',
+  'src/components/catalogue/L2oFigure/readouts.css',
 ]);
 
 const SIZE = /^var\(--type-(label|body|heading|title|display|name|lane)\)$/;

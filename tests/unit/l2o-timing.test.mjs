@@ -60,9 +60,9 @@ test('the final result holds before the quiet ordered reset', () => {
   assert.ok(reset.hud + 0.35 < timeline.cycle);
 });
 
-test('the lower flow uses one slower cadence across all recorded checkpoints', () => {
+test('the lower flow keeps one readable cadence across all recorded checkpoints', () => {
   const { beats } = trainingTimeline(lengths);
-  assert.ok(trainingCadence.pulse >= 0.4);
+  assert.ok(trainingCadence.reading + trainingCadence.stagger < trainingCadence.pulse * 2);
   const reference = Object.values(trainingSignals(beats[0])).map(([a, b]) => b - a);
   for (const beat of beats) {
     const intervals = Object.values(trainingSignals(beat)).map(([a, b]) => b - a);

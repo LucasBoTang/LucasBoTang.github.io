@@ -1,3 +1,4 @@
+import { clamp } from '../../../lib/easing.ts';
 import { enhance } from '../../../lib/lifecycle';
 import { reducedMotionQuery } from '../../../lib/motion';
 import { trainingBeat, trainingCadence, trainingSignals } from './timing';
@@ -15,9 +16,22 @@ enhance<HTMLElement>('[data-l2o-material] [data-training-composition]', (root) =
   let flows: { light: SVGPathElement; length: number; stage: SignalStage }[] = [];
   const operations = Array.from(root.querySelectorAll<HTMLElement>('.operation'));
   const lossPanel = root.querySelector<HTMLElement>('[data-module="loss"]')!;
+  const networks = (['mapping', 'correction'] as const).map((name) => {
+    const module = root.querySelector<HTMLElement>(`[data-module="${name}"]`)!;
+    return {
+      name,
+      layers: Array.from(module.querySelectorAll('[data-layer]')),
+      edges: Array.from(module.querySelectorAll('[data-layer-edge]'), (element) => ({
+        element,
+        layer: Number(element.getAttribute('data-layer-edge')),
+      })),
+    };
+  });
+  let activeBeat: ReturnType<typeof trainingBeat> | undefined;
+  let signals = trainingSignals(trainingBeat(0));
   root.style.setProperty('--l2o-action-duration', `${trainingCadence.action}s`);
   root.style.setProperty('--l2o-pulse-duration', `${trainingCadence.pulse}s`);
-  const clamp = (n: number) => Math.max(0, Math.min(1, n));
+
   function box(name: string) {
     const a = root.getBoundingClientRect(),
       r = root.querySelector<HTMLElement>(`[data-module="${name}"]`)!.getBoundingClientRect();
@@ -57,6 +71,7 @@ enhance<HTMLElement>('[data-l2o-material] [data-training-composition]', (root) =
     const light = p.cloneNode() as SVGPathElement;
     light.setAttribute('class', 'signal');
     light.removeAttribute('opacity');
+    light.setAttribute('stroke-dasharray', `${Math.min(24, length * 0.55)} ${length + 40}`);
     svg.append(light);
     flows.push({ light, length, stage });
   }
@@ -106,27 +121,28 @@ enhance<HTMLElement>('[data-l2o-material] [data-training-composition]', (root) =
     }
   }
   function draw(t: number, beat: ReturnType<typeof trainingBeat>) {
-    const signals = trainingSignals(beat);
+    if (beat !== activeBeat) {
+      activeBeat = beat;
+      signals = trainingSignals(beat);
+    }
     for (const f of flows) {
       const range = signals[f.stage];
       const u = (t - range[0]) / (range[1] - range[0]),
         alpha = !reduced && u >= 0 && u <= 1 ? Math.sin(Math.PI * u) : 0;
       f.light.style.opacity = String(alpha * 0.85);
-      f.light.setAttribute('stroke-dasharray', `${Math.min(24, f.length * 0.55)} ${f.length + 40}`);
       f.light.setAttribute('stroke-dashoffset', String(-(clamp(u) * (f.length + 24) - 24)));
     }
-    for (const [name, from, to] of [
-      ['mapping', ...signals.mappingScan],
-      ['correction', ...signals.correctionScan],
-    ] as const) {
-      const module = root.querySelector<HTMLElement>(`[data-module="${name}"]`)!;
+    for (const { name, layers, edges } of networks) {
+      const [from, to] = name === 'mapping' ? signals.mappingScan : signals.correctionScan;
       const u = (t - from) / (to - from);
-      module
-        .querySelectorAll('[data-layer]')
-        .forEach((n, i) => n.classList.toggle('is-lit', !reduced && u >= i / 3 && u < (i + 1) / 3));
-      module.querySelectorAll('[data-layer-edge]').forEach((n) => {
-        const i = Number(n.getAttribute('data-layer-edge'));
-        n.classList.toggle('is-lit', !reduced && u >= (i + 0.4) / 3 && u < (i + 1.4) / 3);
+      layers.forEach((node, i) =>
+        node.classList.toggle('is-lit', !reduced && u >= i / 3 && u < (i + 1) / 3),
+      );
+      edges.forEach(({ element, layer }) => {
+        element.classList.toggle(
+          'is-lit',
+          !reduced && u >= (layer + 0.4) / 3 && u < (layer + 1.4) / 3,
+        );
       });
     }
     operations.forEach((n) => {
@@ -152,16 +168,6 @@ enhance<HTMLElement>('[data-l2o-material] [data-training-composition]', (root) =
   }
   root.addEventListener('l2o:tick', ((event: CustomEvent) =>
     draw(event.detail.t, event.detail.beat)) as EventListener);
-  const focus = (kind: string | null) =>
-    root.dispatchEvent(new CustomEvent('l2o:focus', { detail: { kind } }));
-  root.querySelectorAll<HTMLElement>('[data-focus-kind]').forEach((n) => {
-    n.addEventListener('mouseenter', () => focus(n.dataset.focusKind!));
-    n.addEventListener('mouseleave', () => focus(null));
-    n.addEventListener('focus', () => focus(n.dataset.focusKind!));
-    n.addEventListener('blur', () => focus(null));
-    n.addEventListener('click', () => focus(n.dataset.focusKind!));
-  });
-
   new ResizeObserver(build).observe(root);
   document.fonts.ready.then(build);
 });

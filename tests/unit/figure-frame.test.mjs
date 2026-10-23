@@ -111,6 +111,6 @@ test('wider phones retain the desktop canvas; L2O holds its compact proportions 
   f.resize(270);
   assert.equal(Number(l2o.style.getPropertyValue('--figure-scale')), 270 / 330);
   assert.equal(l2o.style.getPropertyValue('--figure-canvas-width'), '330px');
-  assert.equal(l2o.style.getPropertyValue('--figure-canvas-height'), '910px');
+  assert.equal(l2o.style.getPropertyValue('--figure-canvas-height'), '818px');
   assert.equal(l2o.querySelector('iframe'), document);
 });

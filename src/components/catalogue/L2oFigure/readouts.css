@@ -1,0 +1,22 @@
+/* Digit strips created by readouts.ts, shared by the surface and instruments. */
+[data-training-composition] .readout-strip {
+  display: inline-block;
+  line-height: 1.3;
+  vertical-align: top;
+  white-space: pre;
+}
+[data-training-composition] .readout-cell {
+  position: relative;
+  display: inline-block;
+  height: 1.3em;
+  overflow: hidden;
+  width: 1ch;
+  vertical-align: top;
+}
+[data-training-composition] .readout-cell > span {
+  left: 0;
+  position: absolute;
+  top: 0;
+  display: block;
+  line-height: 1.3;
+}

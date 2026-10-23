@@ -1,5 +1,14 @@
+// One pace control keeps path travel, computation, icons and readouts in step.
+const pace = 1.18;
+
 /** The lower flow has its own steady cadence, anchored to completed integer predictions. */
-export const trainingCadence = { pulse: 0.4, action: 0.6, reading: 0.3, stagger: 0.072 };
+export const trainingCadence = {
+  pulse: 0.4 / pace,
+  point: 0.12 / pace,
+  action: 0.6 / pace,
+  reading: 0.3 / pace,
+  stagger: 0.072 / pace,
+};
 
 /** A uniform lower-flow sequence ends at the recorded integer point's arrival. */
 export function trainingBeat(integer: number) {
@@ -18,7 +27,7 @@ export function trainingBeat(integer: number) {
 
 /** Each projected unit takes the same time, across every checkpoint boundary. */
 export function trainingTimeline(segmentLengths: number[]) {
-  const speed = 0.35;
+  const speed = 0.35 * pace;
   // Leave enough lead-in for the first full computation, without changing path speed.
   const arrivals = [
     Math.max(trainingCadence.pulse * 3, trainingCadence.pulse * 7 - segmentLengths[0] / speed),

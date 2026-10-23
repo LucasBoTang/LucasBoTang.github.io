@@ -35,21 +35,23 @@ const layers = [3, 4, 3].map((count, i) =>
   }
   .network-edge {
     fill: none;
-    opacity: 0.35;
+    opacity: 0.32;
     stroke: currentColor;
     stroke-width: 2;
   }
   .network-node {
     fill: currentColor;
+    stroke: none;
     transition: fill 0.14s;
   }
   .network-edge.is-lit {
-    opacity: 0.8;
-    stroke: #f5f7fa;
+    opacity: 0.72;
+    stroke: var(--signal-core);
   }
   [data-layer].is-lit .network-node {
-    fill: #f6f7f6;
-    stroke: #24323f;
-    stroke-width: 1;
+    fill: var(--signal-core);
+    filter: none;
+    stroke: #334760;
+    stroke-width: 0.65px;
   }
 </style>

@@ -1,10 +1,9 @@
 ---
-import './material.css';
 import TrainingComposition from './TrainingComposition.astro';
 ---
 
 <section class="l2o-material" data-l2o-material aria-label="Learning to generate integer solutions">
-  <TrainingComposition presentation>
+  <TrainingComposition>
     <div class="surface-study" data-l2o-surface>
       <div class="surface-stage">
         <canvas
@@ -128,10 +127,10 @@ import TrainingComposition from './TrainingComposition.astro';
     width: 6px;
   }
   .relaxed {
-    background: #d3ad87;
+    background: #edf4f7;
   }
   .integer {
-    background: #edf4f7;
+    background: #d3ad87;
   }
   .hud-readouts {
     position: relative;
@@ -165,12 +164,12 @@ import TrainingComposition from './TrainingComposition.astro';
     height: 1.3em;
     min-width: 5ch;
     overflow: hidden;
-    font: 13px/1.3 var(--font-mono);
+    font: 400 var(--readout-size, 13px)/1.3 var(--font-mono);
     font-variant-numeric: tabular-nums;
     font-weight: 400;
     letter-spacing: 0;
     text-align: right;
-    color: #b5bac1;
+    color: var(--value-ink);
   }
   .hud-value :global(.readout-current),
   .hud-value :global(.readout-old) {
@@ -183,7 +182,9 @@ import TrainingComposition from './TrainingComposition.astro';
   }
   .hud-state {
     position: relative;
+    height: 13px;
     min-height: 13px;
+    overflow: hidden;
     font: 8px/1.4 var(--font-mono);
     text-align: right;
     white-space: nowrap;
@@ -200,9 +201,6 @@ import TrainingComposition from './TrainingComposition.astro';
     .surface-legend {
       gap: 5px; /* optical: keep the compact stacked legend clear of the input strip. */
       font-size: 9px;
-    }
-    .hud-value {
-      font-size: 13px;
     }
     .hud-label {
       font-size: 8px;
@@ -225,6 +223,13 @@ import TrainingComposition from './TrainingComposition.astro';
       gap: 3px; /* optical: spacing within the illustration, independent of the page grid. */
       padding-top: 9px; /* optical: spacing within the illustration, independent of the page grid. */
     }
+  }
+  .hud-state :global(:is(.hud-status-old, .hud-status-current)) {
+    inset: 0;
+    position: absolute;
+    display: block;
+    text-align: right;
+    white-space: nowrap;
   }
 </style>
 <script>

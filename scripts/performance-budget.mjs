@@ -3,7 +3,12 @@
 // see. `node scripts/performance-budget.mjs` checks dist/ after a build.
 import { readFileSync, statSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { figurePaths } from '../src/data/research/figures.ts';
 import { pageFiles } from './validate-output.mjs';
+
+const figureFiles = Object.values(figurePaths).map((route) => `${route.slice(1)}index.html`);
+/** Lazy documents still have their own network and parsing costs once shown. */
+export const budgetFiles = [...pageFiles, ...figureFiles];
 
 /** Kilobytes a page may weigh: its HTML, and the scripts it loads with everything they import. */
 const BUDGET = {
@@ -11,6 +16,11 @@ const BUDGET = {
   'index.html': { html: 80, scripts: 64 },
   // Includes four accessible theme lanes; their repeated visual lettering adds about 8KB.
   'research/index.html': { html: 57, scripts: 24 },
+  // Artwork baselines (HTML/scripts): GPU 77/33KB after removing unused matrix frames,
+  // DFL 8/25KB, L2O 23/28KB. Keep modest headroom without hiding a new data bundle.
+  [`${figurePaths.gpu.slice(1)}index.html`]: { html: 80, scripts: 36 },
+  [`${figurePaths.dfl.slice(1)}index.html`]: { html: 10, scripts: 28 },
+  [`${figurePaths.l2o.slice(1)}index.html`]: { html: 26, scripts: 32 },
   default: { html: 48, scripts: 24 },
 };
 /** Fonts every page fetches early: the serif, the mono and the sans of its first screen. */
@@ -44,22 +54,25 @@ function textOf(html) {
 /** Why the page's own markup breaks the budget, one message per problem. */
 export function checkMarkup(file, html) {
   const problems = [];
-  const fonts = html.match(/<link rel="preload"[^>]*as="font"[^>]*>/g) ?? [];
-  const basic = fonts.filter((font) => !EXTENDED_FONT.test(font));
-  if (basic.length !== PRELOADED_FONTS)
-    problems.push(`${file}: preloads ${basic.length} fonts, not ${PRELOADED_FONTS}`);
-  const letter = textOf(html).match(EXTENDED_LETTERS)?.[0];
-  const preloadsExtended = fonts.some((font) => EXTENDED_FONT.test(font));
-  if (letter && !preloadsExtended)
-    problems.push(
-      `${file}: its text has "${letter}", so it must preload the extended Latin font (add the page to extendedPages in SiteLayout.astro)`,
-    );
-  if (!letter && preloadsExtended)
-    problems.push(
-      `${file}: preloads the extended Latin font, which its text never needs (remove the page from extendedPages)`,
-    );
-  if (!letter && !/<link rel="prefetch"[^>]*latin-ext[^>]*>/.test(html))
-    problems.push(`${file}: must fetch the extended Latin font while idle`);
+  // Embedded figures use cached site fonts but do not repeat the page preload contract.
+  if (!figureFiles.includes(file)) {
+    const fonts = html.match(/<link rel="preload"[^>]*as="font"[^>]*>/g) ?? [];
+    const basic = fonts.filter((font) => !EXTENDED_FONT.test(font));
+    if (basic.length !== PRELOADED_FONTS)
+      problems.push(`${file}: preloads ${basic.length} fonts, not ${PRELOADED_FONTS}`);
+    const letter = textOf(html).match(EXTENDED_LETTERS)?.[0];
+    const preloadsExtended = fonts.some((font) => EXTENDED_FONT.test(font));
+    if (letter && !preloadsExtended)
+      problems.push(
+        `${file}: its text has "${letter}", so it must preload the extended Latin font (add the page to extendedPages in SiteLayout.astro)`,
+      );
+    if (!letter && preloadsExtended)
+      problems.push(
+        `${file}: preloads the extended Latin font, which its text never needs (remove the page from extendedPages)`,
+      );
+    if (!letter && !/<link rel="prefetch"[^>]*latin-ext[^>]*>/.test(html))
+      problems.push(`${file}: must fetch the extended Latin font while idle`);
+  }
   const precise = new RegExp(`\\d\\.\\d{${COORDINATE_DECIMALS + 1},}`);
   for (const [, path] of html.matchAll(/\sd="([^"]*)"/g)) {
     const number = path.match(precise);
@@ -80,21 +93,28 @@ export function scriptsOf(html, read) {
   return [...found];
 }
 
+/** Check uncompressed kilobytes: parsing costs remain even with HTTP compression. */
+export function checkSize(file, htmlSize, scriptSize) {
+  const budget = BUDGET[file] ?? BUDGET.default;
+  const problems = [];
+  if (htmlSize > budget.html)
+    problems.push(`${file}: HTML is ${htmlSize.toFixed(0)}KB, over ${budget.html}KB`);
+  if (scriptSize > budget.scripts)
+    problems.push(`${file}: scripts are ${scriptSize.toFixed(0)}KB, over ${budget.scripts}KB`);
+  return problems;
+}
+
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const dist = new URL('../dist/', import.meta.url);
   const read = (path) => readFileSync(new URL(`.${path}`, dist), 'utf8');
   const size = (path) => statSync(new URL(`.${path}`, dist)).size / 1024;
   const problems = [];
   const report = [];
-  for (const file of pageFiles) {
+  for (const file of budgetFiles) {
     const html = read(`/${file}`);
-    const budget = BUDGET[file] ?? BUDGET.default;
     const htmlSize = size(`/${file}`);
     const scriptSize = scriptsOf(html, read).reduce((total, path) => total + size(path), 0);
-    if (htmlSize > budget.html)
-      problems.push(`${file}: HTML is ${htmlSize.toFixed(0)}KB, over ${budget.html}KB`);
-    if (scriptSize > budget.scripts)
-      problems.push(`${file}: scripts are ${scriptSize.toFixed(0)}KB, over ${budget.scripts}KB`);
+    problems.push(...checkSize(file, htmlSize, scriptSize));
     problems.push(...checkMarkup(file, html));
     report.push(`${file} ${htmlSize.toFixed(0)}KB + ${scriptSize.toFixed(0)}KB scripts`);
   }
