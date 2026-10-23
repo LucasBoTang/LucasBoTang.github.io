@@ -2,19 +2,22 @@
 import { figureVersion } from '../../../data/research/figure-version';
 import type { FigureSource } from './figure-warmup';
 
-// Draws the page's figure documents once, unseen, at quiet moments after the opening, so the GPU
-// has compiled their shaders before a figure first appears (figure-warmup.ts). `hover` limits
+// Draws the page's figure documents once, unseen, so the GPU has compiled their shaders before a
+// figure first appears (figure-warmup.ts): at quiet moments after the opening, or, with
+// `beforeBody`, while an inner page's body waits behind its typing introduction. `hover` limits
 // this to screens with hover, for figures that open on hover.
 interface Props {
   figures: FigureSource[];
   hover?: boolean;
+  beforeBody?: boolean;
 }
-const { figures, hover = false } = Astro.props;
+const { figures, hover = false, beforeBody = false } = Astro.props;
 ---
 
 <div
   data-figure-warmup-sources={JSON.stringify(figures)}
   data-figure-warmup-hover={hover || undefined}
+  data-figure-warmup-before-body={beforeBody || undefined}
   data-figure-warmup-version={figureVersion}
   hidden
 ></div>

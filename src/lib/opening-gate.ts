@@ -25,3 +25,24 @@ export function waitForOpeningVisible(): Promise<void> {
   });
   return visible;
 }
+
+/** An inner page's body waits for held work no later than this long after navigation, which
+ * leaves time before SiteLayout's 2.5s fallback to prepare its arrival (reveal.ts). */
+export const BODY_HOLD_UNTIL = 2000;
+const bodyHolds = new Set<Promise<unknown>>();
+
+/** Keeps an inner page's body back while `task` runs: the title and introduction already show
+ * and type, so work that would stall the body's arrival happens behind the typing instead. */
+export function holdBody(task: Promise<unknown>): void {
+  bodyHolds.add(task);
+}
+
+/** Resolves once every held task has settled, or at `BODY_HOLD_UNTIL`. */
+export function bodyReleased(): Promise<void> {
+  return Promise.race([
+    Promise.allSettled([...bodyHolds]).then(() => {}),
+    new Promise<void>((resolve) =>
+      setTimeout(resolve, Math.max(0, BODY_HOLD_UNTIL - performance.now())),
+    ),
+  ]);
+}

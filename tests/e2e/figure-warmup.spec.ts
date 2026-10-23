@@ -3,9 +3,9 @@ import { routes } from '../../src/data/navigation';
 import { figureVersion } from '../../src/data/research/figure-version';
 import { figureWarmups } from '../../src/data/research/figures';
 
-// Once a page's opening has settled, each figure document is drawn once, one at a time, in an
-// unseen slot, so the GPU has compiled its shaders before the figure first appears. None of it
-// delays the opening.
+// Each figure document is drawn once in an unseen slot, so the GPU has compiled its shaders before
+// the figure first appears: on Research while its introduction types and its body waits, on Home
+// one at a time once the opening has settled.
 
 // A first visit: the other specs start as a returning visitor (playwright.config.ts).
 test.use({ storageState: { cookies: [], origins: [] } });
@@ -20,10 +20,13 @@ interface WarmupRecord {
 async function recordWarmup(page: Page) {
   await page.addInitScript(() => {
     const record: WarmupRecord = { gateLifted: null, typingStarted: null, slots: [] };
+    let pending = false;
     (window as unknown as { warmup: WarmupRecord }).warmup = record;
     new MutationObserver((changes) => {
       const now = Math.round(performance.now());
-      if (!document.documentElement.hasAttribute('data-opening-pending')) record.gateLifted ??= now;
+      // The gate is set from a script in the head, so it counts as lifted only once it was seen.
+      if (document.documentElement?.hasAttribute('data-opening-pending')) pending = true;
+      else if (pending) record.gateLifted ??= now;
       if (document.querySelector('[data-typing-started]')) record.typingStarted ??= now;
       for (const change of changes)
         for (const node of change.addedNodes)
@@ -42,18 +45,28 @@ const remembered = (page: Page) =>
   page.evaluate(() => JSON.parse(localStorage.getItem('figure-warmup') ?? '[]') as string[]);
 const everyFigure = figureWarmups.map(({ src }) => `${src}#${figureVersion}`).sort();
 
-test('Research opens at once, then draws its figures ahead one at a time', async ({ page }) => {
+test('Research draws its figures while the introduction types, before the body arrives', async ({
+  page,
+}) => {
   await recordWarmup(page);
   await page.goto(routes.research);
   await expect(page.locator('html')).not.toHaveAttribute('data-opening-pending', /.*/);
-  // Each figure is drawn ahead, or shown by the page itself, and remembered either way.
+  // Each figure is drawn ahead, here or at a later quiet moment, and remembered.
   await expect
     .poll(async () => (await remembered(page)).sort(), { timeout: 20_000 })
     .toEqual(everyFigure);
-  const record = await warmup(page);
-  for (const slot of record.slots) {
-    expect(slot.at, 'drawn only once the opening is visible').toBeGreaterThan(record.gateLifted!);
-    expect(slot.sources, 'one figure at a time').toHaveLength(1);
+  const { gateLifted, typingStarted, slots } = await warmup(page);
+  const [first] = slots;
+  if (first?.sources.length === figureWarmups.length) {
+    expect(first.at, 'while the introduction types').toBeGreaterThan(typingStarted!);
+    expect(first.at, 'before the body arrives').toBeLessThan(gateLifted!);
+  } else {
+    // A page ready too late to hold its body back (here, under many parallel workers) leaves the
+    // figures to quiet moments after it, one at a time.
+    for (const slot of slots) {
+      expect(slot.at).toBeGreaterThan(gateLifted!);
+      expect(slot.sources).toHaveLength(1);
+    }
   }
   await expect(page.locator('[data-figure-warmup]')).toHaveCount(0);
 

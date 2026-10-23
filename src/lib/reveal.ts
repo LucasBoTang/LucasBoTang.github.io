@@ -8,12 +8,13 @@ import {
 import { phonePace } from './breakpoints';
 import { enhance } from './lifecycle';
 import { onKeyboardFocus, reducedMotionQuery } from './motion';
-import { liftOpeningGate, openingPending } from './opening-gate';
+import { bodyReleased, liftOpeningGate, openingPending } from './opening-gate';
 import { waitForPageReady } from './page-ready';
 
 // Inner-page body opening: PageHeader starts the title and introduction together. The remaining
 // leads and units arrive (see arrival.ts) through one queue after a short reading pause, without
-// waiting for the introduction to finish typing. The footer arrives last.
+// waiting for the introduction to finish typing, but after any work held back for the body
+// (opening-gate.ts `holdBody`). The footer arrives last.
 
 /** One reading beat from the introduction's start, overlapping resource preparation. */
 const READING_BEAT = 600;
@@ -136,5 +137,7 @@ function setupReveal(page: HTMLElement) {
 }
 
 enhance('[data-reveal-root]', (page) => {
-  void waitForPageReady().then(() => setupReveal(page));
+  void waitForPageReady()
+    .then(bodyReleased)
+    .then(() => setupReveal(page));
 });

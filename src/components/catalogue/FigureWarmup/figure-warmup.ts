@@ -1,5 +1,11 @@
 import { enhance } from '../../../lib/lifecycle';
-import { openingPending, waitForOpeningVisible } from '../../../lib/opening-gate';
+import {
+  BODY_HOLD_UNTIL,
+  holdBody,
+  openingPending,
+  waitForOpeningVisible,
+} from '../../../lib/opening-gate';
+import { waitForPageReady } from '../../../lib/page-ready';
 
 // The GPU compiles a shader program the first time it draws each kind of thing a figure draws,
 // and on a cold cache each takes about ten milliseconds, one after another: a figure's first frame
@@ -7,11 +13,14 @@ import { openingPending, waitForOpeningVisible } from '../../../lib/opening-gate
 // every figure the page can show is drawn once ahead, unseen, in a slot that is in view but nearly
 // transparent, and so is every filter the page's own entrances pass through as a figure appears.
 //
-// None of this may delay the opening or compete with it. The figure documents are fetched only
+// None of this may delay the opening or compete with its fonts and images. A figure's warm-up
+// shares the page's main thread and GPU, so it runs only where a stall would not show. On an inner
+// page whose body waits behind its typing introduction (reveal.ts), the figures are drawn together
+// once the page is ready, and the body holds back for them, within a bound: a pause in typing
+// reads as a typist's hesitation. Otherwise, as on the home page, the figure documents are fetched
 // once the opening is visible, at the lowest priority, and drawn one at a time only once the
-// opening has finished moving, the page is idle and the reader is not scrolling: a figure's
-// warm-up shares the page's main thread and GPU, so it waits for a moment when nothing is in
-// motion. A figure the page has already shown is skipped. Browsers keep the programs on disk, so
+// opening has finished moving, the page is idle and the reader is not scrolling. A figure the page
+// has already shown is skipped there, being drawn already. Browsers keep the programs on disk, so
 // the visitor's storage remembers each figure drawn or shown, and a later visit draws nothing ahead
 // until that figure's source changes (figure-version.ts); the filters' few programs are cached
 // alongside the first figure's.
@@ -212,6 +221,29 @@ export async function warmInTurn(
   }
 }
 
+/** The shortest hold worth taking: below it, the figures are left for quiet moments instead. */
+const SHORTEST_HOLD = 300;
+
+/**
+ * Draws `sources` together while an inner page's body is held back for them, once the page's own
+ * fonts and images are ready, giving up at the body's bound; what is left is drawn in turn later.
+ */
+export async function warmBeforeBody(
+  sources: FigureSource[],
+  version: string,
+  filters: FilterSequence[] = [],
+) {
+  const key = (source: FigureSource) => `${source.src}#${version}`;
+  const pending = sources.filter((source) => !remembered().has(key(source)));
+  if (!pending.length) return;
+  await waitForPageReady();
+  const left = BODY_HOLD_UNTIL - performance.now();
+  const complete =
+    openingPending() && left > SHORTEST_HOLD && (await warmFigures(pending, filters, left));
+  if (complete) for (const source of pending) remember(key(source), version);
+  else void warmInTurn(sources, version, filters);
+}
+
 /** Every filter sequence the page's entrances declare, each once. */
 function declaredFilters(): FilterSequence[] {
   const sequences = new Map<string, FilterSequence>();
@@ -229,7 +261,10 @@ enhance('[data-figure-warmup-sources]', (host) => {
   const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
   if (connection?.saveData) return;
   const sources = JSON.parse(host.dataset.figureWarmupSources ?? '[]') as FigureSource[];
-  void warmInTurn(sources, host.dataset.figureWarmupVersion ?? '', declaredFilters());
+  const version = host.dataset.figureWarmupVersion ?? '';
+  if (host.hasAttribute('data-figure-warmup-before-body') && openingPending())
+    holdBody(warmBeforeBody(sources, version, declaredFilters()));
+  else void warmInTurn(sources, version, declaredFilters());
 });
 
 /** The figures this browser has already drawn through; none when storage is off. */
