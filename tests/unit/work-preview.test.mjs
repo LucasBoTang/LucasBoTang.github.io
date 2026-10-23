@@ -11,7 +11,7 @@ async function preview(t, { reduced = false, booting = false } = {}) {
     <div data-home-motion${booting ? ' data-opening' : ''}></div><article data-project-host>
       <a data-figure-preview data-preview-src="/figures/learning-integers/"
         data-preview-width="588" data-preview-height="539" href="/research/#bo-l2o-study">
-        <span class="work-preview-picture"></span>
+        <span class="work-preview-picture"><span class="work-preview-signal"></span></span>
       </a>
     </article></body></html>`);
   const host = document.querySelector('article');
@@ -71,8 +71,9 @@ test('brief pointer passes do not load a figure; a deliberate hover holds playba
   assert.ok(p.frame());
   assert.ok(p.link.hasAttribute('data-preview-pending'));
   p.emit(p.frame(), 'load');
+  assert.ok(p.link.hasAttribute('data-preview-acquiring'));
   assert.ok(p.link.hasAttribute('data-preview-visible'));
-  p.tick(1339);
+  p.tick(519);
   assert.ok(p.link.hasAttribute('data-preview-pending'));
   p.tick(1);
   assert.equal(p.link.hasAttribute('data-preview-pending'), false);
@@ -84,7 +85,7 @@ test('departing releases the iframe and ignores a stale load event', async (t) =
   p.tick(240);
   const oldFrame = p.frame();
   p.emit(p.host, 'pointerleave', { pointerType: 'mouse' });
-  p.tick(999);
+  p.tick(319);
   assert.ok(p.frame() === oldFrame);
   p.tick(1);
   assert.equal(Boolean(p.frame()), false);
@@ -98,10 +99,16 @@ test('re-entering during the exit keeps the current document instead of flashing
   p.tick(240);
   const frame = p.frame();
   p.emit(frame, 'load');
-  p.tick(1340);
+  p.tick(520);
   p.emit(p.host, 'pointerleave', { pointerType: 'mouse' });
+  assert.equal(p.link.hasAttribute('data-preview-acquiring'), false);
   p.tick(100);
   p.emit(p.host, 'pointerenter', { pointerType: 'mouse' });
+  assert.equal(
+    p.link.hasAttribute('data-preview-acquiring'),
+    false,
+    'do not replay interference on a reversing handover',
+  );
   assert.equal(p.frame(), frame);
   assert.ok(p.link.hasAttribute('data-preview-visible'));
 });
@@ -112,7 +119,7 @@ test('the first touch opens a preview; the next touch and keyboard activation fo
   assert.ok(p.emit(p.link, 'click', { detail: 1 }).defaultPrevented);
   p.tick(240);
   p.emit(p.frame(), 'load');
-  p.tick(1340);
+  p.tick(520);
   p.emit(p.link, 'pointerdown', { pointerType: 'touch' });
   assert.equal(p.emit(p.link, 'click', { detail: 1 }).defaultPrevented, false);
   assert.equal(p.emit(p.link, 'click', { detail: 0 }).defaultPrevented, false);
@@ -125,6 +132,7 @@ test('reduced motion removes the handover delay', async (t) => {
   p.emit(p.frame(), 'load');
   p.tick(0);
   assert.ok(p.link.hasAttribute('data-preview-visible'));
+  assert.equal(p.link.hasAttribute('data-preview-acquiring'), false);
   assert.equal(p.link.hasAttribute('data-preview-pending'), false);
 });
 
@@ -160,9 +168,10 @@ test('home previews wait for the boot animation, including after the page first 
   p.tick(1);
   assert.ok(p.frame());
   p.emit(p.frame(), 'load');
+  assert.ok(p.link.hasAttribute('data-preview-acquiring'));
   assert.ok(p.link.hasAttribute('data-preview-visible'));
   assert.ok(p.link.hasAttribute('data-preview-pending'));
-  p.tick(1340);
+  p.tick(520);
   assert.equal(p.link.hasAttribute('data-preview-pending'), false);
 });
 

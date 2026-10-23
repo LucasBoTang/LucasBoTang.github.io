@@ -3,21 +3,22 @@ import { reducedMotionQuery, watchActivity } from '../../../lib/motion.ts';
 import { observePreviewLayout } from './preview-layout.ts';
 import { createPreviewOpeningGate } from './preview-opening.ts';
 
-// Ignore passing pointers; a deliberate pause crossfades the word into the complete figure.
+// Ignore passing pointers; deliberate intent tunes the standby wordmark into a figure.
 const INTENT_DELAY_MS = 240;
 // Give a newly arrived wordmark a readable moment before it can become a preview.
 const WORDMARK_REST_MS = 400;
-// Match WorkPreview.astro: 140ms delay + 1200ms rise; retain the full 1000ms exit tail.
-const HANDOVER_MS = 1340;
-const RELEASE_MS = 1000;
+// Match WorkPreview.astro: 40ms delay + 380ms tone rise + 100ms clear hold.
+const HANDOVER_MS = 520;
+// The wordmark returns after 80ms, over 240ms; only then discard the picture.
+const RELEASE_MS = 320;
 
 function setupPreview(
   link: HTMLAnchorElement,
   opening: ReturnType<typeof createPreviewOpeningGate>,
 ) {
   const host = link.closest<HTMLElement>('[data-project-host]');
-  const picture = link.querySelector<HTMLElement>('.work-preview-picture');
-  if (!host || !picture) return;
+  const signal = link.querySelector<HTMLElement>('.work-preview-signal');
+  if (!host || !signal) return;
   const width = Number(link.dataset.previewWidth);
   const height = Number(link.dataset.previewHeight);
   const reduced = reducedMotionQuery();
@@ -25,6 +26,7 @@ function setupPreview(
   let inView = false;
   let requested = false;
   let loaded = false;
+  let connected = false;
   let wordmarkState: 'waiting' | 'arriving' | 'ready' = opening.complete ? 'ready' : 'waiting';
   let iframe: HTMLIFrameElement | undefined;
   let intentTimerId = 0;
@@ -33,11 +35,14 @@ function setupPreview(
 
   const revealPreview = () => {
     if (!requested || !loaded) return;
+    if (!connected && !reduced.matches) link.setAttribute('data-preview-acquiring', '');
+    connected = true;
     link.setAttribute('data-preview-visible', '');
     clearTimeout(handoverTimerId);
     handoverTimerId = window.setTimeout(
       () => {
         link.removeAttribute('data-preview-pending');
+        link.removeAttribute('data-preview-acquiring');
       },
       reduced.matches ? 0 : HANDOVER_MS,
     );
@@ -46,7 +51,9 @@ function setupPreview(
     iframe?.remove();
     iframe = undefined;
     loaded = false;
+    connected = false;
     link.removeAttribute('data-preview-pending');
+    link.removeAttribute('data-preview-acquiring');
   };
   const loadPreview = () => {
     if (!iframe) {
@@ -69,7 +76,7 @@ function setupPreview(
       // The same address as the figure's embed and warm-up, so one copy serves all three.
       child.src = link.dataset.previewSrc!;
       iframe = child;
-      picture.append(child);
+      signal.append(child);
     }
   };
   const waitForWordmark = () => {
@@ -98,6 +105,7 @@ function setupPreview(
     clearTimeout(releaseTimerId);
     if (!requested) {
       link.removeAttribute('data-preview-visible');
+      link.removeAttribute('data-preview-acquiring');
       releaseTimerId = window.setTimeout(unloadPreview, reduced.matches ? 0 : RELEASE_MS);
       return;
     }

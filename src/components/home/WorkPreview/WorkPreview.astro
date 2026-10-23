@@ -1,5 +1,6 @@
 ---
 import { workPreviews } from '../../../data/research/figures';
+import previewSignal from './preview-signal.svg?url&no-inline';
 
 interface Props {
   project: string;
@@ -7,12 +8,10 @@ interface Props {
 }
 const { project, name } = Astro.props;
 const preview = workPreviews[project as keyof typeof workPreviews];
-// The filters the reveal below passes through, drawn ahead by FigureWarmup; keep in step with
-// the styles of `.work-preview-picture` and the wordmark.
-const warmFilters = [
-  ['blur(2px) brightness(0.5)', 'blur(0px) brightness(1)'],
-  ['blur(0px) brightness(1)', 'blur(3px) brightness(0.65)'],
-];
+// Warm the same row-displacement filters used by the acquisition keyframe.
+const pull = `url("${previewSignal}#preview-pull")`;
+const catchUp = `url("${previewSignal}#preview-catch")`;
+const warmFilters = [['none', pull, catchUp, 'none']];
 ---
 
 <a
@@ -25,9 +24,12 @@ const warmFilters = [
   data-preview-height={preview.height}
   data-preview-bleed={preview.bleed}
   data-warm-filters={JSON.stringify(warmFilters)}
+  style={`--preview-signal-pull:${pull};--preview-signal-catch:${catchUp}`}
 >
   <slot />
-  <span class="work-preview-picture" aria-hidden="true"></span>
+  <span class="work-preview-picture" aria-hidden="true">
+    <span class="work-preview-signal"></span>
+  </span>
 </a>
 
 <script>
@@ -43,26 +45,27 @@ const warmFilters = [
     text-decoration: none;
     color: inherit;
   }
-  /* Brightness and focus settle after the silhouettes have crossed. CSS transitions keep
-     that overlap continuous when a pointer reverses direction halfway through. */
+  /* The station mark yields first; picture luminance settles before playback starts.
+     Transitions reverse from the current frame when the pointer changes its mind. */
   .work-preview :global([data-project-wordmark]) {
     align-self: center;
-    filter: blur(0px) brightness(1);
     opacity: 1;
-    transition:
-      opacity 950ms 140ms cubic-bezier(0.22, 0.61, 0.36, 1),
-      filter 1100ms 100ms cubic-bezier(0.22, 0.61, 0.36, 1);
+    transition: opacity 240ms 80ms cubic-bezier(0.22, 0.61, 0.36, 1);
   }
   .work-preview-picture {
     inset: -48px 0;
     position: absolute;
     overflow: hidden;
-    filter: blur(2px) brightness(0.5);
+    filter: brightness(0.55) contrast(0.8);
     opacity: 0;
     transition:
-      opacity 1000ms cubic-bezier(0.4, 0, 0.25, 1),
-      filter 900ms cubic-bezier(0.4, 0, 0.25, 1);
+      opacity 240ms cubic-bezier(0.4, 0, 0.25, 1),
+      filter 110ms ease-out;
     pointer-events: none;
+  }
+  .work-preview-signal {
+    inset: 0;
+    position: absolute;
   }
   .work-preview-picture :global(iframe) {
     left: 50%;
@@ -73,18 +76,27 @@ const warmFilters = [
     transform: translate(-50%, -50%) scale(var(--preview-scale, 0));
   }
   .work-preview[data-preview-visible] :global([data-project-wordmark]) {
-    filter: blur(3px) brightness(0.65);
     opacity: 0;
-    transition:
-      opacity 900ms cubic-bezier(0.4, 0, 0.25, 1),
-      filter 1000ms cubic-bezier(0.4, 0, 0.25, 1);
+    transition: opacity 220ms cubic-bezier(0.4, 0, 1, 1);
   }
   .work-preview[data-preview-visible] .work-preview-picture {
-    filter: blur(0px) brightness(1);
+    filter: brightness(1) contrast(1);
     opacity: 1;
     transition:
-      opacity 1200ms 140ms cubic-bezier(0.4, 0, 0.2, 1),
-      filter 1200ms 140ms cubic-bezier(0.22, 0.61, 0.36, 1);
+      opacity 300ms 40ms cubic-bezier(0.22, 0.61, 0.36, 1),
+      filter 380ms 40ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .work-preview[data-preview-acquiring] :global([data-project-wordmark]),
+    .work-preview[data-preview-acquiring] .work-preview-signal {
+      animation: signal-preview-acquire 170ms steps(1, end);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .work-preview :global([data-project-wordmark]),
+    .work-preview-picture {
+      transition: none;
+    }
   }
   @media (max-width: 720px) {
     .work-preview {
@@ -92,12 +104,6 @@ const warmFilters = [
     }
     .work-preview-picture {
       inset: 0;
-    }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .work-preview :global([data-project-wordmark]),
-    .work-preview-picture {
-      transition: none;
     }
   }
 </style>

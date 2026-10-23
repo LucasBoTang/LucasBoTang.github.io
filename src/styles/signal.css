@@ -60,6 +60,26 @@
   }
 }
 
+/* The standby mark and incoming picture share one brief horizontal sync error.
+   All displacement is gone before the picture has finished settling. */
+@keyframes signal-preview-acquire {
+  0%,
+  40% {
+    filter: none;
+  }
+  41%,
+  69% {
+    filter: var(--preview-signal-pull);
+  }
+  70%,
+  99% {
+    filter: var(--preview-signal-catch);
+  }
+  100% {
+    filter: none;
+  }
+}
+
 /* Home hero: the marks beside the name, and the name tearing apart. */
 @keyframes signal-marks-hop {
   0%,

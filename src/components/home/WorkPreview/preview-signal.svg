@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+  <!-- One group of scanlines slips horizontally, catches once, then returns to neutral. -->
+  <filter id="preview-pull" x="-6%" y="0" width="112%" height="100%" primitiveUnits="objectBoundingBox" color-interpolation-filters="sRGB">
+    <feImage x="-.06" y="0" width="1.12" height="1" preserveAspectRatio="none" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221%22%20height%3D%22128%22%3E%3ClinearGradient%20id%3D%22rows%22%20x2%3D%220%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23808080%22%2F%3E%3Cstop%20offset%3D%22.34%22%20stop-color%3D%22%23808080%22%2F%3E%3Cstop%20offset%3D%22.36%22%20stop-color%3D%22%23268080%22%2F%3E%3Cstop%20offset%3D%22.46%22%20stop-color%3D%22%23268080%22%2F%3E%3Cstop%20offset%3D%22.48%22%20stop-color%3D%22%23808080%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23808080%22%2F%3E%3C%2FlinearGradient%3E%3Cpath%20fill%3D%22url%28%23rows%29%22%20d%3D%22M0%200h1v128H0z%22%2F%3E%3C%2Fsvg%3E" result="rows"/>
+    <feDisplacementMap in="SourceGraphic" in2="rows" scale=".045" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+  <filter id="preview-catch" x="-6%" y="0" width="112%" height="100%" primitiveUnits="objectBoundingBox" color-interpolation-filters="sRGB">
+    <feImage x="-.06" y="0" width="1.12" height="1" preserveAspectRatio="none" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221%22%20height%3D%22128%22%3E%3ClinearGradient%20id%3D%22rows%22%20x2%3D%220%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23808080%22%2F%3E%3Cstop%20offset%3D%22.34%22%20stop-color%3D%22%23808080%22%2F%3E%3Cstop%20offset%3D%22.36%22%20stop-color%3D%22%23a68080%22%2F%3E%3Cstop%20offset%3D%22.46%22%20stop-color%3D%22%23a68080%22%2F%3E%3Cstop%20offset%3D%22.48%22%20stop-color%3D%22%23808080%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23808080%22%2F%3E%3C%2FlinearGradient%3E%3Cpath%20fill%3D%22url%28%23rows%29%22%20d%3D%22M0%200h1v128H0z%22%2F%3E%3C%2Fsvg%3E" result="rows"/>
+    <feDisplacementMap in="SourceGraphic" in2="rows" scale=".045" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</svg>
