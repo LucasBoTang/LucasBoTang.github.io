@@ -70,3 +70,13 @@ export function trainingReset(cycle: number) {
     hud: cycle - 0.4,
   };
 }
+
+/** Four breaths share the training clock, with a longer exhale and no flat holds. */
+export function surfaceOpacityAt(phase: number, trainingCycle: number, reducedMotion = false) {
+  if (reducedMotion) return 1;
+  const period = trainingCycle / 4;
+  const t = (((phase % period) + period) % period) / period;
+  const exhale = 0.58;
+  const halfBreath = t < exhale ? t / exhale : (1 - t) / (1 - exhale);
+  return 0.48 + 0.26 * (1 + Math.cos(Math.PI * halfBreath));
+}

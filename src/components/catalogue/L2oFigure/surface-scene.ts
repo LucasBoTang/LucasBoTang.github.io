@@ -22,7 +22,7 @@ import {
   type Vector3,
 } from './surface-model.ts';
 import { createSurfaceRenderer } from './surface-webgl.ts';
-import { trainingCadence, trainingTimeline } from './timing.ts';
+import { surfaceOpacityAt, trainingCadence, trainingTimeline } from './timing.ts';
 import { trajectoryLengths, trajectoryPoint, trajectoryProgress } from './trajectory.ts';
 
 type SurfaceRecording = {
@@ -279,7 +279,7 @@ export async function createSurfaceScene(
   }
   function render({ phase, opacity: fade, arrivedPoint, reducedMotion }: SurfaceFrame) {
     renderer.beginFrame();
-    drawMesh(surface, phase);
+    drawMesh(surface, phase, surfaceOpacityAt(phase, timeline.cycle, reducedMotion));
     drawMesh(slices, phase);
     drawMesh(constraints, phase);
     drawMesh(trace, phase, fade);
