@@ -1,26 +1,41 @@
-/** Wait for the embedded document and its first painted, fitted picture, not about:blank. */
-export async function waitForPicture(frame: HTMLIFrameElement): Promise<void> {
-  const loaded = () => {
-    const page = frame.contentDocument;
-    return page?.readyState === 'complete' && page.URL !== 'about:blank';
-  };
-  if (!loaded())
-    await new Promise<void>((resolve) => {
-      const onLoad = () => {
-        if (!loaded()) return;
-        frame.removeEventListener('load', onLoad);
-        resolve();
-      };
-      frame.addEventListener('load', onLoad);
-    });
-  const page = frame.contentDocument;
-  if (page)
-    await Promise.allSettled([
-      page.fonts.ready,
-      ...[...page.images].map((image) => image.decode()),
-    ]);
-  // Resize observers fit the canvas before the next paint; a second frame commits that picture.
-  await new Promise<void>((resolve) =>
-    requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
-  );
+/** Owns a document/resource wait and its two paint frames; cancel releases all pending work. */
+export function preparePicture(frame: HTMLIFrameElement) {
+  let cancel!: () => void;
+  const ready = new Promise<void>((resolve) => {
+    let done = false;
+    let paint = 0;
+    cancel = () => {
+      if (done) return;
+      done = true;
+      cancelAnimationFrame(paint);
+      frame.onload = frame.onerror = null;
+      resolve();
+    };
+    const loaded = () => {
+      if (done) return;
+      try {
+        const page = frame.contentDocument;
+        if (!page) return cancel();
+        if (page.URL === 'about:blank' || page.readyState !== 'complete') return;
+        frame.onload = null;
+        void Promise.allSettled([
+          page.fonts.ready,
+          ...[...page.images].map((image) => image.decode()),
+        ]).then(() => {
+          if (done) return;
+          // Fit on the first frame; the second commits the fitted picture.
+          paint = requestAnimationFrame(() => {
+            paint = requestAnimationFrame(cancel);
+          });
+        });
+      } catch {
+        cancel();
+      }
+    };
+    // One ScreenReveal owns this frame; property handlers are released together.
+    frame.onload = loaded;
+    frame.onerror = cancel;
+    loaded();
+  });
+  return { ready, cancel };
 }

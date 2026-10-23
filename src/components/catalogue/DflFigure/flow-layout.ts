@@ -1,3 +1,4 @@
+import { flowPaths } from './flow-geometry';
 import { updateFlow, type CaptionSweep, type FlowFigure } from './flow-motion';
 import { moduleScale, networkGeometry, polytopeScale } from './geometry';
 import { timing, flowPhase, flowSpeed, configureFlow, captionSweepDuration } from './timeline';
@@ -40,13 +41,17 @@ document.querySelectorAll<HTMLElement>('.training-flow').forEach((root) => {
   const layout = () => {
     const rootBounds = root.getBoundingClientRect(),
       mobile = rootBounds.width <= 420;
-    svg.setAttribute('viewBox', `0 0 ${rootBounds.width} ${rootBounds.height}`);
     const bounds = (selector: string) => {
       const b = root.querySelector(selector)!.getBoundingClientRect();
       return { x: b.x - rootBounds.x, y: b.y - rootBounds.y, w: b.width, h: b.height };
     };
+    const measured = new Map<string, ReturnType<typeof bounds>>();
+    const baseBounds = (selector: string) => {
+      if (!measured.has(selector)) measured.set(selector, bounds(selector));
+      return measured.get(selector)!;
+    };
     const node = (selector: string, half: number, height: number) => {
-      const b = bounds(selector),
+      const b = baseBounds(selector),
         s = moduleScale(b.w) * (selector.includes('optimize') ? polytopeScale : 1);
       return {
         x: b.x + b.w / 2,
@@ -60,7 +65,7 @@ document.querySelectorAll<HTMLElement>('.training-flow').forEach((root) => {
     const network = node('.predict canvas', networkGeometry.halfWidth, networkGeometry.halfHeight),
       optimizer = node('.optimize canvas', 91, 68),
       balance = node('.evaluate canvas', 111, 69);
-    const polyBounds = bounds('.optimize canvas'),
+    const polyBounds = baseBounds('.optimize canvas'),
       polyScale = moduleScale(polyBounds.w) * polytopeScale;
     optimizer.x += 7;
     optimizer.y += 10;
@@ -68,18 +73,19 @@ document.querySelectorAll<HTMLElement>('.training-flow').forEach((root) => {
     optimizer.right = optimizer.x + 103 * polyScale;
     optimizer.top = optimizer.y - 79 * polyScale;
     optimizer.bottom = optimizer.y + 92 * polyScale;
-    const gridScale = moduleScale(bounds('.evaluate canvas').w);
+    const gridScale = moduleScale(baseBounds('.evaluate canvas').w);
     // Captions share one optical gap from the visible drawing envelope, not canvas edges.
     const captionGap = 12;
-    const neuralBox = bounds('.predict canvas'),
+    const neuralBox = baseBounds('.predict canvas'),
       neuralS = moduleScale(neuralBox.w);
+    const gridBox = baseBounds('.evaluate canvas');
+    svg.setAttribute('viewBox', `0 0 ${rootBounds.width} ${rootBounds.height}`);
     const neuralCaption = root.querySelector<HTMLElement>('.predict .module-label')!;
     neuralCaption.style.top = `${neuralBox.h / 2 + 12 - networkGeometry.halfHeight * neuralS - 5.2 - captionGap - 16}px`;
     const polyCaption = root.querySelector<HTMLElement>('.optimize .module-label')!;
     polyCaption.style.top = `${polyBounds.h / 2 + 10 + 134 * polyScale + 3 + captionGap - 4}px`;
     polyCaption.style.left = '7px';
-    const gridBox = bounds('.evaluate canvas'),
-      gridCaption = root.querySelector<HTMLElement>('.loss-node')!;
+    const gridCaption = root.querySelector<HTMLElement>('.loss-node')!;
     gridCaption.style.top = `${gridBox.y + gridBox.h / 2 + 63.5 * gridScale + 3 + captionGap - 8}px`;
     gridCaption.style.left = `${gridBox.x}px`;
     gridCaption.style.width = `${gridBox.w}px`;
@@ -92,50 +98,17 @@ document.querySelectorAll<HTMLElement>('.training-flow').forEach((root) => {
       sheetInset = (80 - 80 * sheetScale) / 2;
     datasetCaption.style.top = `${sheetInset + 6.5 * sheetScale - 2 - captionGap - 16}px`;
     datasetCaption.style.left = `${2 * sheetScale}px`;
-    const gap = 12,
-      neuralScale = moduleScale(bounds('.predict canvas').w);
-    const featureX = network.x - networkGeometry.halfWidth * Math.cos(0.24) * neuralScale,
-      featureY = network.y + networkGeometry.rowStep * neuralScale + gap;
-    const gridInX = balance.x + 81 * gridScale,
-      gridInY = balance.y - 69 * gridScale - gap,
-      truthInY = balance.y + 15 * gridScale;
-
-    const portY = network.y + 1;
-    const predictionAnchor = {
-      x: (network.right + optimizer.left) / 2 - (mobile ? 20 : 0),
-      y: (portY + optimizer.y) / 2 - (mobile ? 12 : 0),
-    };
-    // Follow the raised neural network while leaving the two-line sign clear.
-    // Leave the visible front sheet clear, including its corner in the compact layout.
-    const cornerGap = gap / Math.SQRT2;
-    const featureStart = mobile
-      ? {
-          x: data.x + 20 * sheetScale - cornerGap,
-          y: data.y + sheetInset + 26 * sheetScale - cornerGap,
-        }
-      : {
-          x: data.x + 20 * sheetScale - gap,
-          y: data.y + sheetInset + 42 * sheetScale,
-        };
-    const predictionEnd = {
-      x: optimizer.x + 10,
-      y: optimizer.y - 100 * Math.min(polyBounds.w / 280, 0.85) - 16,
-    };
-    const modelCaption = bounds('.optimize .module-label');
-    const decisionStartY = Math.max(optimizer.bottom + 32, modelCaption.y + modelCaption.h + 12);
-    const paths = mobile
-      ? [
-          `M${featureStart.x} ${featureStart.y} C${featureX - 38} ${data.y - 38} ${featureX - 26} ${featureY + 68} ${featureX} ${featureY}`,
-          `M${network.right + gap} ${portY} C${(network.right + gap + predictionEnd.x) / 2} ${portY + 10} ${predictionEnd.x - 18} ${predictionEnd.y - 24} ${predictionEnd.x} ${predictionEnd.y}`,
-          `M${optimizer.x + 18} ${decisionStartY} C${optimizer.x + 18} ${decisionStartY + 24} ${gridInX} ${gridInY - 28} ${gridInX} ${gridInY}`,
-          `M${data.x + data.w * 0.55} ${data.y + data.h + gap} C${data.x + data.w * 0.55} ${balance.y + 8} ${balance.left - gap - 32} ${balance.y + 8} ${balance.left - gap} ${balance.y + 8}`,
-        ]
-      : [
-          `M${featureStart.x} ${featureStart.y} C${featureX - 42} ${featureStart.y - 40} ${featureX - 30} ${featureY + 68} ${featureX} ${featureY}`,
-          `M${network.right + gap} ${portY} C${network.right + gap + 38} ${portY} ${optimizer.left - gap - 38} ${optimizer.y} ${optimizer.left - gap} ${optimizer.y}`,
-          `M${optimizer.right + gap} ${optimizer.y} C${optimizer.right + gap + 42} ${optimizer.y + 22} ${gridInX + 12} ${gridInY - 36} ${gridInX} ${gridInY}`,
-          `M${data.x + (data.w * 124) / 140 + gap} ${data.y + data.h * 0.52} C${data.x + data.w + 30} ${data.y + data.h * 0.52 - 4} ${balance.left - gap - 30} ${truthInY - 4} ${balance.left - gap} ${truthInY}`,
-        ];
+    const { paths, predictionAnchor } = flowPaths({
+      network,
+      optimizer,
+      balance,
+      polyBounds,
+      gridScale,
+      neuralScale: neuralS,
+      data,
+      modelCaption: bounds('.optimize .module-label'),
+      mobile,
+    });
     const lengths = paths.map((d) => {
       const p = document.createElementNS(ns, 'path');
       p.setAttribute('d', d);
@@ -143,7 +116,7 @@ document.querySelectorAll<HTMLElement>('.training-flow').forEach((root) => {
     });
     const reverseWindows = configureFlow(
       [...lengths.slice(0, 3), 0],
-      networkGeometry.halfWidth * 2 * Math.cos(0.24) * neuralScale,
+      networkGeometry.halfWidth * 2 * Math.cos(0.24) * neuralS,
       polyScale,
     );
     const windows: [number, number][] = [
@@ -188,6 +161,22 @@ document.querySelectorAll<HTMLElement>('.training-flow').forEach((root) => {
     figure.captions = nameEvents.map(([selector, events]) => {
       const label = root.querySelector<HTMLElement>(selector)!;
       return { label, glow: label.querySelector<HTMLElement>('.module-name-glow')!, events };
+    });
+    const labelMeasurements = wireLabels.map(({ selector }) => {
+      const label = root.querySelector<HTMLElement>(selector);
+      if (!label) return null;
+      const symbol = label.querySelector<HTMLElement>('.dfl-label-content:not(.label-glow)>i')!;
+      const box = label.getBoundingClientRect();
+      const ink = symbol.getBoundingClientRect();
+      return {
+        label,
+        offsetX: ink.x - box.x,
+        offsetY: ink.y - box.y,
+        symbolWidth: ink.width,
+        symbolHeight: ink.height,
+        width: label.offsetWidth,
+        height: label.offsetHeight,
+      };
     });
     group.replaceChildren();
     svg.querySelectorAll('[data-signal-gradient]').forEach((gradient) => gradient.remove());
@@ -238,7 +227,8 @@ document.querySelectorAll<HTMLElement>('.training-flow').forEach((root) => {
       signal.append(signalHalo, band);
       group.append(signal);
       const labelConfig = wireLabels[i];
-      const label = root.querySelector<HTMLElement>(labelConfig.selector);
+      const measuredLabel = labelMeasurements[i];
+      const label = measuredLabel?.label ?? null;
       let labelAt = mobile ? labelConfig.mobile : labelConfig.desktop;
       if (i === 1 && !mobile) {
         const target = predictionAnchor;
@@ -256,11 +246,9 @@ document.querySelectorAll<HTMLElement>('.training-flow').forEach((root) => {
       if (label) {
         // Anchor the mathematical symbol itself on the wire; its ink backing opens the gap.
         const anchor = base.getPointAtLength(length * labelAt);
-        const symbol = label.querySelector<HTMLElement>('.dfl-label-content:not(.label-glow)>i')!;
-        const lb = label.getBoundingClientRect(),
-          sb = symbol.getBoundingClientRect();
-        label.style.left = `${anchor.x - (sb.x - lb.x) - sb.width / 2}px`;
-        label.style.top = `${anchor.y - (sb.y - lb.y) - sb.height / 2}px`;
+        const { offsetX, offsetY, symbolWidth, symbolHeight } = measuredLabel!;
+        label.style.left = `${anchor.x - offsetX - symbolWidth / 2}px`;
+        label.style.top = `${anchor.y - offsetY - symbolHeight / 2}px`;
       }
       const at = length * labelAt;
       const a = base.getPointAtLength(Math.max(0, at - 2)),
@@ -277,7 +265,9 @@ document.querySelectorAll<HTMLElement>('.training-flow').forEach((root) => {
         reverse: i === 3 ? null : reverseWindows[i],
         label,
         labelAt,
-        extent: label ? Math.abs(dx) * label.offsetWidth + Math.abs(dy) * label.offsetHeight : 1,
+        extent: label
+          ? Math.abs(dx) * measuredLabel!.width + Math.abs(dy) * measuredLabel!.height
+          : 1,
         angle: (Math.atan2(dx, -dy) * 180) / Math.PI,
         glow: label?.querySelector<HTMLElement>('.label-glow') ?? null,
       });

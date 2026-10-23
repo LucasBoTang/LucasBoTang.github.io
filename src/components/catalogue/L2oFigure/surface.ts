@@ -8,6 +8,7 @@ import { createPredictionHud, predictionHudAt } from './hud';
 import { createReadoutWriter, createTrainingReadings } from './readouts';
 import { createSurfaceScene } from './surface-scene';
 import { trainingCadence, trainingReset } from './timing';
+import type { TrainingTickEvent } from './training-events';
 
 // One visible composition owns one clock: the surface, legend and lower instruments stay in step.
 enhanceNear<HTMLElement>('[data-l2o-surface]', initializeTrainingFigure);
@@ -124,7 +125,9 @@ async function initializeTrainingFigure(root: HTMLElement) {
       }
     }
     instrument?.dispatchEvent(
-      new CustomEvent('l2o:tick', { detail: { t: phase, at: arrivedPoint, beat, index } }),
+      new CustomEvent<TrainingTickEvent['detail']>('l2o:tick', {
+        detail: { t: phase, at: arrivedPoint, beat, index },
+      }),
     );
   }
   new ResizeObserver(resize).observe(canvas);

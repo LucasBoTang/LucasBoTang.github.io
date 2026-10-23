@@ -364,7 +364,7 @@ test.describe('on a phone', () => {
         .filter((animation): animation is CSSAnimation => animation instanceof CSSAnimation)
         .map((animation) => ({ name: animation.animationName, state: animation.playState })),
       plate: getComputedStyle(link, '::before').display,
-      marker: getComputedStyle(link, '::after').display,
+      marker: getComputedStyle(link, '::after').content,
       tear: getComputedStyle(link.querySelector('.link-label')!, '::before').display,
       light: getComputedStyle(link.querySelector('.lane-foreground')!).color,
     }));

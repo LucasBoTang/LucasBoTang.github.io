@@ -14,7 +14,7 @@
     const trigger = screen.querySelector('[data-reveal="unit"]');
     trigger?.addEventListener(ARRIVAL_PREPARE_EVENT, (event) => {
       const group = (event as CustomEvent<Animation[]>).detail;
-      const replacement = screenArrival(screen.closest('figure')!);
+      const replacement = screenArrival(screen, trigger);
       if (!replacement) return;
       group.forEach((animation) => animation.cancel());
       group.splice(0, group.length, ...replacement);

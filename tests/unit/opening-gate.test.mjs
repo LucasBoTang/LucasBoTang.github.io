@@ -54,3 +54,16 @@ test('with nothing held the opening goes on at once', async (t) => {
   await flush();
   assert.ok(released);
 });
+
+test('failed preparation releases its hold without rejecting the opening or another task', async (t) => {
+  const { holdOpening, openingHeld, openingReleased } = await gate(t);
+  const pending = Promise.withResolvers();
+  holdOpening(pending.promise);
+  holdOpening(Promise.reject(new Error('preparation failed')));
+  await flush();
+  assert.equal(openingHeld(), true, 'the second task still owns its hold');
+  pending.resolve();
+  await openingReleased();
+  await flush();
+  assert.equal(openingHeld(), false);
+});

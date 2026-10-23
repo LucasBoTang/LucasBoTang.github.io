@@ -37,10 +37,11 @@ let releasedAt = 0;
  * the figures ahead (FigureWarmup), happens while the page is still. */
 export function holdOpening(task: Promise<unknown>): void {
   openingHolds.add(task);
-  void task.finally(() => {
+  const release = () => {
     openingHolds.delete(task);
     if (!openingHolds.size) releasedAt = performance.now();
-  });
+  };
+  void task.then(release, release);
 }
 
 /** Whether an opening is still held back: some held work is running, and its bound is ahead. */
@@ -52,14 +53,13 @@ export const openingReleasedAt = () =>
 
 /** Resolves once no held work is left, or at `OPENING_HOLD_UNTIL`. */
 export async function openingReleased(): Promise<void> {
-  const bound = new Promise<void>((resolve) =>
-    setTimeout(resolve, Math.max(0, OPENING_HOLD_UNTIL - performance.now())),
-  );
+  if (!openingHeld()) return;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const bound = new Promise<void>((resolve) => {
+    timer = setTimeout(resolve, Math.max(0, OPENING_HOLD_UNTIL - performance.now()));
+  });
   while (openingHeld()) {
-    const held = await Promise.race([
-      Promise.allSettled([...openingHolds]).then(() => true),
-      bound.then(() => false),
-    ]);
-    if (!held) return;
+    if ((await Promise.race([Promise.allSettled([...openingHolds]), bound])) === undefined) break;
   }
+  clearTimeout(timer);
 }
