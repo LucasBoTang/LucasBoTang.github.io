@@ -1,16 +1,20 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { parseHTML } from 'linkedom';
+import { installGlobals } from '../helpers/browser.mjs';
 import { registerTypeScriptImports } from '../helpers/typescript-imports.mjs';
 
 let instance = 0;
 
-/** opening-gate loaded fresh, with fake timers and a clock at `now` milliseconds. */
-async function gate(t, now = 0) {
+/** opening-gate loaded fresh against `markup`, with fake timers and a clock at `now`. */
+async function gate(t, now = 0, markup = '') {
   t.mock.timers.enable({ apis: ['setTimeout'] });
   t.mock.method(performance, 'now', () => now);
+  const { document, MutationObserver } = parseHTML(`<html><body>${markup}</body></html>`);
+  installGlobals(t, { document, MutationObserver });
   const hooks = registerTypeScriptImports();
   try {
-    return await import(`../../src/lib/opening-gate.ts?test=${++instance}`);
+    return { document, ...(await import(`../../src/lib/opening-gate.ts?test=${++instance}`)) };
   } finally {
     hooks.deregister();
   }
@@ -66,4 +70,21 @@ test('failed preparation releases its hold without rejecting the opening or anot
   await openingReleased();
   await flush();
   assert.equal(openingHeld(), false);
+});
+
+test('a script that may hold the opening is waited for until it has decided', async (t) => {
+  const { document, openingHeld, openingReleased } = await gate(
+    t,
+    0,
+    '<div data-opening-hold></div>',
+  );
+  let released = false;
+  void openingReleased().then(() => (released = true));
+  await flush();
+  assert.equal(released, false, 'its script has not run yet');
+  assert.ok(openingHeld());
+  document.querySelector('[data-opening-hold]').removeAttribute('data-opening-hold');
+  await flush();
+  await flush();
+  assert.ok(released, 'it decided not to hold');
 });

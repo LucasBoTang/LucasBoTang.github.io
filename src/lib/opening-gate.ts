@@ -45,8 +45,31 @@ export function holdOpening(task: Promise<unknown>): void {
   void task.then(release, release);
 }
 
+let scanned = false;
+/** Scripts arrive in no fixed order, so one that may hold the opening marks its element
+ * `data-opening-hold` in the page itself; the opening is held until it removes the mark, having
+ * decided, rather than going on because that script has not yet run. */
+function holdForUndecided() {
+  if (scanned) return;
+  scanned = true;
+  for (const element of document.querySelectorAll('[data-opening-hold]'))
+    holdOpening(
+      new Promise<void>((resolve) => {
+        const observer = new MutationObserver(() => {
+          if (element.hasAttribute('data-opening-hold')) return;
+          observer.disconnect();
+          resolve();
+        });
+        observer.observe(element, { attributes: true, attributeFilter: ['data-opening-hold'] });
+      }),
+    );
+}
+
 /** Whether an opening is still held back: some held work is running, and its bound is ahead. */
-export const openingHeld = () => openingHolds.size > 0 && performance.now() < OPENING_HOLD_UNTIL;
+export const openingHeld = () => {
+  holdForUndecided();
+  return openingHolds.size > 0 && performance.now() < OPENING_HOLD_UNTIL;
+};
 
 /** When the opening was let go after being held, or 0 if nothing held it. */
 export const openingReleasedAt = () =>

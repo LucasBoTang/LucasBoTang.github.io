@@ -83,8 +83,9 @@ test('standalone figures check drawing precision without the site font-preload c
 });
 
 test('reports a small budget overrun without rounding it down to the limit', () => {
-  assert.deepEqual(checkSize('index.html', 80, 70), []);
-  assert.deepEqual(checkSize('index.html', 80, 70 + 79 / 1024), [
-    'index.html: scripts are 70.08KB, over 70KB',
+  // An unlisted page takes the default budget, so the case does not move with any page's limit.
+  assert.deepEqual(checkSize('unlisted/index.html', 48, 24), []);
+  assert.deepEqual(checkSize('unlisted/index.html', 48, 24 + 79 / 1024), [
+    'unlisted/index.html: scripts are 24.08KB, over 24KB',
   ]);
 });

@@ -13,8 +13,9 @@ export const budgetFiles = [...pageFiles, ...figureFiles];
 /** Kilobytes a page may weigh: its HTML, and the scripts it loads with everything they import. */
 const BUDGET = {
   // Includes home previews and the sign's event-driven readiness; figures load only on intent,
-  // but on a screen with hover the warm-up draws them ahead once the opening has settled.
-  'index.html': { html: 80, scripts: 70 },
+  // but on a first visit on a screen with hover the warm-up draws them ahead behind the opening's
+  // waiting caret, which the opening's hold also covers before the warm-up's script has run.
+  'index.html': { html: 80, scripts: 71 },
   // Includes four accessible theme lanes; their repeated visual lettering adds about 8KB.
   // Includes the phone lanes' shared entrance choreography and reading-index controller, plus
   // bounded figure preparation before the body arrives (about 30.1KB of scripts in total).

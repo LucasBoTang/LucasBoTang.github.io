@@ -275,6 +275,15 @@ function declaredFilters(): FilterSequence[] {
 }
 
 enhance('[data-figure-warmup-sources]', (host) => {
+  try {
+    startWarmup(host);
+  } finally {
+    // The opening waits for this decision (opening-gate.ts); any hold is in place by now.
+    host.removeAttribute('data-opening-hold');
+  }
+});
+
+function startWarmup(host: HTMLElement) {
   // Previews open on hover, so on a screen without hover they are not drawn ahead; nor is
   // anything drawn ahead for a visitor saving data.
   const hoverOnly = host.hasAttribute('data-figure-warmup-hover');
@@ -288,7 +297,7 @@ enhance('[data-figure-warmup-sources]', (host) => {
   if (unseen && openingPending())
     holdOpening(warmBeforeOpening(sources, version, declaredFilters()));
   else void warmInTurn(sources, version, declaredFilters());
-});
+}
 
 /** The figures this browser has already drawn through; none when storage is off. */
 function remembered(): Set<string> {
