@@ -7,9 +7,10 @@ import { figureWarmups } from './src/data/research/figures';
 const port = Number(process.env.PLAYWRIGHT_PORT) || 4400;
 const baseURL = `http://127.0.0.1:${port}`;
 
-// A first visit draws every figure ahead while the opening keeps the page dark (FigureWarmup),
-// which, under software rendering and many parallel workers, slows every opening. Tests start as
-// a returning visitor whose figures are already drawn through; figure-warmup.spec.ts starts fresh.
+// A first visit draws every figure ahead once the opening has settled (FigureWarmup), which,
+// under software rendering and many parallel workers, loads every page with three more documents
+// and shifts the timing other specs measure. Tests start as a returning visitor whose figures are
+// already drawn through; figure-warmup.spec.ts starts fresh.
 const returningVisitor = {
   cookies: [],
   origins: [

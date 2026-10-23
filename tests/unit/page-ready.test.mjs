@@ -29,45 +29,7 @@ async function page(t) {
 }
 const flush = () => new Promise((resolve) => setImmediate(resolve));
 
-test('a held task that outlasts the resource bound delays the opening without skipping it', async (t) => {
-  const { document, holdPageReady, waitForPageReady } = await page(t);
-  let release;
-  holdPageReady(new Promise((resolve) => (release = resolve)));
-  let ready = false;
-  void waitForPageReady().then(() => (ready = true));
-  await flush();
-  t.mock.timers.tick(5000);
-  await flush();
-  assert.equal(ready, false, 'the opening waits for the task');
-  assert.ok(document.documentElement.hasAttribute('data-opening-pending'), 'and is not skipped');
-  release();
-  await flush();
-  t.mock.timers.tick(400);
-  await flush();
-  assert.ok(ready);
-  assert.ok(
-    document.documentElement.hasAttribute('data-opening-pending'),
-    'the opening plays: its own script lifts the gate',
-  );
-});
-
-test('resources settle while a held task runs, not after it', async (t) => {
-  const { holdPageReady, waitForPageReady } = await page(t);
-  let release;
-  holdPageReady(new Promise((resolve) => (release = resolve)));
-  let ready = false;
-  void waitForPageReady().then(() => (ready = true));
-  await flush();
-  t.mock.timers.tick(300);
-  release();
-  await flush();
-  assert.equal(ready, false, 'resources are still settling');
-  t.mock.timers.tick(100);
-  await flush();
-  assert.ok(ready, 'ready once resources have settled, 400ms after they arrived');
-});
-
-test('resources that never arrive skip the opening at the bound', async (t) => {
+test('fonts that never arrive skip the opening at the bound', async (t) => {
   const { document, waitForPageReady } = await page(t);
   document.fonts = { ready: new Promise(() => {}) };
   let ready = false;

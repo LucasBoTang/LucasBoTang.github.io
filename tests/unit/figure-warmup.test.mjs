@@ -16,9 +16,9 @@ const sources = [
 ];
 let instance = 0;
 
-/** A page whose opening keeps it dark, with the module loaded fresh against its globals. */
+/** A page whose opening has lifted, with the module loaded fresh against its globals. */
 async function page(t, { innerWidth = 1280, markup = '', stored = {} } = {}) {
-  const { document, Event } = parseHTML(`<html data-opening-pending><body>${markup}</body></html>`);
+  const { document, Event } = parseHTML(`<html><head></head><body>${markup}</body></html>`);
   const frames = frameQueue();
   installGlobals(t, {
     document,
@@ -27,6 +27,7 @@ async function page(t, { innerWidth = 1280, markup = '', stored = {} } = {}) {
     requestAnimationFrame: frames.request,
     matchMedia: () => mediaQuery(true),
     navigator: {},
+    addEventListener: () => {},
     localStorage: {
       getItem: (key) => stored[key] ?? null,
       setItem: (key, value) => (stored[key] = value),
@@ -37,7 +38,7 @@ async function page(t, { innerWidth = 1280, markup = '', stored = {} } = {}) {
     const module = await import(
       `../../src/components/catalogue/FigureWarmup/figure-warmup.ts?test=${++instance}`
     );
-    return { document, frames, Event, warmFigures: module.warmFigures };
+    return { document, frames, Event, ...module };
   } finally {
     hooks.deregister();
   }
@@ -104,37 +105,78 @@ test('plays each declared filter sequence in the slot, each once', async (t) => 
   await done;
 });
 
-test('the page component warms its sources and the filters the page declares', async (t) => {
-  const markup =
-    `<div data-figure-warmup-sources='${JSON.stringify(sources)}' data-figure-warmup-version="v2" hidden></div>` +
-    `<a data-warm-filters='[["blur(2px)","blur(0px)"]]'></a><a data-warm-filters='[["blur(2px)","blur(0px)"],["none","url(#x)"]]'></a>`;
-  const stored = {};
-  const { document, frames, Event } = await page(t, { markup, stored });
-  assert.equal(document.querySelectorAll('[data-figure-warmup] iframe').length, 2);
-  assert.equal(document.querySelectorAll('[data-figure-warmup] [data-warm-filter]').length, 2);
-  for (const frame of document.querySelectorAll('iframe')) frame.dispatchEvent(new Event('load'));
-  for (let i = 0; i < 25; i++) {
+/** Loads whatever the warm-up slot holds and gives it its frames, until no slot is left. */
+async function drawEach(document, frames, Event, drawn = []) {
+  for (let turn = 0; turn < 5; turn++) {
     await flush();
-    frames.flush(16 * i);
+    const slot = document.querySelector('[data-figure-warmup]');
+    if (!slot) continue;
+    drawn.push({
+      figures: [...slot.querySelectorAll('iframe')].map((frame) => frame.getAttribute('src')),
+      filters: slot.querySelectorAll('[data-warm-filter]').length,
+    });
+    for (const frame of slot.querySelectorAll('iframe')) frame.dispatchEvent(new Event('load'));
+    for (let i = 0; i < 25; i++) {
+      await flush();
+      frames.flush(16 * i);
+    }
   }
-  await flush();
-  assert.equal(document.querySelector('[data-figure-warmup]'), null);
+  return drawn;
+}
+const now = async () => {};
+
+test('draws the figures one at a time, fetching them ahead, and remembers each', async (t) => {
+  const stored = {};
+  const { document, frames, Event, warmInTurn } = await page(t, { stored });
+  const done = warmInTurn(sources, 'v2', [['blur(2px)', 'blur(0px)']], now);
+  const drawn = await drawEach(document, frames, Event);
+  await done;
+  assert.deepEqual(
+    [...document.querySelectorAll('link[rel=prefetch]')].map((link) => link.getAttribute('href')),
+    ['/figures/a/', '/figures/b/'],
+  );
+  assert.deepEqual(drawn, [
+    { figures: ['/figures/a/'], filters: 1 },
+    { figures: ['/figures/b/'], filters: 0 },
+  ]);
   assert.deepEqual(JSON.parse(stored['figure-warmup']), ['/figures/a/#v2', '/figures/b/#v2']);
-
-  const again = await page(t, { markup, stored });
-  assert.equal(again.document.querySelector('[data-figure-warmup]'), null, 'a later visit skips');
 });
 
-test('a figure not yet drawn through is drawn ahead, with the rest', async (t) => {
-  const markup = `<div data-figure-warmup-sources='${JSON.stringify(sources)}' data-figure-warmup-version="v2" hidden></div>`;
+test('skips figures remembered under this version, and remembers those the page shows', async (t) => {
   const stored = { 'figure-warmup': JSON.stringify(['/figures/a/#v2']) };
-  const { document } = await page(t, { markup, stored });
-  assert.equal(document.querySelectorAll('[data-figure-warmup] iframe').length, 2);
+  const markup = '<iframe src="/figures/b/"></iframe>';
+  const { document, frames, Event, warmInTurn } = await page(t, { stored, markup });
+  const done = warmInTurn(sources, 'v2', [], now);
+  const drawn = await drawEach(document, frames, Event);
+  await done;
+  assert.deepEqual(drawn, []);
+  assert.deepEqual(JSON.parse(stored['figure-warmup']), ['/figures/a/#v2', '/figures/b/#v2']);
 });
 
-test('figures drawn from an earlier version of their source are drawn ahead again', async (t) => {
-  const markup = `<div data-figure-warmup-sources='${JSON.stringify(sources)}' data-figure-warmup-version="v2" hidden></div>`;
-  const stored = { 'figure-warmup': JSON.stringify(['/figures/a/#v1', '/figures/b/#v1']) };
-  const { document } = await page(t, { markup, stored });
-  assert.equal(document.querySelectorAll('[data-figure-warmup] iframe').length, 2);
+test('draws again what was remembered under an earlier version, and forgets that version', async (t) => {
+  const stored = { 'figure-warmup': JSON.stringify(['/figures/a/#v1', '/figures/b/#v2']) };
+  const { document, frames, Event, warmInTurn } = await page(t, { stored });
+  const done = warmInTurn(sources, 'v2', [], now);
+  const drawn = await drawEach(document, frames, Event);
+  await done;
+  assert.deepEqual(drawn, [{ figures: ['/figures/a/'], filters: 0 }]);
+  assert.deepEqual(JSON.parse(stored['figure-warmup']), ['/figures/b/#v2', '/figures/a/#v2']);
+});
+
+test('waits for a quiet moment before each figure', async (t) => {
+  const { document, frames, Event, warmInTurn } = await page(t);
+  const moments = [];
+  const quiet = () => new Promise((resolve) => moments.push(resolve));
+  const done = warmInTurn(sources, 'v2', [], quiet);
+  await flush();
+  assert.equal(moments.length, 1);
+  assert.equal(document.querySelector('[data-figure-warmup]'), null, 'nothing drawn until quiet');
+  moments[0]();
+  assert.deepEqual(await drawEach(document, frames, Event), [
+    { figures: ['/figures/a/'], filters: 0 },
+  ]);
+  assert.equal(moments.length, 2, 'the next figure waits for its own quiet moment');
+  moments[1]();
+  await drawEach(document, frames, Event);
+  await done;
 });

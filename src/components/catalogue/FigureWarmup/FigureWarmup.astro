@@ -2,8 +2,8 @@
 import { figureVersion } from '../../../data/research/figure-version';
 import type { FigureSource } from './figure-warmup';
 
-// Draws the page's figure documents once, unseen, while the opening keeps the page dark, so the
-// GPU has compiled their shaders before a figure first appears (figure-warmup.ts). `hover` limits
+// Draws the page's figure documents once, unseen, at quiet moments after the opening, so the GPU
+// has compiled their shaders before a figure first appears (figure-warmup.ts). `hover` limits
 // this to screens with hover, for figures that open on hover.
 interface Props {
   figures: FigureSource[];

@@ -1,18 +1,20 @@
 import { enhance } from '../../../lib/lifecycle';
-import { openingPending } from '../../../lib/opening-gate';
-import { holdPageReady } from '../../../lib/page-ready';
+import { openingPending, waitForOpeningVisible } from '../../../lib/opening-gate';
 
 // The GPU compiles a shader program the first time it draws each kind of thing a figure draws,
 // and on a cold cache each takes about ten milliseconds, one after another: a figure's first frame
 // can hold the whole tab for a third of a second, right under the pointer that asked for it. So
-// while the page's opening still keeps it dark, every figure the page can show is drawn once,
-// unseen, in a slot that is in view but nearly transparent, and so is every filter the page's own
-// entrances will pass through as a figure appears. The programs are then cached for the real
-// appearance, and the opening waits for this within its own bound (page-ready.ts), so the stall
-// lands in the dark rather than on the reader. Browsers keep the programs on disk, so once every
-// figure has been drawn through, the visitor's storage remembers it and a later visit opens
-// without drawing anything ahead, until a figure's source changes (figure-version.ts); the
-// filters' few programs are cached alongside.
+// every figure the page can show is drawn once ahead, unseen, in a slot that is in view but nearly
+// transparent, and so is every filter the page's own entrances pass through as a figure appears.
+//
+// None of this may delay the opening or compete with it. The figure documents are fetched only
+// once the opening is visible, at the lowest priority, and drawn one at a time only once the
+// opening has finished moving, the page is idle and the reader is not scrolling: a figure's
+// warm-up shares the page's main thread and GPU, so it waits for a moment when nothing is in
+// motion. A figure the page has already shown is skipped. Browsers keep the programs on disk, so
+// the visitor's storage remembers each figure drawn or shown, and a later visit draws nothing ahead
+// until that figure's source changes (figure-version.ts); the filters' few programs are cached
+// alongside the first figure's.
 
 /** A figure document and the size its embed will give it; the compact size below `compactAt`. */
 export interface FigureSource {
@@ -36,12 +38,17 @@ const FRAMES = 24;
 /** Where the figures already drawn through are remembered, by their documents' paths and the
  * version of the figures' source they were drawn from. */
 const STORAGE_KEY = 'figure-warmup';
-
-/** Warming gives up after this long, so that the opening still plays inside the layout's 3s
- * fallback; a cold first visit needs about 1.1s. */
-const TIMEOUT = 2000;
+/** A figure's warm-up gives up after this long, its document fetch included. */
+const TIMEOUT = 4000;
+/** How long the reader must have stopped scrolling before a figure is drawn ahead. */
+const SCROLL_QUIET = 600;
+/** How often the page is checked for a quiet moment. */
+const POLL = 250;
+/** A passage left half typed, out of view, does not hold the warm-up longer than this. */
+const PATIENCE = 8000;
 
 const nextFrame = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+const delay = (ms: number) => new Promise<void>((resolve) => window.setTimeout(resolve, ms));
 
 /** Settles once `frame`'s document has its fonts and images, or when it cannot be read. */
 async function resourcesOf(frame: HTMLIFrameElement) {
@@ -125,6 +132,86 @@ export function warmFigures(
   });
 }
 
+/** Whether the page has already shown `src` in an embed of its own. */
+const shown = (src: string) =>
+  [...document.querySelectorAll('iframe')].some(
+    (frame) => frame.getAttribute('src') === src && !frame.closest('[data-figure-warmup]'),
+  );
+
+/** Whether the page's opening has finished moving: its gate is lifted, no passage is still
+ * typing, the greeting has let go of the page, and no animation with an end is running. */
+function openingSettled() {
+  if (openingPending() || document.documentElement.hasAttribute('data-greeting-locked'))
+    return false;
+  if (document.querySelector('[data-typing-started]:not([data-typing-complete])')) return false;
+  return !document
+    .getAnimations()
+    .some(
+      (animation) =>
+        animation.playState === 'running' &&
+        Number.isFinite(Number(animation.effect?.getComputedTiming().endTime)),
+    );
+}
+
+let lastScroll = -Infinity;
+for (const type of ['scroll', 'wheel', 'touchmove'])
+  addEventListener(type, () => (lastScroll = performance.now()), { capture: true, passive: true });
+
+/** Settles at a moment when nothing is in motion: the opening has settled, or `since` is long
+ * past, the reader has stopped scrolling, and the browser is idle. */
+async function quietMoment(since: number) {
+  for (;;) {
+    const now = performance.now();
+    if ((openingSettled() || now - since > PATIENCE) && now - lastScroll > SCROLL_QUIET) break;
+    await delay(POLL);
+  }
+  // Safari has no idle callback; a task after the poll is the nearest it offers.
+  await new Promise<void>((resolve) =>
+    typeof requestIdleCallback === 'function'
+      ? requestIdleCallback(() => resolve(), { timeout: 1000 })
+      : setTimeout(resolve),
+  );
+}
+
+/** Fetches `sources` ahead at the lowest priority, so that drawing them waits on no network. */
+function prefetch(sources: FigureSource[]) {
+  for (const { src } of sources) {
+    const link = document.createElement('link');
+    link.rel = 'prefetch';
+    link.href = src;
+    document.head.append(link);
+  }
+}
+
+/**
+ * Draws `sources` ahead one at a time, each at a quiet moment, skipping those already remembered
+ * under `version` or already shown; `filters` play alongside the first figure drawn.
+ */
+export async function warmInTurn(
+  sources: FigureSource[],
+  version: string,
+  filters: FilterSequence[] = [],
+  quiet: (since: number) => Promise<void> = quietMoment,
+) {
+  const key = (source: FigureSource) => `${source.src}#${version}`;
+  const pending = sources.filter((source) => !remembered().has(key(source)));
+  if (!pending.length) return;
+  await waitForOpeningVisible();
+  const since = performance.now();
+  prefetch(pending);
+  for (const source of pending) {
+    await quiet(since);
+    // A figure the page has shown compiles its own programs; it is remembered all the same.
+    if (shown(source.src)) {
+      remember(key(source), version);
+      continue;
+    }
+    const complete = await warmFigures([source], filters);
+    filters = [];
+    if (complete) remember(key(source), version);
+  }
+}
+
 /** Every filter sequence the page's entrances declare, each once. */
 function declaredFilters(): FilterSequence[] {
   const sequences = new Map<string, FilterSequence>();
@@ -136,20 +223,13 @@ function declaredFilters(): FilterSequence[] {
 
 enhance('[data-figure-warmup-sources]', (host) => {
   // Previews open on hover, so on a screen without hover they are not drawn ahead; nor is
-  // anything drawn ahead for a visitor saving data, or when no opening keeps the page dark.
+  // anything drawn ahead for a visitor saving data.
   const hoverOnly = host.hasAttribute('data-figure-warmup-hover');
   if (hoverOnly && !matchMedia('(hover: hover) and (pointer: fine)').matches) return;
   const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
-  if (connection?.saveData || !openingPending()) return;
+  if (connection?.saveData) return;
   const sources = JSON.parse(host.dataset.figureWarmupSources ?? '[]') as FigureSource[];
-  const keys = sources.map(({ src }) => `${src}#${host.dataset.figureWarmupVersion}`);
-  const warmed = remembered();
-  if (keys.every((key) => warmed.has(key))) return;
-  holdPageReady(
-    warmFigures(sources, declaredFilters()).then((complete) => {
-      if (complete) remember(keys);
-    }),
-  );
+  void warmInTurn(sources, host.dataset.figureWarmupVersion ?? '', declaredFilters());
 });
 
 /** The figures this browser has already drawn through; none when storage is off. */
@@ -161,7 +241,9 @@ function remembered(): Set<string> {
   }
 }
 
-function remember(keys: string[]) {
+/** Adds `key` to the record, dropping figures remembered under another version. */
+function remember(key: string, version: string) {
+  const keys = [...remembered(), key].filter((entry) => entry.endsWith(`#${version}`));
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify([...new Set(keys)]));
   } catch {}

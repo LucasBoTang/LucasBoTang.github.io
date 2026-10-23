@@ -287,6 +287,48 @@ const [inkRed, inkGreen, inkBlue] = blueInk.dark.map((dark, i) => `${dark} ${blu
   .hero-intro :global([data-typing-complete] .typed-cursor) {
     visibility: hidden;
   }
+  /* A first visit's greeting holds its caret where the first key will land, blinking through the
+     dark opening, so the wait reads as a pause before typing rather than an empty page. Until the
+     typing script has laid the sentence out, a stand-in holds the same place; a return, whose
+     prose fades in without typing, shows neither. */
+  :global(html:not([data-header-persistent]))
+    .hero-intro
+    :global(
+      [data-typing-ready]:not([data-typing-started]):not([data-typing-complete]) .typed-cursor
+    ) {
+    visibility: visible;
+  }
+  :global(html[data-opening-pending]:not([data-header-persistent]))
+    .hero-intro
+    :global([data-typed-text]:not([data-typing-ready]))::after {
+    content: '';
+    left: 0;
+    position: absolute;
+    top: 0.12em;
+    height: 1em;
+    margin-left: 3px;
+    width: 2px;
+    background: var(--blue);
+    visibility: visible;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    :global(html[data-opening-pending]:not([data-header-persistent]))
+      .hero-intro
+      :global([data-typed-text]:not([data-typing-ready]))::after {
+      animation: greeting-caret-wait 1.1s step-end infinite;
+    }
+  }
+  @keyframes greeting-caret-wait {
+    0%,
+    55%,
+    100% {
+      opacity: 1;
+    }
+    56%,
+    99% {
+      opacity: 0;
+    }
+  }
   .hero-bio {
     margin-top: var(--step-16);
   }

@@ -1,6 +1,6 @@
 // SiteLayout's opening gate. A page with an opening starts with `data-opening-pending` on the root
 // element, which keeps its content hidden (src/styles/motion.css) until the page's opening script
-// lifts it, or until 3 seconds have passed.
+// lifts it, or until 2.5 seconds have passed.
 
 const PENDING = 'data-opening-pending';
 

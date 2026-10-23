@@ -1,22 +1,13 @@
 import { onKeyboardFocus, reducedMotionQuery } from './motion';
 import { liftOpeningGate, openingPending } from './opening-gate';
 
-/** Leave time inside the layout's 3s fallback for animation preparation. */
+/** Leave time inside the layout's 2.5s fallback for animation preparation. */
 const RESOURCE_TIMEOUT = 1800;
 /** A short quiet interval lets decoded images and loaded fonts settle before motion starts. */
 const SETTLE_TIME = 400;
 const readiness = new Map<boolean, Promise<void>>();
-const holds = new Set<Promise<unknown>>();
 
-/** Keeps the page's opening waiting for `task` too. Unlike a resource, a task bounds itself, and
- * settles in time for the opening to play inside the layout's fallback: a task that runs long
- * must not count as a failed resource, which skips the opening. */
-export function holdPageReady(task: Promise<unknown>): void {
-  holds.add(task);
-}
-
-/** Shared readiness for page openings: first-screen fonts and eager images, and whatever
- * `holdPageReady` adds, bounded on failure. */
+/** Shared readiness for page openings: first-screen fonts and eager images, bounded on failure. */
 export function waitForPageReady({ waitForImages = true } = {}): Promise<void> {
   if (!openingPending()) return Promise.resolve();
   const cached = readiness.get(waitForImages);
@@ -52,20 +43,10 @@ export function waitForPageReady({ waitForImages = true } = {}): Promise<void> {
       .map((image) => image.decode());
     const resources = Promise.allSettled([document.fonts.ready, ...images]);
     timeout = window.setTimeout(() => finish(true), RESOURCE_TIMEOUT);
-    void resources.then(async () => {
+    void resources.then(() => {
       if (finished) return;
       window.clearTimeout(timeout);
-      // Resources settle while the holds run, rather than after them.
-      const settled = new Promise((resolve) => (settle = window.setTimeout(resolve, SETTLE_TIME)));
-      // Holds may be added while resources load, so wait until none are left pending.
-      let awaited = 0;
-      while (!finished && awaited < holds.size) {
-        const pending = [...holds];
-        awaited = pending.length;
-        await Promise.allSettled(pending);
-      }
-      await settled;
-      finish();
+      settle = window.setTimeout(() => finish(), SETTLE_TIME);
     });
   });
   readiness.set(waitForImages, ready);
