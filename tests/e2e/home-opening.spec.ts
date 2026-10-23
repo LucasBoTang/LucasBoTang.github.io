@@ -223,18 +223,29 @@ test('the bio joins the affiliation during the fold and the portrait starts on l
     body: await page.screenshot(),
     contentType: 'image/png',
   });
-  const field = page.locator('.research-topic .lane-field').first();
-  await expect
-    .poll(() => field.evaluate((element) => element.getAnimations()[0]?.playState))
-    .toBe('running');
-  const laneAt = await field.evaluate((element) => Number(element.getAnimations()[0].startTime));
-  const lightAt = await page
-    .locator('.research-topic .lane-light-window')
-    .first()
-    .evaluate((element) => {
-      const animation = element.getAnimations()[0];
-      return Number(animation.startTime) + Number(animation.effect!.getTiming().delay);
-    });
+  const { laneAt, lightAt } = await page.evaluate(
+    () =>
+      new Promise<{ laneAt: number; lightAt: number }>((resolve) => {
+        const field = document.querySelector('.research-topic .lane-field')!;
+        const light = document.querySelector('.research-topic .lane-light-window')!;
+        const sample = () => {
+          const entrance = field.getAnimations()[0];
+          const illumination = light.getAnimations()[0];
+          // playState can be 'running' while play is pending and startTime is still null.
+          // Wait for both timestamps together; Number(null) would invent a start at page load.
+          if (
+            typeof entrance?.startTime === 'number' &&
+            typeof illumination?.startTime === 'number'
+          )
+            resolve({
+              laneAt: entrance.startTime,
+              lightAt: illumination.startTime + Number(illumination.effect!.getTiming().delay),
+            });
+          else requestAnimationFrame(sample);
+        };
+        sample();
+      }),
+  );
   await expect(page.locator('.hero-bio [data-typed-text]')).toHaveAttribute(
     'data-typing-complete',
     '',
