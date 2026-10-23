@@ -1,11 +1,13 @@
 import { clamp } from '../../../lib/easing.ts';
 import { enhance } from '../../../lib/lifecycle';
 import { reducedMotionQuery } from '../../../lib/motion';
+import { createParameterSignals } from './parameter-signal';
 import { trainingBeat, trainingCadence, trainingSignals } from './timing';
 
 const NS = 'http://www.w3.org/2000/svg';
 enhance<HTMLElement>('[data-l2o-material] [data-training-composition]', (root) => {
   const svg = root.querySelector<SVGSVGElement>('.training-connections')!;
+  const updateParameters = createParameterSignals(root);
   const motionPreference = reducedMotionQuery();
   let reduced = motionPreference.matches;
   motionPreference.addEventListener('change', () => {
@@ -121,6 +123,7 @@ enhance<HTMLElement>('[data-l2o-material] [data-training-composition]', (root) =
     }
   }
   function draw(t: number, beat: ReturnType<typeof trainingBeat>) {
+    updateParameters(t, reduced);
     if (beat !== activeBeat) {
       activeBeat = beat;
       signals = trainingSignals(beat);

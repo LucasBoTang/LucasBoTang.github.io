@@ -1,6 +1,7 @@
 ---
 import './readouts.css';
 import Network from './Network.astro';
+import ParameterSignal from './ParameterSignal.astro';
 import Symbol from './MathSymbol.astro';
 import recording from '../../../data/research/l2o-training-snapshots.json';
 ---
@@ -19,11 +20,11 @@ import recording from '../../../data/research/l2o-training-snapshots.json';
       <mtable columnalign="right left" columnspacing=".75em" rowspacing=".55em">
         <mtr>
           <mtd><munder><mo>min</mo><mrow><mi>x</mi><mo>∈</mo><mi>ℝ</mi><mo>,</mo><mi>y</mi><mo>∈</mo><mi>ℤ</mi></mrow></munder></mtd>
-          <mtd><msup><mrow><mo>(</mo><mpadded class="problem-parameter" width=".85em" lspace=".14em" height=".85em" depth=".2em"><mi>a</mi></mpadded><mo>−</mo><mi>x</mi><mo>)</mo></mrow><mn>2</mn></msup><mo>+</mo><mn>50</mn><msup><mrow><mo>(</mo><mi>y</mi><mo>−</mo><msup><mi>x</mi><mn>2</mn></msup><mo>)</mo></mrow><mn>2</mn></msup></mtd>
+          <mtd><msup><mrow><mo>(</mo><mpadded class="problem-parameter" width=".85em" lspace=".14em" height=".85em" depth=".2em"><mtext><ParameterSignal name="a" quiet><Symbol base="a" /></ParameterSignal></mtext></mpadded><mo>−</mo><mi>x</mi><mo>)</mo></mrow><mn>2</mn></msup><mo>+</mo><mn>50</mn><msup><mrow><mo>(</mo><mi>y</mi><mo>−</mo><msup><mi>x</mi><mn>2</mn></msup><mo>)</mo></mrow><mn>2</mn></msup></mtd>
         </mtr>
         <mtr>
           <mtd><mtext>s.t.</mtext></mtd>
-          <mtd><mi>y</mi><mo>≥</mo><mfrac><mpadded class="problem-parameter" width=".85em" lspace=".14em" height=".85em" depth=".2em"><mi>b</mi></mpadded><mn>2</mn></mfrac><mo>,</mo><mspace width=".45em"/><msup><mi>x</mi><mn>2</mn></msup><mo>≤</mo><mpadded class="problem-parameter" width=".85em" lspace=".14em" height=".85em" depth=".2em"><mi>b</mi></mpadded></mtd>
+          <mtd><mi>y</mi><mo>≥</mo><mfrac><mpadded class="problem-parameter" width=".85em" lspace=".14em" height=".85em" depth=".2em"><mtext><ParameterSignal name="b" quiet><Symbol base="b" /></ParameterSignal></mtext></mpadded><mn>2</mn></mfrac><mo>,</mo><mspace width=".45em"/><msup><mi>x</mi><mn>2</mn></msup><mo>≤</mo><mpadded class="problem-parameter" width=".85em" lspace=".14em" height=".85em" depth=".2em"><mtext><ParameterSignal name="b" quiet><Symbol base="b" /></ParameterSignal></mtext></mpadded></mtd>
         </mtr>
         <mtr>
           <mtd></mtd><mtd><mi>x</mi><mo>≤</mo><mn>0</mn><mo>,</mo><mspace width=".45em"/><mi>y</mi><mo>≥</mo><mn>0</mn></mtd>
@@ -36,15 +37,23 @@ import recording from '../../../data/research/l2o-training-snapshots.json';
     <div class="parameter-values">
       <span>
         <span class="parameter-chip">
-          <Symbol base="a" readout />
+          <ParameterSignal name="a">
+            <Symbol base="a" readout />
+          </ParameterSignal>
         </span>
-        <b>{recording.parameters.a.toFixed(3)}</b>
+        <b>
+          <ParameterSignal name="a-value">{recording.parameters.a.toFixed(3)}</ParameterSignal>
+        </b>
       </span>
       <span>
         <span class="parameter-chip">
-          <Symbol base="b" readout />
+          <ParameterSignal name="b">
+            <Symbol base="b" readout />
+          </ParameterSignal>
         </span>
-        <b>{recording.parameters.b.toFixed(3)}</b>
+        <b>
+          <ParameterSignal name="b-value">{recording.parameters.b.toFixed(3)}</ParameterSignal>
+        </b>
       </span>
     </div>
   </div>

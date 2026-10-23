@@ -71,12 +71,13 @@ export function trainingReset(cycle: number) {
   };
 }
 
-/** Four breaths share the training clock, with a longer exhale and no flat holds. */
+const exhaleAngle = Math.PI * 2 * 0.58;
+const breathSkew = (exhaleAngle - Math.PI) / (1 - Math.cos(exhaleAngle));
+
+/** A smooth periodic phase keeps the longer exhale without splicing two different easings. */
 export function surfaceOpacityAt(phase: number, trainingCycle: number, reducedMotion = false) {
   if (reducedMotion) return 1;
-  const period = trainingCycle / 4;
-  const t = (((phase % period) + period) % period) / period;
-  const exhale = 0.58;
-  const halfBreath = t < exhale ? t / exhale : (1 - t) / (1 - exhale);
-  return 0.48 + 0.26 * (1 + Math.cos(Math.PI * halfBreath));
+  const angle = (phase / trainingCycle) * Math.PI * 8;
+  const breath = angle - breathSkew * (1 - Math.cos(angle));
+  return 0.48 + 0.26 * (1 + Math.cos(breath));
 }

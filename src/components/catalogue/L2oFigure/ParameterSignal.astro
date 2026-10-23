@@ -1,0 +1,78 @@
+---
+interface Props {
+  name: 'a' | 'b' | 'a-value' | 'b-value';
+  quiet?: boolean;
+}
+const { name, quiet = false } = Astro.props;
+---
+
+<span class:list={['parameter-signal', { 'is-formula': quiet }]} data-parameter={name}>
+  <span class="signal-body">
+    <slot />
+  </span>
+  <span class="signal-echo" aria-hidden="true">
+    <slot />
+  </span>
+</span>
+
+<style>
+  .parameter-signal {
+    --jitter-cut: var(--input-a-cut, inset(40% 0 40%));
+    --jitter-echo: var(--input-a-echo, 0);
+    --jitter-opacity: var(--input-a-opacity, 1);
+    --jitter-tear-x: var(--input-a-tear-x, 0px);
+    --jitter-x: var(--input-a-x, 0px);
+    --jitter-y: var(--input-a-y, 0px);
+    --signal-echo-strength: 1;
+    --signal-strength: 1;
+    position: relative;
+    display: inline-block;
+    vertical-align: baseline;
+    transform: translate(
+      calc(var(--jitter-x) * var(--signal-strength)),
+      calc(var(--jitter-y) * var(--signal-strength))
+    );
+  }
+  .parameter-signal[data-parameter='b'] {
+    --jitter-cut: var(--input-b-cut, inset(40% 0 40%));
+    --jitter-echo: var(--input-b-echo, 0);
+    --jitter-opacity: var(--input-b-opacity, 1);
+    --jitter-tear-x: var(--input-b-tear-x, 0px);
+    --jitter-x: var(--input-b-x, 0px);
+    --jitter-y: var(--input-b-y, 0px);
+  }
+  .parameter-signal[data-parameter='a-value'] {
+    --jitter-cut: var(--input-a-value-cut, inset(40% 0 40%));
+    --jitter-echo: var(--input-a-value-echo, 0);
+    --jitter-opacity: var(--input-a-value-opacity, 1);
+    --jitter-tear-x: var(--input-a-value-tear-x, 0px);
+    --jitter-x: var(--input-a-value-x, 0px);
+    --jitter-y: var(--input-a-value-y, 0px);
+  }
+  .parameter-signal[data-parameter='b-value'] {
+    --jitter-cut: var(--input-b-value-cut, inset(40% 0 40%));
+    --jitter-echo: var(--input-b-value-echo, 0);
+    --jitter-opacity: var(--input-b-value-opacity, 1);
+    --jitter-tear-x: var(--input-b-value-tear-x, 0px);
+    --jitter-x: var(--input-b-value-x, 0px);
+    --jitter-y: var(--input-b-value-y, 0px);
+  }
+  .is-formula {
+    --signal-echo-strength: 0.7;
+    --signal-strength: 0.6;
+  }
+  .signal-body {
+    display: block;
+    opacity: var(--jitter-opacity);
+  }
+  .signal-echo {
+    inset: 0;
+    position: absolute;
+    display: block;
+    clip-path: var(--jitter-cut);
+    color: var(--blue);
+    opacity: calc(var(--jitter-echo) * var(--signal-echo-strength));
+    transform: translateX(var(--jitter-tear-x));
+    pointer-events: none;
+  }
+</style>

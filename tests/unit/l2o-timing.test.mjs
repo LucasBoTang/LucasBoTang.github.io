@@ -113,3 +113,20 @@ test('reduced motion keeps the complete mathematical surface steady', () => {
   for (const fraction of [0, 0.3, 0.5, 0.75, 1])
     assert.equal(surfaceOpacityAt(fraction * cycle, cycle, true), 1);
 });
+
+test('surface breathing preserves acceleration when each breath and training pass turns', () => {
+  const cycle = trainingTimeline(lengths).cycle;
+  const breath = cycle / 4;
+  const h = 0.001;
+  for (const at of [0, breath * 0.58, breath, cycle]) {
+    const value = surfaceOpacityAt(at, cycle);
+    const left =
+      (surfaceOpacityAt(at - 2 * h, cycle) - 2 * surfaceOpacityAt(at - h, cycle) + value) / (h * h);
+    const right =
+      (surfaceOpacityAt(at + 2 * h, cycle) - 2 * surfaceOpacityAt(at + h, cycle) + value) / (h * h);
+    assert.ok(
+      Math.abs(left - right) < 0.01,
+      'turning cannot restart with a different acceleration',
+    );
+  }
+});
