@@ -72,5 +72,27 @@ test('reduced motion restores both symbols and their echoes to a steady state', 
     assert.equal(root.style.getPropertyValue(`--input-${parameter}-y`), '0px');
     assert.equal(root.style.getPropertyValue(`--input-${parameter}-opacity`), '1');
     assert.equal(root.style.getPropertyValue(`--input-${parameter}-echo`), '0');
+    if (parameter.endsWith('-value')) {
+      assert.equal(root.style.getPropertyValue(`--input-${parameter}-trail-opacity`), '0');
+      assert.equal(root.style.getPropertyValue(`--input-${parameter}-trail-x`), '0px');
+      assert.equal(root.style.getPropertyValue(`--input-${parameter}-trail-y`), '0px');
+    }
+  }
+});
+
+test('numeric afterimages cluster around faults and clear while the quiet signal keeps moving', () => {
+  for (const channel of ['a-value', 'b-value']) {
+    const frames = Array.from({ length: 1200 }, (_, i) => sampleParameterSignal(i / 120, channel));
+    const clear = frames.filter((frame) => frame.trailOpacity === 0);
+    assert.ok(clear.length > frames.length * 0.75, 'the number must read clean between faults');
+    assert.ok(clear.length < frames.length * 0.97, 'short afterimages still punctuate the signal');
+    assert.ok(new Set(clear.map((frame) => `${frame.x},${frame.y}`)).size > 40);
+    const starts = frames.flatMap((frame, i) =>
+      frame.trailOpacity > 0 && (!i || frames[i - 1].trailOpacity === 0) ? [i / 120] : [],
+    );
+    const intervals = starts.slice(1).map((time, i) => time - starts[i]);
+    assert.ok(intervals.length >= 4);
+    assert.ok(Math.max(...intervals) - Math.min(...intervals) > 0.15, 'faults cannot form a beat');
+    assert.ok(frames.every((frame) => frame.trailOpacity <= 0.28));
   }
 });
