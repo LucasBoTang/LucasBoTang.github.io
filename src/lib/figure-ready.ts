@@ -2,6 +2,11 @@
  * Standalone figures and hosts without an entrance start immediately. The host's opening
  * fallback and keyboard/reduced-motion skip both release the same gate. */
 export function whenFigureReady(start: () => void): void {
+  // A figure drawn ahead in a warm-up slot (FigureWarmup) is there only to be drawn.
+  if (window.frameElement?.closest('[data-figure-warmup]')) {
+    start();
+    return;
+  }
   const screen = window.frameElement?.closest('[data-screen-reveal], [data-figure-preview]');
   if (!screen) {
     start();

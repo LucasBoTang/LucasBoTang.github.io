@@ -3,7 +3,9 @@ import SiteLayout from '../layouts/SiteLayout.astro';
 import PageHeader from '../components/site/PageHeader/PageHeader.astro';
 import ResearchSection from '../components/catalogue/ResearchSection.astro';
 import ResearchLanes from '../components/ui/ResearchLanes/ResearchLanes.astro';
+import FigureWarmup from '../components/catalogue/FigureWarmup/FigureWarmup.astro';
 import { researchAreas } from '../data/research';
+import { figureWarmups } from '../data/research/figures';
 ---
 
 <SiteLayout
@@ -12,6 +14,7 @@ import { researchAreas } from '../data/research';
   page="research"
   opening="reveal"
 >
+  <FigureWarmup figures={figureWarmups} />
   <div class="shell">
     <PageHeader
       title="Research"

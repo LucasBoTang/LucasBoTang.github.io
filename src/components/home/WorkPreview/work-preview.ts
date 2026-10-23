@@ -66,7 +66,8 @@ function setupPreview(
         },
         { once: true },
       );
-      child.src = link.dataset.previewSrc! + '?preview=home';
+      // The same address as the figure's embed and warm-up, so one copy serves all three.
+      child.src = link.dataset.previewSrc!;
       iframe = child;
       picture.append(child);
     }

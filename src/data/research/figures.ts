@@ -110,6 +110,17 @@ export const figurePaths = Object.fromEntries(
   Object.entries(researchFigures).map(([kind, figure]) => [kind, figure.src]),
 ) as Record<FigureKind, string>;
 
+/** What FigureWarmup draws ahead: each figure document at the size its embed gives it. */
+export const figureWarmups = Object.values(researchFigures).map((figure) => ({
+  src: figure.src,
+  width: figure.canvas.width,
+  height: figure.canvas.height,
+  compactAt: figure.fitting.compactAt,
+  compact: figure.fitting.compactCanvas
+    ? { width: figure.fitting.compactCanvas.width, height: figure.fitting.compactCanvas.height }
+    : undefined,
+}));
+
 export const workPreviews = Object.fromEntries(
   Object.values(researchFigures).map((figure) => [
     figure.project,

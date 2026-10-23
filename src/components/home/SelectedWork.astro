@@ -1,7 +1,9 @@
 ---
 import ProjectWordmark from '../catalogue/ProjectWordmark/ProjectWordmark.astro';
 import WorkPreview from './WorkPreview/WorkPreview.astro';
+import FigureWarmup from '../catalogue/FigureWarmup/FigureWarmup.astro';
 import ResourceLinks from '../ui/ResourceLinks.astro';
+import { figureWarmups } from '../../data/research/figures';
 import { selectedWork } from '../../data/selected-work';
 ---
 
@@ -40,6 +42,8 @@ import { selectedWork } from '../../data/selected-work';
       </article>
     ))}
   </div>
+  {/* Previews open on hover, so their figures are drawn ahead on screens with hover. */}
+  <FigureWarmup figures={figureWarmups} hover />
 </section>
 
 <style>

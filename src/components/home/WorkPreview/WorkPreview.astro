@@ -7,6 +7,12 @@ interface Props {
 }
 const { project, name } = Astro.props;
 const preview = workPreviews[project as keyof typeof workPreviews];
+// The filters the reveal below passes through, drawn ahead by FigureWarmup; keep in step with
+// the styles of `.work-preview-picture` and the wordmark.
+const warmFilters = [
+  ['blur(2px) brightness(0.5)', 'blur(0px) brightness(1)'],
+  ['blur(0px) brightness(1)', 'blur(3px) brightness(0.65)'],
+];
 ---
 
 <a
@@ -18,6 +24,7 @@ const preview = workPreviews[project as keyof typeof workPreviews];
   data-preview-width={preview.width}
   data-preview-height={preview.height}
   data-preview-bleed={preview.bleed}
+  data-warm-filters={JSON.stringify(warmFilters)}
 >
   <slot />
   <span class="work-preview-picture" aria-hidden="true"></span>

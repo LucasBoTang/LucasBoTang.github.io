@@ -6,8 +6,15 @@ const RESOURCE_TIMEOUT = 1800;
 /** A short quiet interval lets decoded images and loaded fonts settle before motion starts. */
 const SETTLE_TIME = 400;
 const readiness = new Map<boolean, Promise<void>>();
+const holds = new Set<Promise<unknown>>();
 
-/** Shared readiness for page openings: first-screen fonts and eager images, bounded on failure. */
+/** Keeps the page's opening waiting for `task` too, within the same bound as its resources. */
+export function holdPageReady(task: Promise<unknown>): void {
+  holds.add(task);
+}
+
+/** Shared readiness for page openings: first-screen fonts and eager images, and whatever
+ * `holdPageReady` adds, bounded on failure. */
 export function waitForPageReady({ waitForImages = true } = {}): Promise<void> {
   if (!openingPending()) return Promise.resolve();
   const cached = readiness.get(waitForImages);
@@ -43,7 +50,14 @@ export function waitForPageReady({ waitForImages = true } = {}): Promise<void> {
       .map((image) => image.decode());
     const resources = Promise.allSettled([document.fonts.ready, ...images]);
     timeout = window.setTimeout(() => finish(true), RESOURCE_TIMEOUT);
-    void resources.then(() => {
+    void resources.then(async () => {
+      // Holds may be added while resources load, so wait until none are left pending.
+      let awaited = 0;
+      while (!finished && awaited < holds.size) {
+        const pending = [...holds];
+        awaited = pending.length;
+        await Promise.allSettled(pending);
+      }
       if (finished) return;
       window.clearTimeout(timeout);
       settle = window.setTimeout(() => finish(), SETTLE_TIME);

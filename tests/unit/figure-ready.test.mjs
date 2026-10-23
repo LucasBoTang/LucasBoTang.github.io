@@ -71,3 +71,16 @@ test('home previews keep the first frame still until the wordmark handover finis
   await flush();
   assert.equal(starts, 1);
 });
+
+test('a figure drawn ahead in a warm-up slot starts at once, whatever its host is doing', (t) => {
+  const { document, MutationObserver } = parseHTML(
+    '<html data-opening-pending><body><div data-figure-warmup><iframe></iframe></div></body></html>',
+  );
+  installGlobals(t, {
+    window: { frameElement: document.querySelector('iframe') },
+    MutationObserver,
+  });
+  let starts = 0;
+  whenFigureReady(() => starts++);
+  assert.equal(starts, 1);
+});

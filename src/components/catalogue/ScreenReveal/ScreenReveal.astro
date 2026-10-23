@@ -1,4 +1,13 @@
-<div class="screen-reveal" data-screen-reveal>
+---
+import distortion from './screen-filters.svg?url&no-inline';
+
+// The filters the arrival passes through (arrival.ts), drawn ahead by FigureWarmup.
+const warmFilters = [
+  ['none', `url("${distortion}#screen-pull")`, `url("${distortion}#screen-catch")`],
+];
+---
+
+<div class="screen-reveal" data-screen-reveal data-warm-filters={JSON.stringify(warmFilters)}>
   <span class="screen-trigger" data-reveal="unit"></span>
   <div class="screen-picture">
     <slot />
