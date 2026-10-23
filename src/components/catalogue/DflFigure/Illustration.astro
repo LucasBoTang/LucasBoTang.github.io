@@ -46,8 +46,8 @@ import { neon, neonMetrics } from './material';
           viewBox="0 0 8 8"
           refX="7"
           refY="4"
-          markerWidth="6"
-          markerHeight="6"
+          markerWidth="9"
+          markerHeight="9"
           markerUnits="userSpaceOnUse"
           orient="auto"
         >
@@ -324,8 +324,11 @@ import { neon, neonMetrics } from './material';
     stroke-width: 1.05px;
   }
   .flow-wires marker path {
+    filter: none;
+    opacity: 1;
     stroke-linecap: round;
     stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
   }
   .flow-wires :global(.signal) {
     filter: drop-shadow(0 0 3px color-mix(in srgb, var(--muted) 60%, transparent));

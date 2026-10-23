@@ -106,7 +106,17 @@ document.querySelectorAll<HTMLElement>('.training-flow').forEach((root) => {
       y: (portY + optimizer.y) / 2 - (mobile ? 12 : 0),
     };
     // Follow the raised neural network while leaving the two-line sign clear.
-    const featureStart = { x: data.x + 16, y: data.y + 42 };
+    // Leave the visible front sheet clear, including its corner in the compact layout.
+    const cornerGap = gap / Math.SQRT2;
+    const featureStart = mobile
+      ? {
+          x: data.x + 20 * sheetScale - cornerGap,
+          y: data.y + sheetInset + 26 * sheetScale - cornerGap,
+        }
+      : {
+          x: data.x + 20 * sheetScale - gap,
+          y: data.y + sheetInset + 42 * sheetScale,
+        };
     const predictionEnd = {
       x: optimizer.x + 10,
       y: optimizer.y - 100 * Math.min(polyBounds.w / 280, 0.85) - 16,
@@ -115,7 +125,7 @@ document.querySelectorAll<HTMLElement>('.training-flow').forEach((root) => {
     const decisionStartY = Math.max(optimizer.bottom + 32, modelCaption.y + modelCaption.h + 12);
     const paths = mobile
       ? [
-          `M${data.x + 24} ${data.y + 18} C${featureX - 38} ${data.y - 38} ${featureX - 26} ${featureY + 68} ${featureX} ${featureY}`,
+          `M${featureStart.x} ${featureStart.y} C${featureX - 38} ${data.y - 38} ${featureX - 26} ${featureY + 68} ${featureX} ${featureY}`,
           `M${network.right + gap} ${portY} C${(network.right + gap + predictionEnd.x) / 2} ${portY + 10} ${predictionEnd.x - 18} ${predictionEnd.y - 24} ${predictionEnd.x} ${predictionEnd.y}`,
           `M${optimizer.x + 18} ${decisionStartY} C${optimizer.x + 18} ${decisionStartY + 24} ${gridInX} ${gridInY - 28} ${gridInX} ${gridInY}`,
           `M${data.x + data.w * 0.55} ${data.y + data.h + gap} C${data.x + data.w * 0.55} ${balance.y + 8} ${balance.left - gap - 32} ${balance.y + 8} ${balance.left - gap} ${balance.y + 8}`,
