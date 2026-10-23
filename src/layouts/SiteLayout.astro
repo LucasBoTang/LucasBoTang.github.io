@@ -24,7 +24,7 @@ interface Props {
   page?: PageId;
   /**
    * Hide the site header, footer and `[data-opening-content]` until the opening starts (the gate
-   * lifts after 2.5s regardless; see `src/lib/opening-gate.ts`).
+   * lifts after 3s regardless; see `src/lib/opening-gate.ts`).
    * `reveal`: `main` is the content; elements marked `data-reveal` arrive through `src/lib/reveal.ts`.
    * `custom`: the page marks its own content and runs its own script.
    */
@@ -144,7 +144,7 @@ const shareImage =
       }
       if (!matchMedia('(prefers-reduced-motion: reduce)').matches && Element.prototype.animate) {
         document.documentElement.setAttribute('data-opening-pending', '');
-        setTimeout(() => document.documentElement.removeAttribute('data-opening-pending'), 2500);
+        setTimeout(() => document.documentElement.removeAttribute('data-opening-pending'), 3000);
       }
     </script>}
   </head>

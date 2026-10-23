@@ -1,9 +1,11 @@
+/** Whether this figure is drawn ahead in a warm-up slot (FigureWarmup), only to be drawn. */
+export const inWarmupSlot = () => Boolean(window.frameElement?.closest('[data-figure-warmup]'));
+
 /** Start an embedded figure at its first frame after the host's entrance has settled.
  * Standalone figures and hosts without an entrance start immediately. The host's opening
  * fallback and keyboard/reduced-motion skip both release the same gate. */
 export function whenFigureReady(start: () => void): void {
-  // A figure drawn ahead in a warm-up slot (FigureWarmup) is there only to be drawn.
-  if (window.frameElement?.closest('[data-figure-warmup]')) {
+  if (inWarmupSlot()) {
     start();
     return;
   }

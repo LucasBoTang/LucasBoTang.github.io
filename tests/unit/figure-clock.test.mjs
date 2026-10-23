@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createFigureClock } from '../../src/lib/figure-clock.ts';
+import { WARMUP_SWEEP, createFigureClock } from '../../src/lib/figure-clock.ts';
 import { animationBrowser } from '../helpers/animation-browser.mjs';
 
 test('Figure playback freezes offscreen and resumes without counting the hidden interval', (t) => {
@@ -64,6 +64,20 @@ test('the host entrance holds the clock while the static first frame is already 
   env.frame(10000);
   env.frame(10100);
   assert.equal(readings.at(-1), 80, 'time waiting for the entrance is excluded');
+  playback.dispose();
+});
+
+test('a figure drawn ahead in a warm-up slot sweeps through its cycle, whatever the frame rate', (t) => {
+  const env = animationBrowser(t),
+    readings = [];
+  env.browser.frameElement = { closest: (selector) => selector === '[data-figure-warmup]' };
+  const playback = createFigureClock({}, (time) => readings.push(time), { rate: 0.85 });
+  env.visible(true);
+  env.frame(100);
+  env.frame(116);
+  env.frame(132);
+  const [a, b, c] = readings.slice(-3);
+  assert.deepEqual([b - a, c - b], [WARMUP_SWEEP, WARMUP_SWEEP]);
   playback.dispose();
 });
 

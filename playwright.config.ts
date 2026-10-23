@@ -1,8 +1,29 @@
 import { defineConfig } from '@playwright/test';
+import { figureVersion } from './src/data/research/figure-version';
+import { figureWarmups } from './src/data/research/figures';
 
 // Another checkout running its own tests may hold the default port; set PLAYWRIGHT_PORT to keep
 // apart, since a server already listening there is reused.
 const port = Number(process.env.PLAYWRIGHT_PORT) || 4400;
+const baseURL = `http://127.0.0.1:${port}`;
+
+// A first visit draws every figure ahead while the opening keeps the page dark (FigureWarmup),
+// which, under software rendering and many parallel workers, slows every opening. Tests start as
+// a returning visitor whose figures are already drawn through; figure-warmup.spec.ts starts fresh.
+const returningVisitor = {
+  cookies: [],
+  origins: [
+    {
+      origin: baseURL,
+      localStorage: [
+        {
+          name: 'figure-warmup',
+          value: JSON.stringify(figureWarmups.map(({ src }) => `${src}#${figureVersion}`)),
+        },
+      ],
+    },
+  ],
+};
 
 // `e2e` checks behaviour on every platform and runs in CI. `visual` compares screenshots with
 // baselines rendered on the author's machine, so it runs locally only (font rendering differs).
@@ -12,7 +33,8 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? 'github' : 'list',
   use: {
-    baseURL: `http://127.0.0.1:${port}`,
+    baseURL,
+    storageState: returningVisitor,
     // Locally, use the installed Chrome; CI installs Playwright's Chromium.
     channel: process.env.CI ? undefined : 'chrome',
   },
@@ -27,7 +49,7 @@ export default defineConfig({
   ],
   webServer: {
     command: `npx astro build && npx astro preview --host 127.0.0.1 --port ${port}`,
-    url: `http://127.0.0.1:${port}`,
+    url: baseURL,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },

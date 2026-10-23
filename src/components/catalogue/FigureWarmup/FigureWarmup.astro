@@ -1,4 +1,5 @@
 ---
+import { figureVersion } from '../../../data/research/figure-version';
 import type { FigureSource } from './figure-warmup';
 
 // Draws the page's figure documents once, unseen, while the opening keeps the page dark, so the
@@ -14,6 +15,7 @@ const { figures, hover = false } = Astro.props;
 <div
   data-figure-warmup-sources={JSON.stringify(figures)}
   data-figure-warmup-hover={hover || undefined}
+  data-figure-warmup-version={figureVersion}
   hidden
 ></div>
 

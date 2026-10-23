@@ -1,3 +1,4 @@
+import { inWarmupSlot } from './figure-ready.ts';
 import { createLoop } from './loop.ts';
 import { reducedMotionQuery, watchActivity } from './motion.ts';
 
@@ -9,6 +10,10 @@ interface FigureClockOptions {
   threshold?: number;
   reducedTime?: number;
 }
+
+/** Milliseconds a figure in a warm-up slot advances each frame: its warm-up frames then sweep
+ * through every state of its longest cycle, so the GPU meets each kind of drawing once. */
+export const WARMUP_SWEEP = 600;
 
 /** One resumable clock for an illustration and all of its readouts. */
 export function createFigureClock(
@@ -29,12 +34,13 @@ export function createFigureClock(
   let active = false;
   let elapsed = 0;
   let previous = 0;
+  const sweep = inWarmupSlot() ? WARMUP_SWEEP : 0;
   const redraw = () => {
     if (!disposed) draw(elapsed, reduced);
   };
   const loop = createLoop(
     (time) => {
-      elapsed = Math.min(duration, elapsed + (time - previous) * rate);
+      elapsed = Math.min(duration, elapsed + (sweep || (time - previous) * rate));
       previous = time;
       redraw();
       if (elapsed >= duration) loop.stop();

@@ -9,8 +9,10 @@ import { holdPageReady } from '../../../lib/page-ready';
 // unseen, in a slot that is in view but nearly transparent, and so is every filter the page's own
 // entrances will pass through as a figure appears. The programs are then cached for the real
 // appearance, and the opening waits for this within its own bound (page-ready.ts), so the stall
-// lands in the dark rather than on the reader. Browsers keep the programs on disk, so a returning
-// visitor's warm-up finds them already there and takes a few frames.
+// lands in the dark rather than on the reader. Browsers keep the programs on disk, so once every
+// figure has been drawn through, the visitor's storage remembers it and a later visit opens
+// without drawing anything ahead, until a figure's source changes (figure-version.ts); the
+// filters' few programs are cached alongside.
 
 /** A figure document and the size its embed will give it; the compact size below `compactAt`. */
 export interface FigureSource {
@@ -27,11 +29,17 @@ export type FilterSequence = string[];
 
 /** The slot's opacity: enough that the browser rasterizes the figures, too little to see. */
 const OPACITY = '0.02';
-/** Frames each figure is given once its fonts and images are ready, so its first draws happen;
- * a filter sequence is played over the same frames. */
-const FRAMES = 8;
-/** Warming gives up after this long, inside the opening's own bound (page-ready.ts). */
-const TIMEOUT = 1400;
+/** Frames each figure is given once its fonts and images are ready. Its clock sweeps ahead over
+ * them (figure-clock.ts), through about fourteen seconds of its cycles; a filter sequence is
+ * played over the same frames. */
+const FRAMES = 24;
+/** Where the figures already drawn through are remembered, by their documents' paths and the
+ * version of the figures' source they were drawn from. */
+const STORAGE_KEY = 'figure-warmup';
+
+/** Warming gives up after this long, so that the opening still plays inside the layout's 3s
+ * fallback; a cold first visit needs about 1.1s. */
+const TIMEOUT = 2000;
 
 const nextFrame = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
 
@@ -84,14 +92,15 @@ function filterBox(sequence: FilterSequence) {
 
 /**
  * Draws each of `sources` once in a hidden slot, and plays each of `filters` there, settling once
- * all have drawn their first frames or `timeout` has passed. The slot is removed either way.
+ * all have drawn their frames, true, or when `timeout` has passed, false. The slot is removed
+ * either way.
  */
 export function warmFigures(
   sources: FigureSource[],
   filters: FilterSequence[] = [],
   timeout = TIMEOUT,
-): Promise<void> {
-  if (!sources.length && !filters.length) return Promise.resolve();
+): Promise<boolean> {
+  if (!sources.length && !filters.length) return Promise.resolve(true);
   const slot = document.createElement('div');
   slot.setAttribute('data-figure-warmup', '');
   slot.setAttribute('aria-hidden', 'true');
@@ -99,20 +108,20 @@ export function warmFigures(
   const figures = sources.map(figureFrame);
   slot.append(...figures.map(({ frame }) => frame), ...filters.map(filterBox));
   document.body.append(slot);
-  return new Promise<void>((resolve) => {
+  return new Promise<boolean>((resolve) => {
     let done = false;
-    const finish = () => {
+    const finish = (complete: boolean) => {
       if (done) return;
       done = true;
       window.clearTimeout(limit);
       slot.remove();
-      resolve();
+      resolve(complete);
     };
-    const limit = window.setTimeout(finish, timeout);
+    const limit = window.setTimeout(() => finish(false), timeout);
     const played = (async () => {
       for (let i = 0; i < FRAMES; i++) await nextFrame();
     })();
-    void Promise.all([...figures.map(({ drawn }) => drawn), played]).then(finish);
+    void Promise.all([...figures.map(({ drawn }) => drawn), played]).then(() => finish(true));
   });
 }
 
@@ -133,5 +142,27 @@ enhance('[data-figure-warmup-sources]', (host) => {
   const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
   if (connection?.saveData || !openingPending()) return;
   const sources = JSON.parse(host.dataset.figureWarmupSources ?? '[]') as FigureSource[];
-  holdPageReady(warmFigures(sources, declaredFilters()));
+  const keys = sources.map(({ src }) => `${src}#${host.dataset.figureWarmupVersion}`);
+  const warmed = remembered();
+  if (keys.every((key) => warmed.has(key))) return;
+  holdPageReady(
+    warmFigures(sources, declaredFilters()).then((complete) => {
+      if (complete) remember(keys);
+    }),
+  );
 });
+
+/** The figures this browser has already drawn through; none when storage is off. */
+function remembered(): Set<string> {
+  try {
+    return new Set(JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]') as string[]);
+  } catch {
+    return new Set();
+  }
+}
+
+function remember(keys: string[]) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify([...new Set(keys)]));
+  } catch {}
+}

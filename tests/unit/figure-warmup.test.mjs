@@ -17,7 +17,7 @@ const sources = [
 let instance = 0;
 
 /** A page whose opening keeps it dark, with the module loaded fresh against its globals. */
-async function page(t, { innerWidth = 1280, markup = '' } = {}) {
+async function page(t, { innerWidth = 1280, markup = '', stored = {} } = {}) {
   const { document, Event } = parseHTML(`<html data-opening-pending><body>${markup}</body></html>`);
   const frames = frameQueue();
   installGlobals(t, {
@@ -27,6 +27,10 @@ async function page(t, { innerWidth = 1280, markup = '' } = {}) {
     requestAnimationFrame: frames.request,
     matchMedia: () => mediaQuery(true),
     navigator: {},
+    localStorage: {
+      getItem: (key) => stored[key] ?? null,
+      setItem: (key, value) => (stored[key] = value),
+    },
   });
   const hooks = registerTypeScriptImports();
   try {
@@ -58,7 +62,7 @@ test('draws every figure in one unseen slot at the size its embed gives it', asy
   void done.then(() => (settled = true));
   for (const frame of iframes) frame.dispatchEvent(new Event('load'));
   await flush();
-  for (let i = 0; i < 8; i++) {
+  for (let i = 0; i < 24; i++) {
     frames.flush(16 * i);
     await flush();
   }
@@ -102,16 +106,35 @@ test('plays each declared filter sequence in the slot, each once', async (t) => 
 
 test('the page component warms its sources and the filters the page declares', async (t) => {
   const markup =
-    `<div data-figure-warmup-sources='${JSON.stringify(sources)}' hidden></div>` +
+    `<div data-figure-warmup-sources='${JSON.stringify(sources)}' data-figure-warmup-version="v2" hidden></div>` +
     `<a data-warm-filters='[["blur(2px)","blur(0px)"]]'></a><a data-warm-filters='[["blur(2px)","blur(0px)"],["none","url(#x)"]]'></a>`;
-  const { document, frames, Event } = await page(t, { markup });
+  const stored = {};
+  const { document, frames, Event } = await page(t, { markup, stored });
   assert.equal(document.querySelectorAll('[data-figure-warmup] iframe').length, 2);
   assert.equal(document.querySelectorAll('[data-figure-warmup] [data-warm-filter]').length, 2);
   for (const frame of document.querySelectorAll('iframe')) frame.dispatchEvent(new Event('load'));
-  for (let i = 0; i < 9; i++) {
+  for (let i = 0; i < 25; i++) {
     await flush();
     frames.flush(16 * i);
   }
   await flush();
   assert.equal(document.querySelector('[data-figure-warmup]'), null);
+  assert.deepEqual(JSON.parse(stored['figure-warmup']), ['/figures/a/#v2', '/figures/b/#v2']);
+
+  const again = await page(t, { markup, stored });
+  assert.equal(again.document.querySelector('[data-figure-warmup]'), null, 'a later visit skips');
+});
+
+test('a figure not yet drawn through is drawn ahead, with the rest', async (t) => {
+  const markup = `<div data-figure-warmup-sources='${JSON.stringify(sources)}' data-figure-warmup-version="v2" hidden></div>`;
+  const stored = { 'figure-warmup': JSON.stringify(['/figures/a/#v2']) };
+  const { document } = await page(t, { markup, stored });
+  assert.equal(document.querySelectorAll('[data-figure-warmup] iframe').length, 2);
+});
+
+test('figures drawn from an earlier version of their source are drawn ahead again', async (t) => {
+  const markup = `<div data-figure-warmup-sources='${JSON.stringify(sources)}' data-figure-warmup-version="v2" hidden></div>`;
+  const stored = { 'figure-warmup': JSON.stringify(['/figures/a/#v1', '/figures/b/#v1']) };
+  const { document } = await page(t, { markup, stored });
+  assert.equal(document.querySelectorAll('[data-figure-warmup] iframe').length, 2);
 });
