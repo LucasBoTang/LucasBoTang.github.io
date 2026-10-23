@@ -74,15 +74,15 @@ test('the lower flow keeps one readable cadence across all recorded checkpoints'
   }
 });
 
-test('surface breathes continuously between full and faint without flat holds', () => {
+test('surface breathes continuously between full and translucent without flat holds', () => {
   const cycle = trainingTimeline(lengths).cycle;
-  const breath = cycle / 4;
-  assert.ok(breath > 4 && breath < 5);
-  for (let repeat = 0; repeat < 4; repeat++) {
+  const breath = cycle / 3;
+  assert.ok(breath > 5.5 && breath < 6.5);
+  for (let repeat = 0; repeat < 3; repeat++) {
     const start = repeat * breath;
     const at = (fraction) => surfaceOpacityAt(start + fraction * breath, cycle);
     assert.ok(Math.abs(at(0) - 1) < 1e-12);
-    assert.ok(Math.abs(at(0.58) - 0.48) < 1e-12);
+    assert.ok(Math.abs(at(0.58) - 0.78) < 1e-12);
     const fading = [0, 0.03, 0.2, 0.4, 0.55, 0.58].map(at);
     assert.ok(fading.every((value, i) => !i || value < fading[i - 1]));
     const returning = [0.58, 0.61, 0.7, 0.8, 0.97, 1].map(at);
@@ -92,11 +92,11 @@ test('surface breathes continuously between full and faint without flat holds', 
 
 test('surface breathing turns gently and rejoins continuously across training loops', () => {
   const cycle = trainingTimeline(lengths).cycle;
-  const breath = cycle / 4;
+  const breath = cycle / 3;
   for (let i = 0; i <= 300; i++) {
     const phase = (i / 300) * cycle;
     const value = surfaceOpacityAt(phase, cycle);
-    assert.ok(value >= 0.48 && value <= 1);
+    assert.ok(value >= 0.78 && value <= 1);
     assert.ok(Math.abs(value - surfaceOpacityAt(phase + breath, cycle)) < 1e-12);
     assert.ok(Math.abs(value - surfaceOpacityAt(phase - 0.001, cycle)) < 0.001);
   }
@@ -116,7 +116,7 @@ test('reduced motion keeps the complete mathematical surface steady', () => {
 
 test('surface breathing preserves acceleration when each breath and training pass turns', () => {
   const cycle = trainingTimeline(lengths).cycle;
-  const breath = cycle / 4;
+  const breath = cycle / 3;
   const h = 0.001;
   for (const at of [0, breath * 0.58, breath, cycle]) {
     const value = surfaceOpacityAt(at, cycle);
