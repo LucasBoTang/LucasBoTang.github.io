@@ -16,11 +16,6 @@ export const timing = {
   reverseOptimization: [17, 17.6] as [number, number],
   reverse: 18,
 };
-export const clamp = (x: number) => Math.max(0, Math.min(1, x));
-export const smooth = (x: number) => {
-  const u = clamp(x);
-  return u * u * (3 - 2 * u);
-};
 export function flowPhase(time: number) {
   return (time * timing.rate) % timing.cycle;
 }

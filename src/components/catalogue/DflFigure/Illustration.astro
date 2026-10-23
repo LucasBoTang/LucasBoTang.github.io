@@ -1,4 +1,5 @@
 ---
+import '@fontsource-variable/geist/wght-italic.css';
 import { neon } from './material';
 ---
 
@@ -26,15 +27,19 @@ import { neon } from './material';
       decoding="async"
     />
   </div>
-  <h1 class="dfl-title">
-    <span>Learning for</span>
-    <span>better decisions.</span>
-  </h1>
   <div
     class="training-flow"
     role="group"
     aria-label="Decision-focused learning: input features enter a neural predictor, predicted costs define an optimization problem, the resulting decision is evaluated by a decision-focused loss, and a training signal propagates back into the predictor."
   >
+    <h1 class="dfl-sign" aria-label="End-to-end Learning">
+      <span class="sign-word" aria-hidden="true">
+        End-to-end
+      </span>
+      <span class="sign-word" aria-hidden="true">
+        Learning
+      </span>
+    </h1>
     <svg class="flow-wires" aria-hidden="true">
       <defs>
         <marker
@@ -211,19 +216,45 @@ import { neon } from './material';
     width: 100%;
     filter: saturate(0.7) brightness(0.86) contrast(0.96);
   }
-  .dfl-title {
-    left: 0;
+  /* The live lettering occupies the former sign's ink area, without a raster matte. */
+  .dfl-sign {
+    --sign-light: 0.2;
+    left: 10.25%;
     position: absolute;
-    top: 124px;
+    top: 107px;
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    gap: 0.08em; /* optical: match the two-line sign's original visible line spacing. */
+    justify-content: center;
+    aspect-ratio: 3 / 2;
     margin: 0;
-    font: clamp(26px, 5.5cqw, 32px)/1.08 var(--font-serif);
-    font-optical-sizing: none;
-    font-variation-settings: 'opsz' 11;
-    letter-spacing: var(--tracking-title);
-    color: var(--blue);
+    width: 28.5%;
+    font: italic 200 clamp(20px, 4.2cqw, 28px)/1.1 var(--font);
+    letter-spacing: -0.02em;
+    pointer-events: none;
   }
-  .dfl-title span {
+  /* The thin glyph is the lit core; close blue spill gives it a tube's edge. */
+  .sign-word {
+    position: relative;
     display: block;
+    text-shadow:
+      0 0 0.5px var(--neon-body),
+      0 0 2px color-mix(in srgb, var(--neon-halo) 55%, transparent),
+      0 0 5px color-mix(in srgb, var(--neon-halo) 22%, transparent);
+    -webkit-text-stroke: 0.2px var(--neon-body);
+    white-space: nowrap;
+    color: color-mix(in srgb, var(--neon-core) 68%, var(--neon-body));
+    opacity: 0.83;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    /* The two lines brighten out of phase while their tube shapes stay still. */
+    .sign-word:first-child {
+      opacity: calc(0.64 + var(--sign-light));
+    }
+    .sign-word:last-child {
+      opacity: calc(1.04 - var(--sign-light));
+    }
   }
   .training-flow {
     position: relative;
@@ -242,7 +273,7 @@ import { neon } from './material';
   }
   .predict {
     left: 0;
-    top: 40px;
+    top: -24px;
     width: 30%;
   }
   .optimize {
@@ -273,7 +304,8 @@ import { neon } from './material';
     gap: 7px; /* optical: spacing within the illustration */
     justify-content: center;
     width: 98px;
-    color: var(--blue);
+    color: var(--neon-core);
+    filter: drop-shadow(0 0 0.5px var(--neon-core)) drop-shadow(0 0 3px var(--neon-halo));
     transform: translateX(-50%);
   }
   .math-expr i {
@@ -297,13 +329,10 @@ import { neon } from './material';
     stroke-width: 0.9;
   }
   .flow-wires marker path {
-    opacity: 1;
+    opacity: 0.6;
     stroke-linecap: round;
     stroke-linejoin: round;
-    stroke-width: 1;
-  }
-  .flow-wires :global(.return) {
-    opacity: 0.29;
+    stroke-width: 1.05px;
   }
   .flow-wires :global(.signal) {
     filter: drop-shadow(0 0 3px color-mix(in srgb, var(--muted) 60%, transparent));
@@ -360,11 +389,12 @@ import { neon } from './material';
     overflow: visible;
     width: 100%;
     fill: none;
-    opacity: 0.96;
-    stroke: var(--signal-light);
     stroke-linecap: round;
     stroke-linejoin: round;
     stroke-width: 1;
+    filter: url(#data-neon);
+    opacity: 1;
+    stroke: var(--neon-core);
   }
   .dataset-art :is(path, rect) {
     stroke-width: 1.05px;
@@ -372,16 +402,19 @@ import { neon } from './material';
   }
 
   .dataset-art .data-back {
-    opacity: 0.55;
+    opacity: 0.48;
+    stroke-width: 1px;
   }
   .dataset-art .data-rules {
-    opacity: 0.55;
+    opacity: 0.3;
+    stroke-width: 0.65px;
   }
   .dataset-art .data-records {
-    opacity: 0.8;
+    opacity: 0.9;
+    stroke-width: 0.95px;
   }
   .dataset-art .data-points {
-    fill: var(--signal-light);
+    fill: var(--neon-core);
     stroke: none;
   }
   .dataset-caption {
@@ -412,9 +445,11 @@ import { neon } from './material';
       height: 176px;
       object-position: 50% 40%;
     }
-    .dfl-title {
-      top: 111px;
-      font-size: 26px;
+    .dfl-sign {
+      left: 12%;
+      top: 118px;
+      width: 54%;
+      font-size: clamp(22px, 7cqw, 27px);
     }
     .training-flow {
       height: 568px;
@@ -425,7 +460,7 @@ import { neon } from './material';
     }
     .predict {
       left: 0;
-      top: 44px;
+      top: -24px;
       width: 54%;
     }
     .optimize {
@@ -521,6 +556,10 @@ import { neon } from './material';
   }
   .flow-label {
     z-index: 2;
+    text-shadow:
+      0 0 0.6px color-mix(in srgb, var(--muted) 28%, transparent),
+      0 0 2px color-mix(in srgb, var(--muted) 12%, transparent);
+    color: var(--muted);
   }
   .flow-label :global(.label-glow) {
     inset: 3px 6px auto;
@@ -643,10 +682,11 @@ import { neon } from './material';
     .prediction-label .dfl-label-content > span {
       transform: translate(14px, -10px);
     }
+    .input-label .dfl-label-content,
     .truth-label .dfl-label-content {
-      align-items: baseline;
-      flex-direction: row;
-      gap: 6px; /* optical: spacing within the illustration */
+      align-items: center;
+      flex-direction: column;
+      gap: 2px; /* optical: keep the words clear of the narrow vertical wire. */
     }
     .truth-label .dfl-label-content > span {
       transform: none;
@@ -655,7 +695,10 @@ import { neon } from './material';
   .module-label,
   .dataset-caption,
   .loss-node {
-    color: var(--blue);
+    text-shadow:
+      0 0 0.5px #a4b6ce55,
+      0 0 3px #7d9fc950;
+    color: #a4b6ce;
   }
   .training-flow :global(.module-name-glow) {
     inset: 0;
@@ -677,61 +720,20 @@ import { neon } from './material';
     color: inherit;
     math-style: compact;
   }
-
-  /* A narrow luminous core and a restrained halo give the artwork its tube material. */
-  .dfl-composition .dataset-art {
-    filter: url(#data-neon);
-    opacity: 1;
-    stroke: var(--neon-core);
-  }
-  .dfl-composition .dataset-art .data-back {
-    opacity: 0.48;
-    stroke-width: 1px;
-  }
-  .dfl-composition .data-sheet-front > rect {
-    fill: url(#data-glass);
-    stroke: var(--neon-core);
-    stroke-width: 1.25px;
-  }
-  .dfl-composition .dataset-art .data-rules {
-    opacity: 0.3;
-    stroke-width: 0.65px;
-  }
-  .dfl-composition .dataset-art .data-records {
-    opacity: 0.9;
-    stroke-width: 0.95px;
-  }
-  .dfl-composition .dataset-art .data-points {
-    fill: var(--neon-core);
-  }
-  .dfl-composition .opt-formula {
-    color: var(--neon-core);
-    filter: drop-shadow(0 0 0.5px var(--neon-core)) drop-shadow(0 0 3px var(--neon-halo));
-  }
-  .dfl-composition .predict canvas {
-    transform: translateY(12px);
-  }
-  .dfl-composition :is(.module-label, .dataset-caption, .loss-node) {
-    text-shadow:
-      0 0 0.5px #a4b6ce55,
-      0 0 3px #7d9fc950;
-    color: #a4b6ce;
-  }
-  .dfl-composition .flow-label {
-    text-shadow:
-      0 0 0.6px color-mix(in srgb, var(--muted) 28%, transparent),
-      0 0 2px color-mix(in srgb, var(--muted) 12%, transparent);
-    color: var(--muted);
-  }
-  .dfl-composition .flow-wires :global(path:not(.signal)) {
+  .flow-wires :global(path:not(.signal)) {
     filter: drop-shadow(0 0 0.6px color-mix(in srgb, var(--muted) 35%, transparent))
       drop-shadow(0 0 1.5px color-mix(in srgb, var(--muted) 18%, transparent));
     opacity: 0.6;
     stroke: var(--muted);
     stroke-width: 1.05px;
   }
-  .dfl-composition .flow-wires :global(.signal) {
-    filter: drop-shadow(0 0 3px color-mix(in srgb, var(--muted) 60%, transparent));
+  .predict canvas {
+    transform: translateY(12px);
+  }
+  .data-sheet-front > rect {
+    fill: url(#data-glass);
+    stroke: var(--neon-core);
+    stroke-width: 1.25px;
   }
 </style>
 <script>

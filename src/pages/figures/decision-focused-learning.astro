@@ -1,12 +1,13 @@
 ---
 import FigureDocument from '../../components/catalogue/FigureDocument.astro';
 import Illustration from '../../components/catalogue/DflFigure/Illustration.astro';
+import { researchFigures } from '../../data/research/figures';
 ---
 
 <FigureDocument
   title="Learning for better decisions"
   description="A prediction, optimization and decision-quality training loop."
-  bleed={32}
+  bleed={researchFigures.dfl.canvas.bleed}
 >
   <Illustration />
 </FigureDocument>

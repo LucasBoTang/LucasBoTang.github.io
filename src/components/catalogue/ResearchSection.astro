@@ -1,17 +1,20 @@
 ---
 import '@fontsource-variable/bodoni-moda/opsz.css';
-import L2oFigure from './L2oFigure/L2oFigure.astro';
-import GpuFigure from './GpuFigure/GpuFigure.astro';
-import DflFigure from './DflFigure/DflFigure.astro';
 import PublicationItem from './PublicationItem.astro';
 import ScreenReveal from './ScreenReveal/ScreenReveal.astro';
+import FigureFrame from './FigureFrame/FigureFrame.astro';
 import { publicationsByYear, type ResearchArea } from '../../data/research';
+import { researchFigures, type FigureKind } from '../../data/research/figures';
 
 interface Props {
   area: ResearchArea;
 }
 const { area } = Astro.props;
 const sortedPublications = publicationsByYear(area);
+const figureKind = (Object.keys(researchFigures) as FigureKind[]).find(
+  (kind) => researchFigures[kind].area === area.id,
+);
+const figure = figureKind ? researchFigures[figureKind] : undefined;
 ---
 
 <section class="research-section" id={area.id} aria-labelledby={`${area.id}-title`}>
@@ -25,77 +28,21 @@ const sortedPublications = publicationsByYear(area);
       {area.introduction && <p class="research-introduction">{area.introduction}</p>}
     </div>
   )}
-  {area.id === 'learning-to-optimize' && (
-    <figure id="bo-l2o-study" class="research-figure" aria-describedby="l2o-caption">
+  {figure && figureKind && (
+    <figure id={figure.anchor} class="research-figure" aria-describedby={figure.captionId}>
       <ScreenReveal>
-        <L2oFigure />
+        <FigureFrame kind={figureKind} title={figure.title} />
       </ScreenReveal>
-      <figcaption id="l2o-caption">
-        Training a solution map with differentiable integer correction.
-      </figcaption>
+      <figcaption id={figure.captionId}>{figure.caption}</figcaption>
       <details>
-        <summary>Figure details</summary>
-        <p>
-          Training predictions from a rerun of the{' '}
-          <a href="https://github.com/pnnl/L2O-MINLP/blob/6dd2a901144ae9892cf545a88f54fe60caef9ebe/test/Training%20Iterations%20for%20Rosenbrock.ipynb">
-            L2O-MINLP Rosenbrock example
-          </a>
-          . Surface height is log(1 + f).
-        </p>
-      </details>
-    </figure>
-  )}
-  {area.id === 'first-order-methods' && (
-    <figure id="bo-gpu-study" class="research-figure" aria-describedby="gpu-context-caption">
-      <ScreenReveal>
-        <GpuFigure />
-      </ScreenReveal>
-      <figcaption id="gpu-context-caption">
-        Scaling optimization with GPU-accelerated sparse linear algebra.
-      </figcaption>
-      <details>
-        <summary>Figure details &amp; credits</summary>
-        <p>
-          The real rail4284 standard-form matrix has 4,284 rows, 1,096,894 columns and 11,284,032
-          nonzeros. It is a set-covering problem from Italian railways, contributed by Paolo Nobili
-          to{' '}
-          <a href="https://people.brunel.ac.uk/~mastjjb/jeb/orlib/scpinfo.html">
-            Beasley’s OR-Library
-          </a>
-          .
-        </p>
-        <p>
-          Photo:{' '}
-          <a href="https://commons.wikimedia.org/wiki/File:Aerial_view_of_West_Oakland_rail_yards,_December_2022.JPG">
-            Pi.1415926535 / Wikimedia Commons
-          </a>
-          , under the <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>,
-          cropped and color-adjusted; the photographic adaptation remains CC BY-SA 4.0. The yard is
-          illustrative, not the source location of rail4284.
-        </p>
-      </details>
-    </figure>
-  )}
-
-  {area.id === 'decision-focused-learning' && (
-    <figure id="bo-dfl-study" class="research-figure">
-      <ScreenReveal>
-        <DflFigure />
-      </ScreenReveal>
-      <figcaption>Train predictions for the decisions they inform.</figcaption>
-      <details>
-        <summary>Figure details &amp; credits</summary>
-        <p>
-          Predictions are trained through downstream decision quality. Based on{' '}
-          <a href="https://arxiv.org/html/2206.14234v3#S3">PyEPO, Section 3</a>.
-        </p>
-        <p>
-          Photo:{' '}
-          <a href="https://www.pexels.com/photo/a-person-using-a-calculator-8297018/">
-            Mikhail Nilov / Pexels
-          </a>
-          . Cropped and color-adjusted.
-        </p>
+        <summary>{figure.summary}</summary>
+        {figure.details.map((paragraph) => (
+          <p>
+            {paragraph.map((part) =>
+              typeof part === 'string' ? part : <a href={part.href}>{part.label}</a>,
+            )}
+          </p>
+        ))}
       </details>
     </figure>
   )}
@@ -116,10 +63,10 @@ const sortedPublications = publicationsByYear(area);
     display: grid;
     grid-column: 1 / -1;
     grid-template-columns: subgrid;
-    scroll-margin-top: 2.5rem;
+    scroll-margin-top: var(--anchor-section-offset);
   }
   .research-section + .research-section {
-    margin-top: var(--step-160);
+    margin-top: var(--section-space);
   }
   h2,
   .research-passage {
@@ -173,16 +120,13 @@ const sortedPublications = publicationsByYear(area);
     .publication-list {
       display: block;
     }
-    .research-section + .research-section {
-      margin-top: var(--step-96);
-    }
   }
 
   .research-figure {
     grid-column: 1/-2;
     margin: calc(5 * var(--step-8)) 0 0;
     min-width: 0;
-    scroll-margin-top: calc(var(--site-header-height) + var(--site-header-fade) + var(--step-24));
+    scroll-margin-top: var(--anchor-figure-offset);
   }
   .research-figure + .publication-list {
     margin-top: var(--step-48);

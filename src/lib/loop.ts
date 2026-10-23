@@ -16,7 +16,11 @@ interface Loop {
  * Calls `onFrame` with the clock on every frame while running. While `held` returns true, the
  * clock stands still and `onFrame` is not called.
  */
-export function createLoop(onFrame: (elapsed: number) => void, held?: () => boolean): Loop {
+export function createLoop(
+  onFrame: (elapsed: number) => void,
+  held?: () => boolean,
+  maxStep = MAX_STEP,
+): Loop {
   let elapsed = 0;
   let previous = 0;
   let request = 0;
@@ -29,7 +33,7 @@ export function createLoop(onFrame: (elapsed: number) => void, held?: () => bool
       previous = 0;
       return;
     }
-    elapsed += previous ? Math.min(now - previous, MAX_STEP) : 0;
+    elapsed += previous ? Math.min(now - previous, maxStep) : 0;
     previous = now;
     onFrame(elapsed);
   };

@@ -118,3 +118,29 @@ export type SoftwareProject = z.infer<typeof softwareProjectSchema>;
 export type SoftwareGroup = z.infer<typeof softwareGroupSchema>;
 export type SelectedWork = z.infer<typeof selectedWorkSchema>;
 export type ContactLink = z.infer<typeof contactLinkSchema>;
+
+const figureCanvasSchema = z
+  .object({
+    width: z.number().positive(),
+    height: z.number().positive(),
+    bleed: z.number().nonnegative(),
+  })
+  .refine((canvas) => canvas.width > 2 * canvas.bleed, 'Canvas must have positive content width');
+
+export const researchFigureSchema = z.object({
+  src: href,
+  project: id,
+  canvas: figureCanvasSchema,
+  fitting: z.object({
+    compactAt: z.number().positive(),
+    compactCanvas: figureCanvasSchema.nullable(),
+  }),
+  area: id,
+  anchor: id,
+  title: text,
+  captionId: id,
+  caption: text,
+  summary: text,
+  details: z.array(z.array(z.union([z.string(), resourceLinkSchema]))),
+});
+export type ResearchFigure = z.infer<typeof researchFigureSchema>;

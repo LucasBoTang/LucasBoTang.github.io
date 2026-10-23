@@ -1,0 +1,73 @@
+---
+import FigureEmbed from '../FigureEmbed.astro';
+import { researchFigures, type FigureKind } from '../../../data/research/figures';
+
+interface Props {
+  kind: FigureKind;
+  title: string;
+}
+const { kind, title } = Astro.props;
+const { canvas, fitting, src } = researchFigures[kind];
+const { width, height, bleed } = canvas;
+const dimensions = `--figure-canvas-width:${width}px;--figure-canvas-height:${height}px;--figure-canvas-bleed:${bleed}px`;
+---
+
+<div class:list={['figure-viewport', { 'has-bleed': bleed > 0 }]}>
+  <div
+    class="figure-frame"
+    data-scalable-figure={kind}
+    data-figure-fit={JSON.stringify(fitting)}
+    style={dimensions}
+  >
+    <FigureEmbed src={src} title={title} />
+  </div>
+</div>
+
+<style>
+  .has-bleed {
+    margin-inline: calc(-1 * var(--gutter));
+    overflow: clip;
+    padding-inline: var(--gutter);
+  }
+  .figure-frame {
+    width: 100%;
+    container-type: inline-size;
+  }
+  .figure-frame :global(iframe) {
+    display: block;
+    border: 0;
+    height: var(--figure-canvas-height);
+    margin-left: calc(-1 * var(--figure-canvas-bleed));
+    width: calc(100% + 2 * var(--figure-canvas-bleed));
+    pointer-events: none;
+  }
+  /* Native fallbacks remain readable without enhancement. A fitted canvas outranks these
+     rules, preserving its chosen desktop or compact composition at smaller display widths. */
+  .figure-frame:where([data-scalable-figure='l2o']) :global(iframe) {
+    height: clamp(520px, 91.6667cqw, 539px);
+  }
+  @container (max-width:560px) {
+    .figure-frame:where([data-scalable-figure='l2o']) :global(iframe) {
+      height: calc(635px + 83.3333cqw);
+    }
+  }
+  @container (max-width:420px) {
+    .figure-frame:where([data-scalable-figure='dfl']) :global(iframe) {
+      height: 704px;
+    }
+  }
+  .figure-frame[data-scaled] {
+    height: calc(var(--figure-canvas-height) * var(--figure-scale));
+  }
+  .figure-frame[data-scaled] :global(iframe) {
+    height: var(--figure-canvas-height);
+    margin-left: calc(-1 * var(--figure-canvas-bleed) * var(--figure-scale));
+    width: var(--figure-canvas-width);
+    transform: scale(var(--figure-scale));
+    transform-origin: top left;
+  }
+</style>
+
+<script>
+  import './figure-frame';
+</script>
