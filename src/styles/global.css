@@ -115,12 +115,12 @@
       --gutter: var(--step-24);
       --item-rule: linear-gradient(var(--rule-item), var(--rule-item)) left top / 100% 1px no-repeat;
       --line-heading: 1.75rem;
-      --line-lane: var(--line-body);
+      --line-lane: 2rem;
       --site-header-fade: 1.25rem;
       --site-header-height: 5rem;
       --type-display: 3.5rem;
       --type-heading: 1.25rem;
-      --type-lane: var(--type-body);
+      --type-lane: 1.25rem;
       --zone-entry: 1 / -1;
       --zone-hanging: 1 / -1;
       --zone-index: 1 / -1;

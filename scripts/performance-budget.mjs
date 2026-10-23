@@ -9,8 +9,8 @@ import { pageFiles } from './validate-output.mjs';
 const BUDGET = {
   // Includes the small home-preview controller; figure documents load only on intent.
   'index.html': { html: 80, scripts: 64 },
-  // Near-viewport embeds include three no-JavaScript fallbacks (under 1KB total).
-  'research/index.html': { html: 49, scripts: 24 },
+  // Includes four accessible theme lanes; their repeated visual lettering adds about 8KB.
+  'research/index.html': { html: 57, scripts: 24 },
   default: { html: 48, scripts: 24 },
 };
 /** Fonts every page fetches early: the serif, the mono and the sans of its first screen. */
