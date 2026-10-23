@@ -73,3 +73,25 @@ test('puts Node built-ins before packages and local imports in scripts', () => {
     `// Check content.\n${expected}`,
   );
 });
+
+test('preserves intersecting border side and color, width or style shorthands', () => {
+  const pairs = [
+    ...['top', 'right', 'bottom', 'left'].flatMap((side) =>
+      ['color: blue', 'width: 2px', 'style: solid'].map((part) => [
+        `border-${side}: 0;`,
+        `border-${part};`,
+      ]),
+    ),
+  ];
+  for (const pair of pairs) {
+    for (const declarations of [pair, [...pair].reverse()]) {
+      const css = `.a {\n  ${declarations.join('\n  ')}\n}`;
+      assert.equal(orderDeclarations(css), css);
+    }
+  }
+});
+
+test('preserves the line height reset by a later font shorthand', () => {
+  const css = '.a {\n  line-height: 2;\n  font: 16px Georgia;\n}';
+  assert.equal(orderDeclarations(css), css);
+});

@@ -1,3 +1,5 @@
+import { seeded } from './random.ts';
+
 // The decode signal shared by the home name and the page titles: how an unlocked letter looks
 // from step to step. It jumps above its place, flickers, blinks out now and then, and solid blocks
 // flash over it; over its last steps it calms, so it is drawn into place rather than stopped.
@@ -19,12 +21,6 @@ const BLOCK_EVERY = 4;
 const BLINK_EVERY = 7;
 /** The echo beside a letter that has just locked lasts this long, in milliseconds. */
 export const DECODE_ECHO = 90;
-
-/** Repeatable numbers in [0, 1), so every decode of the same text looks the same. */
-export const seeded = (n: number) => {
-  const value = Math.sin(n * 91.345 + 47.853) * 43758.5453;
-  return value - Math.floor(value);
-};
 
 /**
  * How the letter at `index` looks at `step` of its decode, `calm` (1 to 0) of the way from noise

@@ -1,5 +1,6 @@
-import { DECODE_ECHO, decodeCharacter, sampleDecode, seeded } from '../../../lib/decode';
+import { DECODE_ECHO, decodeCharacter, sampleDecode } from '../../../lib/decode';
 import { reducedMotionQuery } from '../../../lib/motion';
+import { seeded } from '../../../lib/random.ts';
 import { slipDuration } from '../../../lib/signal';
 
 // Moving between pages, the page title rewrites itself in place, the way the home name decodes.

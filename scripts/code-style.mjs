@@ -109,12 +109,21 @@ function declarationGroup(property) {
 }
 
 const SIDES = {
+  font: ['line-height'],
   inset: ['top', 'right', 'bottom', 'left'],
   gap: ['row-gap', 'column-gap'],
   'place-items': ['align-items', 'justify-items'],
   'place-content': ['align-content', 'justify-content'],
   'place-self': ['align-self', 'justify-self'],
 };
+// Border sides and border-color/width/style overlap through their shared longhands.
+const borderSides = ['top', 'right', 'bottom', 'left'];
+const borderParts = ['color', 'width', 'style'];
+for (const side of borderSides)
+  SIDES[`border-${side}`] = borderParts.map((part) => `border-${side}-${part}`);
+for (const part of borderParts)
+  SIDES[`border-${part}`] = borderSides.map((side) => `border-${side}-${part}`);
+
 for (const box of ['margin', 'padding']) {
   SIDES[`${box}-block`] = [`${box}-top`, `${box}-bottom`];
   SIDES[`${box}-inline`] = [`${box}-left`, `${box}-right`];

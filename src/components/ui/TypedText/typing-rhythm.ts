@@ -1,4 +1,4 @@
-import { seeded } from '../../../lib/decode.ts';
+import { seeded } from '../../../lib/random.ts';
 
 // Pure keystroke planning: word tempo, phrase pauses and one corrected slip, with no DOM work.
 

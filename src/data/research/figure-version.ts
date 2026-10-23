@@ -1,12 +1,25 @@
 import { createHash } from 'node:crypto';
-import { readdirSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 // Build-time only. A digest of every source file the figure documents are built from, so a
 // visitor's record of the figures already drawn ahead (FigureWarmup) lapses when a figure changes:
 // a redesigned figure may draw things whose GPU programs the browser has not yet compiled.
 
-const ROOT = join(process.cwd(), 'src/components/catalogue');
+/** Find sources from either this module or Astro's relocated prerender bundle. */
+function catalogueRoot(): string {
+  let directory = dirname(fileURLToPath(import.meta.url));
+  while (true) {
+    const source = join(directory, 'src/components/catalogue');
+    if (existsSync(source)) return source;
+    const parent = dirname(directory);
+    if (parent === directory) throw new Error('Cannot locate the research figure sources');
+    directory = parent;
+  }
+}
+
+const ROOT = catalogueRoot();
 const SOURCES = ['GpuFigure', 'DflFigure', 'L2oFigure', 'FigureDocument.astro'];
 
 /** Every file under `path`, in a stable order. */

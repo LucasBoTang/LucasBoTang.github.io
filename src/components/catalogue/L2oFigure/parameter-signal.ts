@@ -1,4 +1,4 @@
-import { seeded } from '../../../lib/decode.ts';
+import { seeded } from '../../../lib/random.ts';
 
 const channels = {
   a: { seed: 11, interval: 0.095 },
