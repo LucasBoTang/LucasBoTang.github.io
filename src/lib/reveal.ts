@@ -8,13 +8,19 @@ import {
 import { phonePace } from './breakpoints';
 import { enhance } from './lifecycle';
 import { onKeyboardFocus, reducedMotionQuery } from './motion';
-import { bodyReleased, liftOpeningGate, openingPending } from './opening-gate';
+import {
+  liftOpeningGate,
+  openingPending,
+  openingReleased,
+  openingReleasedAt,
+} from './opening-gate';
 import { waitForPageReady } from './page-ready';
 
 // Inner-page body opening: PageHeader starts the title and introduction together. The remaining
 // leads and units arrive (see arrival.ts) through one queue after a short reading pause, without
-// waiting for the introduction to finish typing, but after any work held back for the body
-// (opening-gate.ts `holdBody`). The footer arrives last.
+// waiting for the introduction to finish typing. Work that holds the opening back
+// (opening-gate.ts `holdOpening`) holds the introduction's typing too, so the pause is measured
+// from its release. The footer arrives last.
 
 /** One reading beat from the introduction's start, overlapping resource preparation. */
 const READING_BEAT = 600;
@@ -32,7 +38,7 @@ function setupReveal(page: HTMLElement) {
   const pace = phonePace();
   const intro = page.querySelector<HTMLElement>('[data-page-intro]');
   const now = performance.now();
-  const introAt = Number(intro?.dataset.introStarted ?? now);
+  const introAt = Math.max(Number(intro?.dataset.introStarted ?? now), openingReleasedAt());
   const firstDelay = intro ? Math.max(0, introAt + READING_BEAT - now) : 0;
   const nextArrival = createArrivalQueue(firstDelay);
   let warmed = 0;
@@ -138,6 +144,6 @@ function setupReveal(page: HTMLElement) {
 
 enhance('[data-reveal-root]', (page) => {
   void waitForPageReady()
-    .then(bodyReleased)
+    .then(openingReleased)
     .then(() => setupReveal(page));
 });

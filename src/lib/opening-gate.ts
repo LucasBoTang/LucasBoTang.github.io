@@ -26,23 +26,40 @@ export function waitForOpeningVisible(): Promise<void> {
   return visible;
 }
 
-/** An inner page's body waits for held work no later than this long after navigation, which
- * leaves time before SiteLayout's 2.5s fallback to prepare its arrival (reveal.ts). */
-export const BODY_HOLD_UNTIL = 2000;
-const bodyHolds = new Set<Promise<unknown>>();
+/** An opening waits for held work no later than this long after navigation, which leaves time
+ * before SiteLayout's 2.5s fallback to prepare its motion (home-opening.ts, reveal.ts). */
+export const OPENING_HOLD_UNTIL = 2000;
+const openingHolds = new Set<Promise<unknown>>();
+let releasedAt = 0;
 
-/** Keeps an inner page's body back while `task` runs: the title and introduction already show
- * and type, so work that would stall the body's arrival happens behind the typing instead. */
-export function holdBody(task: Promise<unknown>): void {
-  bodyHolds.add(task);
+/** Keeps an opening's motion back while `task` runs: its first typing waits behind a blinking
+ * caret, and everything after follows from there. Work that would stall motion, such as drawing
+ * the figures ahead (FigureWarmup), happens while the page is still. */
+export function holdOpening(task: Promise<unknown>): void {
+  openingHolds.add(task);
+  void task.finally(() => {
+    openingHolds.delete(task);
+    if (!openingHolds.size) releasedAt = performance.now();
+  });
 }
 
-/** Resolves once every held task has settled, or at `BODY_HOLD_UNTIL`. */
-export function bodyReleased(): Promise<void> {
-  return Promise.race([
-    Promise.allSettled([...bodyHolds]).then(() => {}),
-    new Promise<void>((resolve) =>
-      setTimeout(resolve, Math.max(0, BODY_HOLD_UNTIL - performance.now())),
-    ),
-  ]);
+/** Whether an opening is still held back: some held work is running, and its bound is ahead. */
+export const openingHeld = () => openingHolds.size > 0 && performance.now() < OPENING_HOLD_UNTIL;
+
+/** When the opening was let go after being held, or 0 if nothing held it. */
+export const openingReleasedAt = () =>
+  openingHolds.size ? Math.min(performance.now(), OPENING_HOLD_UNTIL) : releasedAt;
+
+/** Resolves once no held work is left, or at `OPENING_HOLD_UNTIL`. */
+export async function openingReleased(): Promise<void> {
+  const bound = new Promise<void>((resolve) =>
+    setTimeout(resolve, Math.max(0, OPENING_HOLD_UNTIL - performance.now())),
+  );
+  while (openingHeld()) {
+    const held = await Promise.race([
+      Promise.allSettled([...openingHolds]).then(() => true),
+      bound.then(() => false),
+    ]);
+    if (!held) return;
+  }
 }

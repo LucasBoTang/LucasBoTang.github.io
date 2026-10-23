@@ -17,26 +17,29 @@ async function gate(t, now = 0) {
 }
 const flush = () => new Promise((resolve) => setImmediate(resolve));
 
-test('the body waits for held work', async (t) => {
-  const { holdBody, bodyReleased } = await gate(t);
+test('the opening waits for held work, and knows when it was let go', async (t) => {
+  const { holdOpening, openingHeld, openingReleased, openingReleasedAt } = await gate(t, 300);
   let finish;
-  holdBody(new Promise((resolve) => (finish = resolve)));
+  holdOpening(new Promise((resolve) => (finish = resolve)));
   let released = false;
-  void bodyReleased().then(() => (released = true));
+  void openingReleased().then(() => (released = true));
   t.mock.timers.tick(500);
   await flush();
   assert.equal(released, false);
+  assert.ok(openingHeld());
   finish();
   await flush();
   assert.ok(released);
+  assert.equal(openingHeld(), false);
+  assert.equal(openingReleasedAt(), 300, 'released at the mocked clock');
 });
 
-test('held work keeps the body back no later than its bound after navigation', async (t) => {
-  const { holdBody, bodyReleased, BODY_HOLD_UNTIL } = await gate(t, 1500);
-  holdBody(new Promise(() => {}));
+test('held work keeps the opening back no later than its bound after navigation', async (t) => {
+  const { holdOpening, openingReleased, OPENING_HOLD_UNTIL } = await gate(t, 1500);
+  holdOpening(new Promise(() => {}));
   let released = false;
-  void bodyReleased().then(() => (released = true));
-  t.mock.timers.tick(BODY_HOLD_UNTIL - 1500 - 1);
+  void openingReleased().then(() => (released = true));
+  t.mock.timers.tick(OPENING_HOLD_UNTIL - 1500 - 1);
   await flush();
   assert.equal(released, false);
   t.mock.timers.tick(1);
@@ -44,10 +47,10 @@ test('held work keeps the body back no later than its bound after navigation', a
   assert.ok(released);
 });
 
-test('with nothing held the body goes on at once', async (t) => {
-  const { bodyReleased } = await gate(t);
+test('with nothing held the opening goes on at once', async (t) => {
+  const { openingReleased } = await gate(t);
   let released = false;
-  void bodyReleased().then(() => (released = true));
+  void openingReleased().then(() => (released = true));
   await flush();
   assert.ok(released);
 });

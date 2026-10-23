@@ -14,13 +14,14 @@ export const budgetFiles = [...pageFiles, ...figureFiles];
 const BUDGET = {
   // Includes home previews and the sign's event-driven readiness; figures load only on intent,
   // but on a screen with hover the warm-up draws them ahead once the opening has settled.
-  'index.html': { html: 80, scripts: 69 },
+  'index.html': { html: 80, scripts: 70 },
   // Includes four accessible theme lanes; their repeated visual lettering adds about 8KB.
   // Includes the phone lanes' shared entrance choreography and reading-index controller, plus
   // bounded figure preparation before the body arrives (about 29.5KB of scripts in total).
   'research/index.html': { html: 59, scripts: 30 },
-  // Shared arrival queue reservations also ship with the software reading units.
-  'software/index.html': { html: 48, scripts: 25 },
+  // Shared arrival queue reservations also ship with the software reading units, as does the
+  // opening hold its introduction's typing observes (opening-gate.ts).
+  'software/index.html': { html: 48, scripts: 26 },
   // Artwork baselines (HTML/scripts): GPU 77/33KB after removing unused matrix frames,
   // DFL 8/25KB, L2O 23/28KB. Keep modest headroom without hiding a new data bundle.
   [`${figurePaths.gpu.slice(1)}index.html`]: { html: 80, scripts: 36 },

@@ -80,6 +80,15 @@ const introduction = description?.trim() ?? '';
   .page-header p[data-intro-started] {
     visibility: visible;
   }
+  /* Before its first key, the introduction's caret blinks where typing will begin: a first visit
+     holds it there while the figures are drawn ahead (page-intro.ts). */
+  .page-header
+    p
+    :global(
+      [data-typing-ready]:not([data-typing-started]):not([data-typing-complete]) .typed-cursor
+    ) {
+    visibility: visible;
+  }
   /* The decoding letters (title-decode.ts). A blink only dims a letter to a trace: at this size a
      letter gone reads as a hole in the word. A block flashes over it in a tone of the signal;
      `ink` erases. */

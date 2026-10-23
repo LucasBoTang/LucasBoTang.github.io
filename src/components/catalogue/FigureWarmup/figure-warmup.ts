@@ -1,7 +1,7 @@
 import { enhance } from '../../../lib/lifecycle';
 import {
-  BODY_HOLD_UNTIL,
-  holdBody,
+  OPENING_HOLD_UNTIL,
+  holdOpening,
   openingPending,
   waitForOpeningVisible,
 } from '../../../lib/opening-gate';
@@ -13,14 +13,15 @@ import { waitForPageReady } from '../../../lib/page-ready';
 // every figure the page can show is drawn once ahead, unseen, in a slot that is in view but nearly
 // transparent, and so is every filter the page's own entrances pass through as a figure appears.
 //
-// None of this may delay the opening or compete with its fonts and images. A figure's warm-up
-// shares the page's main thread and GPU, so it runs only where a stall would not show. On an inner
-// page whose body waits behind its typing introduction (reveal.ts), the figures are drawn together
-// once the page is ready, and the body holds back for them, within a bound: a pause in typing
-// reads as a typist's hesitation. Otherwise, as on the home page, the figure documents are fetched
-// once the opening is visible, at the lowest priority, and drawn one at a time only once the
-// opening has finished moving, the page is idle and the reader is not scrolling. A figure the page
-// has already shown is skipped there, being drawn already. Browsers keep the programs on disk, so
+// A figure's warm-up shares the page's main thread and GPU, so it runs only where a stall cannot
+// show, and never competes with the opening's own fonts and images. On a first visit the figures
+// are drawn together once the page is ready, while the opening holds its first typing back behind
+// a blinking caret (opening-gate.ts `holdOpening`): nothing moves but the caret, which a missed
+// frame or two does not disturb, and the typing that follows keeps its rhythm. The hold is bound
+// (`OPENING_HOLD_UNTIL`); a page ready too late leaves the figures to quiet moments after the
+// opening, when they are fetched at the lowest priority and drawn one at a time, once the opening
+// has finished moving, the page is idle and the reader is not scrolling. A figure the page has
+// already shown is skipped there, being drawn already. Browsers keep the programs on disk, so
 // the visitor's storage remembers each figure drawn or shown, and a later visit draws nothing ahead
 // until that figure's source changes (figure-version.ts); the filters' few programs are cached
 // alongside the first figure's.
@@ -38,8 +39,10 @@ export interface FigureSource {
  * declares them. */
 export type FilterSequence = string[];
 
-/** The slot's opacity: enough that the browser rasterizes the figures, too little to see. */
-const OPACITY = '0.02';
+/** The slot's opacity. The figures must really be drawn on screen: at opacity 0, off screen,
+ * clipped away or hidden, the browser skips drawing them and compiles almost nothing. Any opacity
+ * above 0 compiles the same programs, and this one is below the screen's smallest step of grey. */
+const OPACITY = '0.001';
 /** Frames each figure is given once its fonts and images are ready. Its clock sweeps ahead over
  * them (figure-clock.ts), through about fourteen seconds of its cycles; a filter sequence is
  * played over the same frames. */
@@ -225,10 +228,10 @@ export async function warmInTurn(
 const SHORTEST_HOLD = 300;
 
 /**
- * Draws `sources` together while an inner page's body is held back for them, once the page's own
- * fonts and images are ready, giving up at the body's bound; what is left is drawn in turn later.
+ * Draws `sources` together while the opening is held back for them, once the page's own fonts and
+ * images are ready, giving up at the hold's bound; what is left is drawn in turn later.
  */
-export async function warmBeforeBody(
+export async function warmBeforeOpening(
   sources: FigureSource[],
   version: string,
   filters: FilterSequence[] = [],
@@ -237,7 +240,7 @@ export async function warmBeforeBody(
   const pending = sources.filter((source) => !remembered().has(key(source)));
   if (!pending.length) return;
   await waitForPageReady();
-  const left = BODY_HOLD_UNTIL - performance.now();
+  const left = OPENING_HOLD_UNTIL - performance.now();
   const complete =
     openingPending() && left > SHORTEST_HOLD && (await warmFigures(pending, filters, left));
   if (complete) for (const source of pending) remember(key(source), version);
@@ -262,8 +265,10 @@ enhance('[data-figure-warmup-sources]', (host) => {
   if (connection?.saveData) return;
   const sources = JSON.parse(host.dataset.figureWarmupSources ?? '[]') as FigureSource[];
   const version = host.dataset.figureWarmupVersion ?? '';
-  if (host.hasAttribute('data-figure-warmup-before-body') && openingPending())
-    holdBody(warmBeforeBody(sources, version, declaredFilters()));
+  // Only a visit with figures left to draw holds its opening; a returning visitor's goes at once.
+  const unseen = sources.some(({ src }) => !remembered().has(`${src}#${version}`));
+  if (unseen && openingPending())
+    holdOpening(warmBeforeOpening(sources, version, declaredFilters()));
   else void warmInTurn(sources, version, declaredFilters());
 });
 

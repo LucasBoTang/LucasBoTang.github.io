@@ -2,7 +2,7 @@ import { announceArrival, arrival, arrivalFrames, createArrivalQueue } from '../
 import { isPhone, phonePace } from '../../../lib/breakpoints';
 import { enhance, onScrollFrame } from '../../../lib/lifecycle';
 import { onKeyboardFocus, reducedMotionQuery } from '../../../lib/motion';
-import { liftOpeningGate, openingPending } from '../../../lib/opening-gate';
+import { liftOpeningGate, openingPending, openingReleased } from '../../../lib/opening-gate';
 import { waitForPageReady } from '../../../lib/page-ready';
 import { createTimeline } from '../../../lib/timeline';
 import { addHeroOpening } from '../HomeHero/hero-opening';
@@ -230,5 +230,9 @@ function setupHomeOpening(page: HTMLElement) {
 
 enhance('[data-opening-content]', (page) => {
   const waitForImages = isPhone() || isHomeReturn();
-  void waitForPageReady({ waitForImages }).then(() => setupHomeOpening(page));
+  // Work held back for a first visit (opening-gate.ts `holdOpening`) runs in the dark, behind the
+  // greeting's waiting caret; the whole opening then plays from its release.
+  void waitForPageReady({ waitForImages })
+    .then(openingReleased)
+    .then(() => setupHomeOpening(page));
 });

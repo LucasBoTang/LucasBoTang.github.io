@@ -2,9 +2,12 @@ import { arrival, arrivalFrames } from '../../../lib/arrival';
 import { phonePace } from '../../../lib/breakpoints';
 import { enhance } from '../../../lib/lifecycle';
 import { onKeyboardFocus, reducedMotionQuery, watchActivity } from '../../../lib/motion';
+import { openingHeld } from '../../../lib/opening-gate';
 import { createTyping, type TypingRhythm } from '../../ui/TypedText/typed-text';
 
-/** The introduction types alongside the title; body readiness never holds it back. */
+/** The introduction types alongside the title; body readiness never holds it back. Work that
+ * holds the opening back (opening-gate.ts `holdOpening`) keeps its first key waiting behind the
+ * caret, but never interrupts typing once it has begun. */
 function setupPageIntro(intro: HTMLElement) {
   const host = intro.querySelector<HTMLElement>('[data-typed-text]');
   if (!host || reducedMotionQuery().matches || !Element.prototype.animate) return;
@@ -13,6 +16,7 @@ function setupPageIntro(intro: HTMLElement) {
   const typing = createTyping(host, {
     ...rhythm,
     duringOpening: true,
+    held: () => !host.hasAttribute('data-typing-started') && openingHeld(),
     onComplete: () => stopKeyboardWatch(),
   });
   const entrance = intro.animate(arrivalFrames(intro), {
