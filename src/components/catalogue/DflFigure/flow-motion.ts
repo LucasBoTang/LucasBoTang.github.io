@@ -3,7 +3,9 @@ import { clamp } from '../../../lib/easing.ts';
 export type CaptionSweep = { start: number; end: number; reverse: boolean };
 type FlowCaption = { label: HTMLElement; glow: HTMLElement; events: CaptionSweep[] };
 type FlowWire = {
+  /** The signal's path, for its geometry; its stroke, dash and opacity are set on `signal`. */
   band: SVGPathElement;
+  signal: SVGGElement;
   gradient: SVGLinearGradientElement;
   length: number;
   window: readonly [number, number];
@@ -26,12 +28,12 @@ export function updateFlow(figure: FlowFigure, phase: number, staticFrame: boole
   const { wires, captions } = figure;
   if (!wires.length) return;
   wires.forEach(
-    ({ band, gradient, length, window, reverse, label, labelAt, extent, angle, glow }) => {
+    ({ band, signal, gradient, length, window, reverse, label, labelAt, extent, angle, glow }) => {
       const returning = reverse !== null && phase >= reverse[0] && phase <= reverse[1] + 0.5;
       const [start, end] = returning ? reverse! : window;
       const active = !staticFrame && phase >= start && phase <= end + 0.5;
       if (!active) {
-        if (band.style.opacity !== '0') band.style.opacity = '0';
+        if (signal.style.opacity !== '0') signal.style.opacity = '0';
         if (label) glow!.style.opacity = '0';
         return;
       }
@@ -51,7 +53,7 @@ export function updateFlow(figure: FlowFigure, phase: number, staticFrame: boole
       const lo = Math.max(0, Math.min(head, tail)),
         hi = Math.min(length, Math.max(head, tail));
       if (hi <= lo) {
-        band.style.opacity = '0';
+        signal.style.opacity = '0';
         return;
       }
       const from = band.getPointAtLength(returning ? hi : lo),
@@ -60,11 +62,11 @@ export function updateFlow(figure: FlowFigure, phase: number, staticFrame: boole
       gradient.setAttribute('y1', String(from.y));
       gradient.setAttribute('x2', String(to.x));
       gradient.setAttribute('y2', String(to.y));
-      band.style.strokeDasharray = `${hi - lo} ${length * 3}`;
-      band.style.strokeDashoffset = String(-lo);
+      signal.style.strokeDasharray = `${hi - lo} ${length * 3}`;
+      signal.style.strokeDashoffset = String(-lo);
       const enter = clamp((phase - start) / 0.12),
         exit = clamp((phase - end) / 0.5);
-      band.style.opacity = String(
+      signal.style.opacity = String(
         0.95 * (enter * enter * (3 - 2 * enter)) * (1 - exit * exit * (3 - 2 * exit)),
       );
     },

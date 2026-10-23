@@ -193,8 +193,15 @@ document.querySelectorAll<HTMLElement>('.training-flow').forEach((root) => {
     svg.querySelectorAll('[data-signal-gradient]').forEach((gradient) => gradient.remove());
     figure.wires = [];
     paths.forEach((d, i) => {
+      // A wire's soft edge is a wider, fainter stroke beneath it: a blur filter would cost the GPU
+      // a shader program per blur radius, compiled on the figure's first frame.
+      const halo = document.createElementNS(ns, 'path');
+      halo.setAttribute('d', d);
+      halo.setAttribute('class', 'wire-halo');
+      group.append(halo);
       const base = document.createElementNS(ns, 'path');
       base.setAttribute('d', d);
+      base.setAttribute('class', 'wire');
       base.setAttribute('marker-end', 'url(#dfl-flow-arrow)');
       group.append(base);
       const length = base.getTotalLength();
@@ -217,11 +224,19 @@ document.querySelectorAll<HTMLElement>('.training-flow').forEach((root) => {
         gradient.append(stop);
       });
       svg.querySelector('defs')!.append(gradient);
+      // The signal and its glow share one group: the stroke, dash and opacity flow-motion sets on
+      // it reach both, and the glow is again a wider stroke rather than a blur.
+      const signal = document.createElementNS(ns, 'g');
+      signal.setAttribute('class', 'signal');
+      signal.style.stroke = `url(#${id})`;
       const band = document.createElementNS(ns, 'path');
       band.setAttribute('d', d);
-      band.setAttribute('class', 'signal');
-      band.style.stroke = `url(#${id})`;
-      group.append(band);
+      band.setAttribute('class', 'signal-core');
+      const signalHalo = document.createElementNS(ns, 'path');
+      signalHalo.setAttribute('d', d);
+      signalHalo.setAttribute('class', 'signal-halo');
+      signal.append(signalHalo, band);
+      group.append(signal);
       const labelConfig = wireLabels[i];
       const label = root.querySelector<HTMLElement>(labelConfig.selector);
       let labelAt = mobile ? labelConfig.mobile : labelConfig.desktop;
@@ -255,6 +270,7 @@ document.querySelectorAll<HTMLElement>('.training-flow').forEach((root) => {
         dy = (b.y - a.y) / norm;
       figure.wires.push({
         band,
+        signal,
         gradient,
         length,
         window: windows[i],

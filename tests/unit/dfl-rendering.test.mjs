@@ -83,6 +83,7 @@ function element() {
 function flowFigure() {
   const wire = {
     band: element(),
+    signal: element(),
     gradient: element(),
     length: 200,
     window: [0, 2],
@@ -110,8 +111,8 @@ test('DFL return light reverses the wire gradient and caption sweep without movi
   const [caption] = figure.captions;
   updateFlow(figure, 1, false);
   assert.deepEqual(wire.gradient.attributes, { x1: '52', y1: '26', x2: '100', y2: '50' });
-  assert.equal(wire.band.style.strokeDasharray, '48 600');
-  assert.equal(wire.band.style.opacity, '0.95');
+  assert.equal(wire.signal.style.strokeDasharray, '48 600');
+  assert.equal(wire.signal.style.opacity, '0.95');
   assert.equal(wire.label.style['--sweep-angle'], '90deg');
   assert.equal(caption.label.style['--name-sweep'], '50%');
   updateFlow(figure, 5, false);
@@ -129,15 +130,15 @@ test('DFL static frames clear active light and resume without stale opacity', ()
   assert.equal(wire.glow.style.opacity, '1');
   assert.equal(caption.glow.style.opacity, '1');
   updateFlow(figure, 1, true);
-  assert.equal(wire.band.style.opacity, '0');
+  assert.equal(wire.signal.style.opacity, '0');
   assert.equal(wire.glow.style.opacity, '0');
   assert.equal(caption.glow.style.opacity, '0');
   updateFlow(figure, 1, false);
-  assert.equal(wire.band.style.opacity, '0.95');
+  assert.equal(wire.signal.style.opacity, '0.95');
   assert.equal(wire.glow.style.opacity, '1');
   assert.equal(caption.glow.style.opacity, '1');
   updateFlow(figure, 7, false);
-  assert.equal(wire.band.style.opacity, '0');
+  assert.equal(wire.signal.style.opacity, '0');
   assert.equal(wire.glow.style.opacity, '0');
   assert.equal(caption.glow.style.opacity, '0');
 });

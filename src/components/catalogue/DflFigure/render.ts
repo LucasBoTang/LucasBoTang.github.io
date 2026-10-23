@@ -54,9 +54,13 @@ if (root) {
   const draw = (elapsed: number, reduced: boolean) => {
     const time = reduced ? 0 : elapsed / 1000;
     surfaces.forEach((surface) => renderModule(surface, time, time));
-    // Local light varies gently at two continuous rates; the lettering never switches off.
+    // Local light varies gently at two continuous rates; the lettering never switches off. The
+    // sign's lettering, with its blurred shadows, is drawn again whenever the light changes, so
+    // it is written in steps too small to see, a few times a second rather than every frame.
     const light = 0.2 + 0.12 * ambientSwing(time * 1.4) + 0.02 * ambientSwing(time * 1.9, 0.9);
-    sign?.style.setProperty('--sign-light', light.toFixed(4));
+    const lit = light.toFixed(2);
+    if (sign && sign.style.getPropertyValue('--sign-light') !== lit)
+      sign.style.setProperty('--sign-light', lit);
     updateDatasetAmbient(root, time);
     updateDflFlow(time, reduced);
   };

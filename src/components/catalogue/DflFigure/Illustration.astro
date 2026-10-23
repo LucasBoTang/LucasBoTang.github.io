@@ -122,23 +122,6 @@ import { neon, neonMetrics } from './material';
             <stop offset=".35" stop-color={neon.body} />
             <stop offset="1" stop-color={neon.dim} />
           </radialGradient>
-          <filter
-            id="data-neon"
-            x="-20%"
-            y="-30%"
-            width="140%"
-            height="160%"
-            color-interpolation-filters="sRGB"
-          >
-            <feGaussianBlur in="SourceGraphic" stdDeviation={neonMetrics.halo / 2} />
-            <feComponentTransfer result="halo">
-              <feFuncA type="linear" slope=".55" />
-            </feComponentTransfer>
-            <feMerge>
-              <feMergeNode in="halo" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
           <g id="data-tube-geometry">
             <path class="data-sheet-back" opacity=".48" d="M36 10H124V58" />
             <path class="data-sheet-middle" opacity=".48" d="M28 18H116V66" />
@@ -157,6 +140,7 @@ import { neon, neonMetrics } from './material';
             </g>
           </g>
         </defs>
+        <use class="data-tube-halo" href="#data-tube-geometry" aria-hidden="true" />
         <use class="data-tube-body" href="#data-tube-geometry" aria-hidden="true" />
         <use class="data-tube-core" href="#data-tube-geometry" aria-hidden="true" />
       </svg>
@@ -301,8 +285,11 @@ import { neon, neonMetrics } from './material';
     font-size: 16px;
     font-weight: 400;
     line-height: 1.1;
+    text-shadow:
+      0 0 0.5px var(--neon-core),
+      0 0 2.5px var(--neon-halo),
+      0 0 6px var(--neon-halo);
     color: var(--neon-core);
-    filter: drop-shadow(0 0 0.5px var(--neon-core)) drop-shadow(0 0 3px var(--neon-halo));
     transform: translateX(-50%);
   }
   .flow-wires {
@@ -316,26 +303,38 @@ import { neon, neonMetrics } from './material';
   .flow-wires :global(path) {
     fill: none;
   }
-  .flow-wires :global(path:not(.signal)) {
-    filter: drop-shadow(0 0 0.6px color-mix(in srgb, var(--muted) 35%, transparent))
-      drop-shadow(0 0 1.5px color-mix(in srgb, var(--muted) 18%, transparent));
+  /* Glows are wider, fainter strokes beneath the lines (flow-layout.ts), never blur filters,
+     which the GPU would compile a shader for on the figure's first frame. */
+  .flow-wires :global(.wire) {
     opacity: 0.6;
     stroke: var(--muted);
     stroke-width: 1.05px;
   }
+  .flow-wires :global(.wire-halo) {
+    opacity: 0.16;
+    stroke: var(--muted);
+    stroke-linecap: round;
+    stroke-width: 3px;
+  }
   .flow-wires marker path {
-    filter: none;
     opacity: 1;
+    stroke: var(--muted);
     stroke-linecap: round;
     stroke-linejoin: round;
+    stroke-width: 1.05px;
     vector-effect: non-scaling-stroke;
   }
   .flow-wires :global(.signal) {
-    filter: drop-shadow(0 0 3px color-mix(in srgb, var(--muted) 60%, transparent));
     opacity: 0;
     stroke: var(--paper);
     stroke-linecap: round;
+  }
+  .flow-wires :global(.signal-core) {
     stroke-width: 2.2;
+  }
+  .flow-wires :global(.signal-halo) {
+    opacity: 0.4;
+    stroke-width: 6.5px;
   }
   .flow-label {
     position: absolute;
@@ -380,9 +379,15 @@ import { neon, neonMetrics } from './material';
     stroke-linecap: round;
     stroke-linejoin: round;
   }
+  /* The tube's halo is a wider, fainter copy beneath it rather than a blur filter. */
+  .data-tube-halo {
+    --dataset-fill: none;
+    opacity: 0.3;
+    stroke: var(--neon-halo);
+    stroke-width: calc(var(--neon-line-width) + 3.5px);
+  }
   .data-tube-body {
     --dataset-fill: url(#data-glass);
-    filter: url(#data-neon);
     stroke: var(--neon-body);
     stroke-width: var(--neon-line-width);
   }
