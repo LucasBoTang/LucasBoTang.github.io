@@ -37,11 +37,13 @@ export const arrival = {
  */
 export function createArrivalQueue(firstAt = 0) {
   let last = performance.now() + firstAt - arrival.beat;
-  return (patient: boolean) => {
+  let heldUntil = 0;
+  return (patient: boolean, hold = 0) => {
     const now = performance.now();
     const behind = !patient && last - now > arrival.backlog;
-    const at = Math.max(now, last + (behind ? arrival.catchUp : arrival.beat));
-    last = patient ? at : Math.min(at, now + arrival.maxWait);
+    const at = Math.max(now, heldUntil, last + (behind ? arrival.catchUp : arrival.beat));
+    last = patient ? at : Math.max(heldUntil, Math.min(at, now + arrival.maxWait));
+    heldUntil = last + hold;
     return last - now;
   };
 }

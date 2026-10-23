@@ -50,7 +50,9 @@ function setupReveal(page: HTMLElement) {
     if (!group || group[0].playState !== 'paused') return;
     observer.unobserve(element);
     const scrolledPast = box.bottom <= 0;
-    const delay = scrolledPast ? 0 : nextArrival(firstScreen);
+    const delay = scrolledPast
+      ? 0
+      : nextArrival(firstScreen, Number(element.getAttribute('data-arrival-hold') ?? 0));
     group.forEach((animation) => {
       animation.effect?.updateTiming({ delay });
       animation.play();

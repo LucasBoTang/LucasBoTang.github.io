@@ -17,6 +17,8 @@ const BUDGET = {
   // Includes four accessible theme lanes; their repeated visual lettering adds about 8KB.
   // Includes the phone lanes' shared entrance choreography and reading-index controller.
   'research/index.html': { html: 57, scripts: 26 },
+  // Shared arrival queue reservations also ship with the software reading units.
+  'software/index.html': { html: 48, scripts: 25 },
   // Artwork baselines (HTML/scripts): GPU 77/33KB after removing unused matrix frames,
   // DFL 8/25KB, L2O 23/28KB. Keep modest headroom without hiding a new data bundle.
   [`${figurePaths.gpu.slice(1)}index.html`]: { html: 80, scripts: 36 },

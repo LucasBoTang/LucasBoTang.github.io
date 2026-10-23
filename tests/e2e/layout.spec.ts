@@ -415,6 +415,35 @@ test.describe('on a phone', () => {
     await expect(light).toHaveCSS('color', cssColors.blue);
   });
 
+  test('Research phone article waits for all four lane fields to finish opening', async ({
+    page,
+  }) => {
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    await page.addInitScript(() => {
+      document.addEventListener('DOMContentLoaded', () => {
+        const title = document.querySelector<HTMLElement>('.research-content h2')!;
+        const sample = () => {
+          if (
+            getComputedStyle(title).visibility === 'visible' &&
+            Number(getComputedStyle(title).opacity) > 0.05
+          ) {
+            title.dataset.testLaneOpen = String(
+              [...document.querySelectorAll('[data-lane-field]')].every(
+                (field) => Number(getComputedStyle(field).getPropertyValue('--lane-open')) >= 0.999,
+              ),
+            );
+          } else requestAnimationFrame(sample);
+        };
+        requestAnimationFrame(sample);
+      });
+    });
+    await page.goto(routes.research);
+    await expect(page.locator('.research-content h2').first()).toHaveAttribute(
+      'data-test-lane-open',
+      'true',
+    );
+  });
+
   test('the Research index shows static labels when motion is reduced', async ({ page }) => {
     await page.goto(routes.research);
     const links = page.getByRole('navigation', { name: 'Research themes' }).getByRole('link');

@@ -12,6 +12,8 @@ enhance<HTMLElement>('[data-research-lanes]', (lanes) => {
     if (!isPhone()) return;
     const group = (event as CustomEvent<Animation[]>).detail;
     entrance = prepareLaneArrival(lanes, phonePace());
+    // Keep the four-row opening whole before the shared queue reveals article content.
+    unit.dataset.arrivalHold = String(entrance.duration);
     group.forEach((animation) => animation.cancel());
     group.splice(0, group.length, ...entrance.animations);
   });

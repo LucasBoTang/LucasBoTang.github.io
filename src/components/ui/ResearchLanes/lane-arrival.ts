@@ -32,6 +32,7 @@ export function prepareLaneArrival(root: HTMLElement, pace: number) {
   void Promise.allSettled(animations.map((animation) => animation.finished)).then(release);
   return {
     animations,
+    duration,
     startDrift(delay: number) {
       rows.forEach((row, i) =>
         window.setTimeout(
