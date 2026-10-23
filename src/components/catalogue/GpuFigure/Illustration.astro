@@ -3,6 +3,7 @@ import { Image } from 'astro:assets';
 import GpuMatrixAnimation from './Matrix.astro';
 import matrix from '../../../data/research/rail4284-figure.json';
 import products from '../../../data/research/rail4284-products.json';
+import { gpuDieHighlights } from './gpu-hardware-layout';
 import railwayPhoto from '../../../assets/research/railway-oakland.webp';
 import gpuPlatform from '../../../assets/research/gpu-platform-refined.png';
 
@@ -12,6 +13,13 @@ interface Props {
 const { id = 'gpu-comparison' } = Astro.props;
 const spillId = `${id}-spill`;
 const reflectionId = `${id}-reflection`;
+const polygonPoints = (points: readonly (readonly [number, number])[]) =>
+  points.map((point) => point.join(',')).join(' ');
+const dieHighlights = gpuDieHighlights.map(({ face, reflection }, index) => ({
+  clipId: `${id}-die-${index}`,
+  face: polygonPoints(face),
+  reflection: polygonPoints(reflection),
+}));
 
 const variables = (matrix.columns / 1_000_000).toFixed(2);
 const constraints = matrix.rows.toLocaleString('en-US');
@@ -73,7 +81,11 @@ const animationProducts = JSON.stringify({
         loading="lazy"
         decoding="async"
       />
-      <svg class="gpu-lights" viewBox="0 0 1536 1024" aria-hidden="true">
+      <svg
+        class="gpu-lights"
+        viewBox={`0 0 ${gpuPlatform.width} ${gpuPlatform.height}`}
+        aria-hidden="true"
+      >
         <defs>
           <radialGradient id={spillId}>
             <stop offset="0" stop-color="var(--paper)" stop-opacity=".5" />
@@ -85,6 +97,11 @@ const animationProducts = JSON.stringify({
             <stop offset=".55" stop-color="var(--signal-light)" stop-opacity=".95" />
             <stop offset="1" stop-color="var(--paper)" stop-opacity="1" />
           </linearGradient>
+          {dieHighlights.map(({ clipId, face }) => (
+            <clipPath id={clipId} clipPathUnits="userSpaceOnUse">
+              <polygon points={face} />
+            </clipPath>
+          ))}
         </defs>
         {/* Matching activity on the outer PCB edge beside each exposed chip; illustrative, not a routing diagram. */}
         <g data-gpu-bus opacity="0" fill="none" stroke-linecap="round">
@@ -123,15 +140,13 @@ const animationProducts = JSON.stringify({
           ))}
         </g>
         <g data-gpu-chips opacity="0">
-          {/* Insets follow the two silver die faces; no light spills beyond their packages. */}
-          <g fill="var(--signal-light)" opacity=".12">
-            <polygon points="1097,517 1155,480 1210,517 1158,551" />
-            <polygon points="791,737 848,701 903,738 848,773" />
-          </g>
-          <g fill={`url(#${reflectionId})`}>
-            <polygon points="1125,517 1155,498 1186,518 1158,536" />
-            <polygon points="819,737 848,718 878,739 848,758" />
-          </g>
+          {/* Both light layers share calibrated faces and remain clipped to the metal. */}
+          {dieHighlights.map(({ clipId, face, reflection }) => (
+            <g clip-path={`url(#${clipId})`}>
+              <polygon points={face} fill="var(--signal-light)" opacity=".12" />
+              <polygon points={reflection} fill={`url(#${reflectionId})`} />
+            </g>
+          ))}
         </g>
         <g data-gpu-lights opacity="0">
           {/* Paired indicators follow the matching dark front bevel on each module. */}
