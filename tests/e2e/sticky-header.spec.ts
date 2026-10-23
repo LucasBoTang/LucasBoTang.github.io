@@ -8,7 +8,7 @@ for (const width of [1280, 430, 390, 375, 320]) {
     page,
   }) => {
     await page.setViewportSize({ width, height: 900 });
-    for (const route of ['/', '/research/', '/software/', '/about/']) {
+    for (const route of [routes.home, routes.research, routes.software, routes.about]) {
       await page.goto(route);
       const initialName = (await page.locator('.site-header-name').boundingBox())!;
       const initialNavigation = (await page
@@ -131,7 +131,7 @@ test('Research chapter navigation keeps its destinations clear of the sticky hea
   page,
 }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
-  await page.goto('/research/');
+  await page.goto(routes.research);
   await page.locator('[data-reading-index] a[href="#learning-to-optimize"]').click();
   const header = (await page.locator('.site-header').boundingBox())!;
   const heading = (await page.locator('#learning-to-optimize h2').boundingBox())!;
@@ -142,7 +142,7 @@ test('Research chapter navigation keeps its destinations clear of the sticky hea
 
 test('links under the fading edge still receive clicks', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
-  await page.goto('/research/');
+  await page.goto(routes.research);
   const link = page.locator('.publication .resource-links a').first();
   await link.evaluate((element) => {
     element.addEventListener('click', (event) => {
@@ -177,7 +177,7 @@ for (const width of [1280, 375]) {
         sample();
       });
     });
-    for (const route of ['/research/', '/software/', '/about/']) {
+    for (const route of [routes.research, routes.software, routes.about]) {
       await page.goto(route);
       await page.evaluate(() => scrollTo(0, 700));
       await page.locator('.site-header-name').click();

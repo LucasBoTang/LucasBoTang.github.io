@@ -34,8 +34,12 @@ export function createPortraitDevelop(hero: HTMLElement) {
   let frame = 0;
   /** The entrance, worked out ahead and waiting to start. */
   let prepared: (() => void) | undefined;
+  // Playback and skipping both consume this one-shot entrance. Late idle work must not rebuild it.
+  let consumed = false;
 
   const stop = () => {
+    consumed = true;
+    prepared = undefined;
     cancelAnimationFrame(frame);
     if (canvas && context) context.clearRect(0, 0, canvas.width, canvas.height);
   };
@@ -181,7 +185,7 @@ export function createPortraitDevelop(hero: HTMLElement) {
       () =>
         new Promise<void>((resolve) =>
           whenIdle(() => {
-            prepared = prepare();
+            if (!consumed) prepared = prepare();
             resolve();
           }, PREPARE_WAIT),
         ),
@@ -189,6 +193,8 @@ export function createPortraitDevelop(hero: HTMLElement) {
 
   /** Starts the entrance. Returns false, drawing nothing, when an image cannot be read yet. */
   const play = (): boolean => {
+    if (consumed) return false;
+    consumed = true;
     const start = prepared ?? prepare();
     prepared = undefined;
     start?.();

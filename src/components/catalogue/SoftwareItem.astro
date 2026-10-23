@@ -53,7 +53,7 @@ const { entry, variant } = item;
     --project-padding: 0px;
     align-items: start;
     padding-block: var(--step-48);
-    scroll-margin-top: 2.5rem;
+    scroll-margin-top: var(--anchor-section-offset);
   }
   /* The rule parting the entries starts with their text, on column 5. */
   .software-entry + .software-entry {
@@ -69,7 +69,7 @@ const { entry, variant } = item;
     color: var(--muted);
   }
   .entry-details {
-    grid-column: var(--zone-entry);
+    grid-column: var(--zone-hanging);
   }
   .entry-description {
     margin: 0 0 var(--step-24);

@@ -1,7 +1,8 @@
 import { expect, test } from '@playwright/test';
+import { routes } from '../../src/data/navigation';
 
 test('BibTeX stays modal until its closing animation finishes', async ({ page }) => {
-  await page.goto('/research/');
+  await page.goto(routes.research);
   const dialog = page.locator('#h-pdlp-bibtex');
   await page
     .locator('#h-pdlp')
@@ -28,7 +29,7 @@ for (const interrupted of [false, true]) {
   test(`BibTeX closes when its animation is ${interrupted ? 'cancelled' : 'disabled'}`, async ({
     page,
   }) => {
-    await page.goto('/research/');
+    await page.goto(routes.research);
     const dialog = page.locator('#h-pdlp-bibtex');
     await page
       .locator('#h-pdlp')
@@ -54,7 +55,7 @@ for (const interrupted of [false, true]) {
 }
 
 test('changing to reduced motion finishes BibTeX printing and closing', async ({ page }) => {
-  await page.goto('/research/');
+  await page.goto(routes.research);
   const dialog = page.locator('#h-pdlp-bibtex');
   const text = await dialog.locator('code').textContent();
   await page
@@ -86,7 +87,7 @@ test('a late clipboard result cannot mark a reopened BibTeX dialog as copied', a
       },
     });
   });
-  await page.goto('/research/');
+  await page.goto(routes.research);
   const dialog = page.locator('#h-pdlp-bibtex');
   const openButton = page.locator('#h-pdlp').getByRole('button', { name: /^BibTeX:/ });
   await openButton.click();

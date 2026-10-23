@@ -11,7 +11,7 @@ import { profile } from '../data/profile';
   page="about"
   opening="reveal"
 >
-  <div class="shell about-page">
+  <div class="shell">
     <PageHeader
       title="About"
       description="Who I am and what I work on."
@@ -98,7 +98,7 @@ import { profile } from '../data/profile';
     padding-top: var(--step-24);
   }
   .about-section + .about-section {
-    margin-top: var(--step-160);
+    margin-top: var(--section-space);
   }
   h2 {
     grid-column: var(--zone-side);
@@ -128,7 +128,7 @@ import { profile } from '../data/profile';
       row-gap: var(--step-24);
     }
     .about-section + .about-section {
-      margin-top: var(--step-96);
+      margin-top: var(--section-space);
     }
     .about-prose p + p {
       margin-top: var(--step-32);

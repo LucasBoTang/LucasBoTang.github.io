@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { routes } from '../../src/data/navigation';
-import { expectBlinkingCaret } from './helpers';
+import { expectBlinkingCaret, holdFonts } from './helpers';
 
 for (const [from, route, title] of [
   ['Research', routes.software, 'Software'],
@@ -9,13 +9,7 @@ for (const [from, route, title] of [
   test(`the ${title} hand-over starts before body resources settle and stays visible`, async ({
     page,
   }) => {
-    let releaseFont!: () => void;
-    const fontReady = new Promise<void>((resolve) => (releaseFont = resolve));
-    // Hold only the body font; the title's own serif can load and draw normally.
-    await page.route(/geist-latin-wght-normal.*\.woff2/, async (request) => {
-      await fontReady;
-      await request.continue();
-    });
+    const releaseFont = await holdFonts(page, /geist-latin-wght-normal.*\.woff2/);
     await page.addInitScript((previousTitle) => {
       sessionStorage.setItem(
         'page-title-from',
@@ -101,12 +95,7 @@ for (const route of Object.values(routes)) {
 
 for (const route of [routes.home, routes.research]) {
   test(`${route} waits for first-screen fonts before starting its opening`, async ({ page }) => {
-    let releaseFonts!: () => void;
-    const fontsReady = new Promise<void>((resolve) => (releaseFonts = resolve));
-    await page.route('**/*.woff2', async (request) => {
-      await fontsReady;
-      await request.continue();
-    });
+    const releaseFonts = await holdFonts(page, '**/*.woff2');
     try {
       await page.goto(route, { waitUntil: 'domcontentloaded' });
       await page.waitForTimeout(200);
@@ -135,12 +124,7 @@ for (const width of [1280, 375]) {
     page,
   }) => {
     await page.setViewportSize({ width, height: 640 });
-    let releaseFonts!: () => void;
-    const held = new Promise<void>((resolve) => (releaseFonts = resolve));
-    await page.route('**/*.woff2', async (request) => {
-      await held;
-      await request.continue();
-    });
+    const releaseFonts = await holdFonts(page, '**/*.woff2');
     try {
       await page.goto(routes.home, { waitUntil: 'domcontentloaded' });
       await expect(page.locator('html')).not.toHaveAttribute('data-opening-pending', '', {
@@ -157,7 +141,7 @@ for (const width of [1280, 375]) {
     await page.evaluate(() => document.fonts.ready);
     await expect(page.locator('[data-home-motion]')).not.toHaveAttribute('data-opening-started');
     const bio = page.locator('.hero-bio');
-    const caret = bio.locator('.intro-cursor');
+    const caret = bio.locator('.typed-cursor');
     await bio.scrollIntoViewIfNeeded();
     await expectBlinkingCaret(caret);
     await page.locator('.site-footer').scrollIntoViewIfNeeded();
@@ -168,12 +152,7 @@ for (const width of [1280, 375]) {
 }
 
 test('keyboard focus during preparation completes home prose without typing', async ({ page }) => {
-  let releaseFonts!: () => void;
-  const held = new Promise<void>((resolve) => (releaseFonts = resolve));
-  await page.route('**/*.woff2', async (request) => {
-    await held;
-    await request.continue();
-  });
+  const releaseFonts = await holdFonts(page, '**/*.woff2');
   try {
     await page.goto(routes.home, { waitUntil: 'domcontentloaded' });
     await expect(page.locator('html')).toHaveAttribute('data-opening-pending', '');
@@ -182,7 +161,7 @@ test('keyboard focus during preparation completes home prose without typing', as
     await expect(page.locator('[data-home-motion] [data-typing-complete]')).toHaveCount(2, {
       timeout: 500,
     });
-    await expect(page.locator('.intro-letter[data-unseen]')).toHaveCount(0);
+    await expect(page.locator('.typed-letter[data-unseen]')).toHaveCount(0);
     await expect(page.locator('[data-home-motion]')).not.toHaveAttribute('data-opening-started');
   } finally {
     releaseFonts();
@@ -190,12 +169,7 @@ test('keyboard focus during preparation completes home prose without typing', as
 });
 
 test('reduced motion releases a page even while its fonts are still loading', async ({ page }) => {
-  let releaseFonts!: () => void;
-  const held = new Promise<void>((resolve) => (releaseFonts = resolve));
-  await page.route('**/*.woff2', async (request) => {
-    await held;
-    await request.continue();
-  });
+  const releaseFonts = await holdFonts(page, '**/*.woff2');
   try {
     await page.goto(routes.research, { waitUntil: 'domcontentloaded' });
     await expect(page.locator('html')).toHaveAttribute('data-opening-pending', '');

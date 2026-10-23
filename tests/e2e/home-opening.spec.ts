@@ -76,7 +76,7 @@ for (const width of [1280, 375]) {
       await page.locator('.research-navigator').scrollIntoViewIfNeeded();
       await expect(page.locator('.research-topic[data-connecting]')).toHaveCount(0);
       await expect(page.locator('.hero-actions')).toHaveCSS('opacity', '1');
-      await expect(page.locator('.hero-bio .intro-cursor')).toHaveCSS('visibility', 'visible');
+      await expect(page.locator('.hero-bio .typed-cursor')).toHaveCSS('visibility', 'visible');
       expect(errors).toEqual([]);
     });
   }
@@ -122,7 +122,7 @@ test('a site return retains its original first-light action and settled-lane rea
 test('the portrait develops, then the photograph takes over with nothing left on the canvas', async ({
   page,
 }) => {
-  await page.goto('/');
+  await page.goto(routes.home);
   const hero = page.locator('[data-home-motion]');
   await expect(hero).toHaveAttribute('data-opening-started', /.+/, { timeout: 8000 });
   await expect(hero).toHaveAttribute('data-motion-ready', '');
@@ -139,7 +139,7 @@ test('the portrait develops, then the photograph takes over with nothing left on
 });
 
 test('the name decodes over its own text, then hands over to it', async ({ page }) => {
-  await page.goto('/');
+  await page.goto(routes.home);
   const decode = page.locator('h1 .name-scramble');
   await expect(decode).toBeAttached({ timeout: 8000 });
   await expect(decode).not.toBeAttached({ timeout: 6000 });
@@ -154,7 +154,7 @@ test('the bio joins the affiliation during the fold and the portrait starts on l
   await recordAttribute(page, 'data-typing-complete');
   await recordAttribute(page, 'data-greeting-opening');
   await recordAttribute(page, 'data-opening');
-  await page.goto('/');
+  await page.goto(routes.home);
   // Watch before the greeting lands; starting this sampler after the typing assertions misses
   // an immediate first frame and reports the test's own polling delay as an entrance delay.
   const firstPaint = page.locator('[data-portrait-develop]').evaluate(
@@ -200,8 +200,8 @@ test('the bio joins the affiliation during the fold and the portrait starts on l
     (canvas: HTMLCanvasElement) =>
       new Promise<boolean>((resolve) => {
         const sample = () => {
-          const typed = document.querySelector('.hero-bio [data-intro-typed]')!;
-          const visible = [...typed.querySelectorAll('.intro-letter:not([data-unseen])')]
+          const typed = document.querySelector('.hero-bio [data-typed-run]')!;
+          const visible = [...typed.querySelectorAll('.typed-letter:not([data-unseen])')]
             .map((letter) => letter.textContent)
             .join('');
           if (!visible.includes('scalab')) return void requestAnimationFrame(sample);
@@ -281,7 +281,7 @@ test('the bio joins the affiliation during the fold and the portrait starts on l
 test('bio typing prepares the lower sign before it is shown, without starting its motion', async ({
   page,
 }) => {
-  await page.goto('/');
+  await page.goto(routes.home);
   const bio = page.locator('.hero-bio [data-typed-text]');
   await expect(bio).toHaveAttribute('data-typing-started', '');
   const sign = page.locator('[data-decision-sign] svg');
@@ -305,15 +305,15 @@ test('the home bio keeps typing at a readable pace while the portrait develops',
 }) => {
   await recordAttribute(page, 'data-typing-complete');
   await recordAttribute(page, 'data-typing-started');
-  await page.goto('/');
+  await page.goto(routes.home);
   await expect(page.locator('.hero-intro [data-typed-text]')).toHaveAttribute(
     'data-typing-ready',
     '',
   );
-  await expect(page.locator('.intro-letter[data-unseen]')).toHaveCount(0, { timeout: 16000 });
+  await expect(page.locator('.typed-letter[data-unseen]')).toHaveCount(0, { timeout: 16000 });
   for (const host of await page.locator('[data-home-motion] [data-typed-text]').all()) {
-    expect((await host.locator('[data-intro-typed]').textContent())?.trim()).toBe(
-      (await host.locator('.intro-copy').textContent())?.trim(),
+    expect((await host.locator('[data-typed-run]').textContent())?.trim()).toBe(
+      (await host.locator('.typed-copy').textContent())?.trim(),
     );
   }
   await expect(page.locator('.hero-bio [data-typed-text]')).toHaveAttribute(
@@ -330,14 +330,14 @@ test('the home bio keeps typing at a readable pace while the portrait develops',
 });
 
 test('one brief home typo corrects before the portrait starts tearing', async ({ page }) => {
-  await page.goto('/');
+  await page.goto(routes.home);
   const correction = await page.locator('.hero-bio [data-typed-text]').evaluate(
     (host) =>
       new Promise<{ typoAt?: number; correctedAt?: number; portraitAt: number }>((resolve) => {
         let typoAt: number | undefined;
         let correctedAt: number | undefined;
         const sample = () => {
-          const visible = [...host.querySelectorAll('.intro-letter:not([data-unseen])')]
+          const visible = [...host.querySelectorAll('.typed-letter:not([data-unseen])')]
             .map((letter) => letter.textContent)
             .join('');
           if (visible.includes('learnign')) typoAt ??= performance.now();
@@ -364,7 +364,7 @@ test('one brief home typo corrects before the portrait starts tearing', async ({
 
 test('the phone portrait opens without waiting for its off-screen greeting', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 640 });
-  await page.goto('/');
+  await page.goto(routes.home);
   const greeting = page.locator('.hero-intro');
   const hello = greeting.locator('[data-typed-text]');
   await expect(page.locator('[data-home-motion]')).toHaveAttribute('data-opening-started', /.+/);
@@ -382,7 +382,7 @@ test('the phone portrait opens without waiting for its off-screen greeting', asy
 test('narrowing to a phone keeps the active greeting and releases the portrait on landing', async ({
   page,
 }) => {
-  await page.goto('/');
+  await page.goto(routes.home);
   const hero = page.locator('[data-home-motion]');
   const greeting = page.locator('.hero-intro [data-typed-text]');
   await expect(greeting).toHaveAttribute('data-typing-started', '');
@@ -418,7 +418,7 @@ test('site-link returns still fade prose without view-transition support', async
 test('the bio tail releases the lanes, then the action, then reading', async ({ page }) => {
   await recordAttribute(page, 'data-typing-complete');
   await recordAttribute(page, 'data-opening');
-  await page.goto('/');
+  await page.goto(routes.home);
   const bio = page.locator('.hero-bio [data-typed-text]');
   const reading = await page.evaluate(
     () =>
@@ -507,7 +507,7 @@ test('the bio tail releases the lanes, then the action, then reading', async ({ 
 
 test('phone text waits for its own viewport and scrolling past completes it', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 640 });
-  await page.goto('/');
+  await page.goto(routes.home);
   const bio = page.locator('.hero-bio [data-typed-text]');
   await expect(page.locator('[data-home-motion]')).toHaveAttribute('data-opening-started', /.+/);
   const box = await bio.boundingBox();
@@ -518,13 +518,13 @@ test('phone text waits for its own viewport and scrolling past completes it', as
   await expect(bio).not.toHaveAttribute('data-typing-complete', '');
   await page.locator('.work-entry').first().scrollIntoViewIfNeeded();
   await expect(bio).toHaveAttribute('data-typing-complete', '');
-  await expect(bio.locator('.intro-letter[data-unseen]')).toHaveCount(0);
+  await expect(bio.locator('.typed-letter[data-unseen]')).toHaveCount(0);
 });
 
 for (const width of [1280, 375]) {
   test(`View research joins the final lane's tail at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
-    await page.goto('/');
+    await page.goto(routes.home);
     if (width === 375) await page.locator('.research-navigator').scrollIntoViewIfNeeded();
     const timing = await page.evaluate(
       () =>
@@ -559,7 +559,7 @@ for (const width of [1280, 375]) {
 test('phone lanes keep their stagger when scrolled into view later', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 640 });
   await recordAttribute(page, 'data-connecting');
-  await page.goto('/');
+  await page.goto(routes.home);
   await expect(page.locator('[data-home-motion]')).not.toHaveAttribute('data-opening', /.*/);
   await expect(page.locator('.research-topic[data-connecting]')).toHaveCount(3);
   await page.locator('.research-navigator').scrollIntoViewIfNeeded();
@@ -581,7 +581,7 @@ test('the bio keeps the text standard and sits above the lanes at every width', 
   await page.emulateMedia({ reducedMotion: 'reduce' });
   for (const width of [1280, 800, 375, 320]) {
     await page.setViewportSize({ width, height: 900 });
-    await page.goto('/');
+    await page.goto(routes.home);
     const bio = await page.locator('.hero-bio').boundingBox();
     const lanes = await page.locator('.research-navigator').boundingBox();
     const actions = await page.locator('.hero-actions').boundingBox();
@@ -600,7 +600,7 @@ test('the bio keeps the text standard and sits above the lanes at every width', 
 });
 
 test('the research lanes drift once connected', async ({ page }) => {
-  await page.goto('/');
+  await page.goto(routes.home);
   await expect
     .poll(() =>
       page
@@ -615,7 +615,7 @@ test('scrolling on reveals reading units without waiting for the introduction', 
   page,
 }) => {
   // Regression: a lost reading cue once left everything below the hero transparent.
-  await page.goto('/');
+  await page.goto(routes.home);
   for (const selector of ['.work-entry', '.about', '.site-footer']) {
     const unit = page.locator(selector).first();
     await unit.scrollIntoViewIfNeeded();

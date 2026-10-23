@@ -1,35 +1,22 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { onScrollFrame } from '../../src/lib/lifecycle.ts';
+import { frameQueue, installGlobals } from '../helpers/browser.mjs';
 
 function browserFrames(t) {
   const events = new EventTarget();
-  const frames = new Map();
-  let nextId = 0;
+  const queue = frameQueue();
+  const frames = queue.pending;
   const replacements = {
     addEventListener: events.addEventListener.bind(events),
     removeEventListener: events.removeEventListener.bind(events),
-    requestAnimationFrame: (callback) => {
-      frames.set(++nextId, callback);
-      return nextId;
-    },
-    cancelAnimationFrame: (id) => frames.delete(id),
+    requestAnimationFrame: queue.request,
+    cancelAnimationFrame: queue.cancel,
   };
-  for (const [key, value] of Object.entries(replacements)) {
-    const descriptor = Object.getOwnPropertyDescriptor(globalThis, key);
-    Object.defineProperty(globalThis, key, { configurable: true, value });
-    t.after(() => {
-      if (descriptor) Object.defineProperty(globalThis, key, descriptor);
-      else delete globalThis[key];
-    });
-  }
+  installGlobals(t, replacements);
   return {
     emit: (name) => events.dispatchEvent(new Event(name)),
-    flush() {
-      const pending = [...frames.values()];
-      frames.clear();
-      pending.forEach((callback) => callback(0));
-    },
+    flush: queue.flush,
     frames,
   };
 }

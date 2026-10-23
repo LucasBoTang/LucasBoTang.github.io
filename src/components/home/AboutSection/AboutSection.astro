@@ -73,8 +73,8 @@ import { conferenceResources } from '../../../data/resources';
   /* The copy spans columns 2 to 7. The sign occupies columns 9 to 11. */
   .about {
     align-items: start;
-    margin-top: var(--step-160);
-    scroll-margin-top: 2rem;
+    margin-top: var(--section-space);
+    scroll-margin-top: var(--anchor-item-offset);
   }
   .about > h2 {
     grid-column: var(--zone-full);
@@ -112,9 +112,6 @@ import { conferenceResources } from '../../../data/resources';
     margin-top: var(--step-32);
   }
   @media (max-width: 720px) {
-    .about {
-      margin-top: var(--step-96);
-    }
     .about > h2 {
       margin-bottom: var(--step-32);
     }

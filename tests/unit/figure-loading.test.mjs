@@ -2,27 +2,16 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { parseHTML } from 'linkedom';
 import { loadFigureEmbeds } from '../../src/lib/figure-loading.ts';
+import { intersectionObservers } from '../helpers/browser.mjs';
 
 test('figure documents load only near the reader, once per figure', () => {
   const { document } = parseHTML(
     '<iframe data-figure-src="/gpu/"></iframe><iframe data-figure-src="/l2o/"></iframe>',
   );
   const frames = [...document.querySelectorAll('iframe')];
-  const waiting = new Set();
-  let report, options;
-  class Observer {
-    constructor(callback, config) {
-      report = callback;
-      options = config;
-    }
-    observe(frame) {
-      waiting.add(frame);
-    }
-    unobserve(frame) {
-      waiting.delete(frame);
-    }
-  }
-  loadFigureEmbeds(frames, Observer);
+  const observers = intersectionObservers();
+  loadFigureEmbeds(frames, observers.Observer);
+  const { callback: report, options, targets: waiting } = observers.instances[0];
   assert.ok(frames.every((frame) => !frame.hasAttribute('src')));
   assert.equal(options.rootMargin, '240px 0px');
   report([{ target: frames[0], isIntersecting: false }]);

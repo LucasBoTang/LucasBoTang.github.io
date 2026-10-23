@@ -1,4 +1,6 @@
 ---
+import '../study-colors.css';
+
 // Snapshot of the About section in the variants studied before the site settled on the SVG
 // DecisionSign (src/components/home/AboutSection/).
 import '@fontsource-variable/roboto-flex';
@@ -76,7 +78,7 @@ const sectionId = study ? `about-${variant}-${texture}` : 'about';
     display: grid;
     grid-template-columns: minmax(0, 34%) minmax(0, 1fr);
     margin-top: var(--step-48);
-    scroll-margin-top: 2rem;
+    scroll-margin-top: var(--anchor-item-offset);
   }
   .about > h2 {
     grid-column: 1 / -1;

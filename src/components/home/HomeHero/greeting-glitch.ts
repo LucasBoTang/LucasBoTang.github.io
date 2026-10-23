@@ -3,8 +3,8 @@ import { openingTiming as time } from '../opening/opening';
 
 /** Snapshot the visible prefix for displaced fragments while the original keeps typing. */
 export function createGreetingGlitch(host: HTMLElement) {
-  const layer = host.querySelector<HTMLElement>('.intro-typing');
-  const target = host.querySelector<HTMLElement>('[data-intro-typed]');
+  const layer = host.querySelector<HTMLElement>('[data-typed-layer]');
+  const target = host.querySelector<HTMLElement>('[data-typed-run]');
   // Waiting and playing are consecutive phases, so only one deadline is live at a time.
   let timer = 0;
   const stop = () => {
@@ -21,7 +21,7 @@ export function createGreetingGlitch(host: HTMLElement) {
       stop();
       timer = window.setTimeout(() => {
         if (document.hidden || reducedMotionQuery().matches) return stop();
-        const prefix = Array.from(target.querySelectorAll('.intro-letter:not([data-unseen])'))
+        const prefix = Array.from(target.querySelectorAll('.typed-letter:not([data-unseen])'))
           .map((letter) => letter.textContent)
           .join('');
         layer.dataset.greetingSignal = prefix;

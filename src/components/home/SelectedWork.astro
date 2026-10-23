@@ -1,6 +1,6 @@
 ---
 import ProjectWordmark from '../catalogue/ProjectWordmark/ProjectWordmark.astro';
-import WorkPreview from './WorkPreview.astro';
+import WorkPreview from './WorkPreview/WorkPreview.astro';
 import ResourceLinks from '../ui/ResourceLinks.astro';
 import { selectedWork } from '../../data/selected-work';
 ---
@@ -45,8 +45,8 @@ import { selectedWork } from '../../data/selected-work';
   /* A rule opens the section and the label sits under it. Each entry sets its wordmark like a
      plate in the middle of columns 1 to 5, and its details from column 6. */
   .selected-work {
-    margin-top: var(--step-160);
-    scroll-margin-top: 2rem;
+    margin-top: var(--section-space);
+    scroll-margin-top: var(--anchor-item-offset);
   }
   .work-heading {
     border-top: var(--rule-line);
@@ -98,9 +98,6 @@ import { selectedWork } from '../../data/selected-work';
     color: var(--body-copy);
   }
   @media (max-width: 720px) {
-    .selected-work {
-      margin-top: var(--step-96);
-    }
     /* In one column the wordmark stays a centred plate above its text, as on a wide screen. */
     .work-entry {
       row-gap: var(--step-24);

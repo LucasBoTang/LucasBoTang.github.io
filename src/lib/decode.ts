@@ -13,7 +13,7 @@ const BLOCKS: DecodeBlock[] = [
 /** Heights above the letter's place in em, cycled as it jumps. */
 const HOPS = [-0.3, -0.1, 0.06, -0.22, 0.02, -0.14];
 /** A letter calms over this many steps before it locks. */
-export const CALM_STEPS = 6;
+const CALM_STEPS = 6;
 /** A block flashes every `BLOCK_EVERY` steps and the letter blinks out every `BLINK_EVERY`. */
 const BLOCK_EVERY = 4;
 const BLINK_EVERY = 7;
@@ -39,3 +39,34 @@ export function decodeNoise(index: number, step: number, calm: number) {
       step % BLOCK_EVERY === BLOCK_EVERY - 1 ? BLOCKS[(index + step) % BLOCKS.length] : undefined,
   };
 }
+
+/** Character cadence shared by the home name and page-title decode. */
+export const DECODE_STEP_MS = 45;
+
+/** Sample the shared character clock. Callers retain their own break/lock schedule and shapes. */
+export function sampleDecode(
+  index: number,
+  elapsed: number,
+  breaks: number,
+  locks: number,
+  phase = 0,
+) {
+  const broken = elapsed >= breaks;
+  const locked = elapsed >= locks;
+  const decoding = broken && !locked;
+  const step = Math.floor((elapsed - breaks) / DECODE_STEP_MS);
+  const toLock = Math.ceil((locks - elapsed) / DECODE_STEP_MS);
+  const calm = decoding ? Math.min(1, toLock / CALM_STEPS) : 0;
+  return {
+    broken,
+    locked,
+    decoding,
+    step,
+    toLock,
+    noise: decodeNoise(index, step + index * phase, calm),
+  };
+}
+
+/** Stable glyph selection gives both decoders the same repeatable signal. */
+export const decodeCharacter = (index: number, step: number, characters: string) =>
+  characters[Math.floor(seeded(index * 97 + step) * characters.length)];

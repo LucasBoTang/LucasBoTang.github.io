@@ -2,7 +2,7 @@
 import SiteLayout from '../layouts/SiteLayout.astro';
 import PageHeader from '../components/site/PageHeader/PageHeader.astro';
 import ResearchSection from '../components/catalogue/ResearchSection.astro';
-import ResearchLanes from '../components/ui/ResearchLanes.astro';
+import ResearchLanes from '../components/ui/ResearchLanes/ResearchLanes.astro';
 import { researchAreas } from '../data/research';
 ---
 
@@ -12,7 +12,7 @@ import { researchAreas } from '../data/research';
   page="research"
   opening="reveal"
 >
-  <div class="shell research-page">
+  <div class="shell">
     <PageHeader
       title="Research"
       description="The questions I study, and the papers that answer them."

@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { routes } from '../../src/data/navigation';
+import { contentPageRoutes, missingPageRoute } from '../test-routes';
 import { expectBlinkingCaret } from './helpers';
 
 interface TypingSample {
@@ -15,8 +16,8 @@ declare global {
   }
 }
 
-const contentPages = Object.values(routes).filter((route) => route !== routes.home);
-const pages = [...contentPages, '/404.html'];
+const contentPages = contentPageRoutes;
+const pages = [...contentPages, missingPageRoute];
 
 /** Reads text fragments rather than element boxes, so block-level line breaks count once. */
 function renderedLines(element: Element) {
@@ -48,7 +49,7 @@ for (const [route, first, second] of [
     await page.setViewportSize({ width: 1280, height: 900 });
     await page.goto(route);
     await page.evaluate(() => document.fonts.ready);
-    const copy = page.locator('[data-page-intro] .intro-copy');
+    const copy = page.locator('[data-page-intro] .typed-copy');
     await expect(copy).toHaveText(`${first} ${second}`);
     expect(await copy.evaluate(renderedLines)).toEqual([`${first} ${second}`]);
     for (const width of [320, 375, 430, 720]) {
@@ -62,7 +63,7 @@ for (const [route, first, second] of [
       '',
     );
     await page.evaluate(() => document.fonts.ready);
-    const typed = page.locator('[data-page-intro] [data-intro-typed]');
+    const typed = page.locator('[data-page-intro] [data-typed-run]');
     for (const width of [320, 430, 720, 1280]) {
       await page.setViewportSize({ width, height: 900 });
       const expected = width <= 720 ? [first, second] : [`${first} ${second}`];
@@ -145,7 +146,7 @@ for (const { route, scriptDelay } of cases) {
       new MutationObserver(() => {
         const intro = document.querySelector('[data-page-intro]');
         if (!intro) return;
-        const letters = intro.querySelectorAll('.intro-letter:not([data-unseen])');
+        const letters = intro.querySelectorAll('.typed-letter:not([data-unseen])');
         const text = Array.from(letters, (letter) => letter.textContent).join('');
         if (!text || window.typingSamples.at(-1)?.text === text) return;
         window.typingSamples.push({
@@ -155,7 +156,7 @@ for (const { route, scriptDelay } of cases) {
             getComputedStyle(intro).visibility === 'visible' &&
             Number(getComputedStyle(intro).opacity) > 0,
           caretGap:
-            intro.querySelector('.intro-cursor')!.getBoundingClientRect().left -
+            intro.querySelector('.typed-cursor')!.getBoundingClientRect().left -
             letters[letters.length - 1].getBoundingClientRect().right,
         });
       }).observe(document, {
@@ -171,7 +172,7 @@ for (const { route, scriptDelay } of cases) {
       timeout: 12000,
     });
     const samples = await page.evaluate(() => window.typingSamples);
-    const sentence = (await intro.locator('.intro-copy').textContent())!;
+    const sentence = (await intro.locator('.typed-copy').textContent())!;
     expect(samples.length).toBeGreaterThan(10);
     expect(samples.every(({ text }) => sentence.startsWith(text))).toBe(true);
     expect(
@@ -182,8 +183,8 @@ for (const { route, scriptDelay } of cases) {
     const heights = samples.map(({ height }) => height);
     // Translated rectangles can differ by tiny floating-point fractions without any reflow.
     expect(Math.max(...heights) - Math.min(...heights)).toBeLessThan(0.1);
-    expect(samples.at(-1)?.text).toBe(await intro.locator('.intro-copy').textContent());
-    await expectBlinkingCaret(intro.locator('.intro-cursor'));
+    expect(samples.at(-1)?.text).toBe(await intro.locator('.typed-copy').textContent());
+    await expectBlinkingCaret(intro.locator('.typed-cursor'));
   });
 }
 
@@ -196,9 +197,9 @@ for (const width of [1280, 375]) {
     const bio = page.locator('.hero-bio [data-typed-text]');
     await bio.scrollIntoViewIfNeeded();
     await expect(bio).toHaveAttribute('data-typing-complete', '', { timeout: 12000 });
-    const caret = bio.locator('.intro-cursor');
+    const caret = bio.locator('.typed-cursor');
     await expectBlinkingCaret(caret);
-    await expect(page.locator('.hero-intro .intro-cursor')).toHaveCSS('visibility', 'hidden');
+    await expect(page.locator('.hero-intro .typed-cursor')).toHaveCSS('visibility', 'hidden');
 
     await page.locator('.site-footer').scrollIntoViewIfNeeded();
     await expect(caret).toHaveCSS('animation-play-state', 'paused');
@@ -216,7 +217,7 @@ test('keyboard focus completes an introduction immediately', async ({ page }) =>
     'data-typing-complete',
     '',
   );
-  await expect(page.locator('[data-page-intro] .intro-letter[data-unseen]')).toHaveCount(0);
+  await expect(page.locator('[data-page-intro] .typed-letter[data-unseen]')).toHaveCount(0);
 });
 
 test('the caret follows wrapped text after resizing, including after typing ends', async ({
@@ -230,9 +231,9 @@ test('the caret follows wrapped text after resizing, including after typing ends
     await expect
       .poll(() =>
         host.evaluate((element) => {
-          const letters = element.querySelectorAll('.intro-letter:not([data-unseen])');
+          const letters = element.querySelectorAll('.typed-letter:not([data-unseen])');
           const last = letters[letters.length - 1].getBoundingClientRect();
-          const caret = element.querySelector('.intro-cursor')!.getBoundingClientRect();
+          const caret = element.querySelector('.typed-cursor')!.getBoundingClientRect();
           return (
             Math.abs(caret.left - last.right - 3) < 0.1 &&
             Math.abs(caret.top - last.top - 1.92) < 0.1
@@ -246,10 +247,10 @@ test('the caret follows wrapped text after resizing, including after typing ends
   await expect
     .poll(() =>
       host.evaluate((element) => {
-        const letters = element.querySelectorAll('.intro-letter');
+        const letters = element.querySelectorAll('.typed-letter');
         const last = letters[letters.length - 1].getBoundingClientRect();
         return Math.abs(
-          element.querySelector('.intro-cursor')!.getBoundingClientRect().left - last.right - 3,
+          element.querySelector('.typed-cursor')!.getBoundingClientRect().left - last.right - 3,
         );
       }),
     )
@@ -260,7 +261,7 @@ test('reduced motion leaves every introduction readable without typing', async (
   await page.emulateMedia({ reducedMotion: 'reduce' });
   for (const route of pages) {
     await page.goto(route);
-    await expect(page.locator('[data-page-intro] .intro-copy')).toBeVisible();
+    await expect(page.locator('[data-page-intro] .typed-copy')).toBeVisible();
     await expect(page.locator('[data-page-intro] [data-typing-ready]')).toHaveCount(0);
   }
 });
@@ -274,7 +275,7 @@ test('without Web Animations, the introduction remains readable without page err
     Object.defineProperty(Element.prototype, 'animate', { value: undefined, configurable: true });
   });
   await page.goto(routes.software);
-  await expect(page.locator('[data-page-intro] .intro-copy')).toBeVisible({ timeout: 500 });
+  await expect(page.locator('[data-page-intro] .typed-copy')).toBeVisible({ timeout: 500 });
   expect(errors).toEqual([]);
 });
 
@@ -283,7 +284,7 @@ test('the home caret stays aligned after resizing during its typo and correction
 }) => {
   await page.goto(routes.home);
   await page.waitForFunction(
-    () => document.querySelector('.hero-bio [data-intro-typed]')?.textContent?.includes('learnign'),
+    () => document.querySelector('.hero-bio [data-typed-run]')?.textContent?.includes('learnign'),
     undefined,
     { timeout: 16000 },
   );
@@ -293,15 +294,15 @@ test('the home caret stays aligned after resizing during its typo and correction
   await expect
     .poll(() =>
       host.evaluate((element) => {
-        const letters = element.querySelectorAll('.intro-letter');
+        const letters = element.querySelectorAll('.typed-letter');
         const last = letters[letters.length - 1].getBoundingClientRect();
         return Math.abs(
-          element.querySelector('.intro-cursor')!.getBoundingClientRect().left - last.right - 3,
+          element.querySelector('.typed-cursor')!.getBoundingClientRect().left - last.right - 3,
         );
       }),
     )
     .toBeLessThan(0.1);
-  expect(await host.locator('[data-intro-typed]').textContent()).toBe(
-    await host.locator('.intro-copy').textContent(),
+  expect(await host.locator('[data-typed-run]').textContent()).toBe(
+    await host.locator('.typed-copy').textContent(),
   );
 });

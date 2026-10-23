@@ -10,8 +10,9 @@ import '../styles/global.css';
 import '../styles/links.css';
 import '../styles/motion.css';
 import '../styles/signal.css';
-import SiteHeader from '../components/site/SiteHeader.astro';
+import SiteHeader from '../components/site/SiteHeader/SiteHeader.astro';
 import SiteFooter from '../components/site/SiteFooter.astro';
+import screenDistortion from '../components/catalogue/ScreenReveal/screen-filters.svg?url&no-inline';
 import type { PageId } from '../data/navigation';
 import { profile } from '../data/profile';
 import { theme, themeVariables } from '../data/theme';
@@ -50,6 +51,7 @@ const shareImage =
 <html lang="en" style={themeVariables} data-page={page} data-opening={opening}>
   <head>
     <meta charset="UTF-8" />
+    {page === 'research' && <link rel="preload" as="image" href={screenDistortion} />}
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
     <meta name="theme-color" content={theme.ink} />
@@ -164,7 +166,7 @@ const shareImage =
 
 <script>
   import '../lib/lit-focus';
-  import '../lib/navigation-feedback';
+  import '../components/site/SiteHeader/navigation-feedback';
   import '../lib/reveal';
-  import '../lib/sticky-header';
+  import '../components/site/SiteHeader/sticky-header';
 </script>

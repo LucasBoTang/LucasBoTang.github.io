@@ -1,8 +1,10 @@
 import { expect, test } from '@playwright/test';
 import { routes } from '../../src/data/navigation';
+import { cssColors } from '../theme';
 import {
   attributeChanges,
   expectBlinkingCaret,
+  holdFonts,
   openingStartedAt,
   recordAttribute,
   watchErrors,
@@ -17,13 +19,13 @@ test('the whole greeting glitches after Bo Tang while typing continues, then set
 }, testInfo) => {
   await page.clock.install();
   await page.goto(routes.home);
-  const layer = page.locator('.hero-intro .intro-typing');
+  const layer = page.locator('.hero-intro .typed-overlay');
   await page.waitForFunction(() =>
-    document.querySelector('.hero-intro .intro-typing')?.hasAttribute('data-greeting-glitch'),
+    document.querySelector('.hero-intro .typed-overlay')?.hasAttribute('data-greeting-glitch'),
   );
   // Hold the burst's clock so its retained frame and correction can both be inspected.
   await page.clock.pauseAt(new Date(await page.evaluate(() => Date.now() + 20)));
-  const typedPrefix = () => layer.locator('.intro-letter:not([data-unseen])').allTextContents();
+  const typedPrefix = () => layer.locator('.typed-letter:not([data-unseen])').allTextContents();
   const before = await typedPrefix();
   const frames: { x: number; y: number; middle: string; lower: string }[] = [];
   const showSignalFrame = (progress: number, play = false) =>
@@ -49,8 +51,8 @@ test('the whole greeting glitches after Bo Tang while typing continues, then set
   ] as const) {
     await showSignalFrame(phase);
     // These are displaced parts of the letters; the intact text must not show behind them.
-    await expect(layer.locator('[data-intro-typed]')).not.toHaveCSS('clip-path', 'inset(0px)');
-    await expect(layer.locator('[data-intro-typed]')).toHaveCSS('filter', 'none');
+    await expect(layer.locator('[data-typed-run]')).not.toHaveCSS('clip-path', 'inset(0px)');
+    await expect(layer.locator('[data-typed-run]')).toHaveCSS('filter', 'none');
     frames.push(
       await layer.evaluate((element) => {
         const { x, y } = element.getBoundingClientRect();
@@ -63,7 +65,7 @@ test('the whole greeting glitches after Bo Tang while typing continues, then set
       }),
     );
     await testInfo.attach(name, {
-      body: await page.screenshot({ path: `.verification/${name}.png` }),
+      body: await page.screenshot(),
       contentType: 'image/png',
     });
   }
@@ -75,10 +77,10 @@ test('the whole greeting glitches after Bo Tang while typing continues, then set
   expect(frames[2].y).toBe(frames[0].y);
   const glitch = await layer.evaluate((element) => ({
     echo: element.getAttribute('data-greeting-signal'),
-    animation: getComputedStyle(element.querySelector('[data-intro-typed]')!).animationName,
+    animation: getComputedStyle(element.querySelector('[data-typed-run]')!).animationName,
     upper: getComputedStyle(element, '::before').content,
     lower: getComputedStyle(element, '::after').content,
-    cueClear: Array.from(element.querySelectorAll('.intro-letter'))
+    cueClear: Array.from(element.querySelectorAll('.typed-letter'))
       .slice(0, 'Hello, this is Bo Tang'.length)
       .every((letter) => getComputedStyle(letter).opacity === '1'),
   }));
@@ -99,19 +101,19 @@ test('the whole greeting glitches after Bo Tang while typing continues, then set
     '',
   );
   await expect(page.locator('.hero-intro')).not.toHaveAttribute('data-greeting-opening');
-  await expect(layer.locator('[data-intro-typed]')).toHaveCSS('clip-path', 'none');
-  await expect(layer.locator('[data-intro-typed]')).toHaveCSS('filter', 'none');
+  await expect(layer.locator('[data-typed-run]')).toHaveCSS('clip-path', 'none');
+  await expect(layer.locator('[data-typed-run]')).toHaveCSS('filter', 'none');
   await expect(layer).not.toHaveAttribute('style');
-  await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(16, 17, 19)');
+  await expect(page.locator('body')).toHaveCSS('background-color', cssColors['ink']);
 });
 
 test('reduced motion cancels a greeting glitch without leaving offset text or echoes', async ({
   page,
 }) => {
   await page.goto(routes.home);
-  const layer = page.locator('.hero-intro .intro-typing');
+  const layer = page.locator('.hero-intro .typed-overlay');
   await page.waitForFunction(() =>
-    document.querySelector('.hero-intro .intro-typing')?.hasAttribute('data-greeting-glitch'),
+    document.querySelector('.hero-intro .typed-overlay')?.hasAttribute('data-greeting-glitch'),
   );
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await expect(layer).not.toHaveAttribute('data-greeting-glitch');
@@ -138,7 +140,7 @@ test('new greeting letters develop gently without shifting or changing their tex
             .map((mutation) => mutation.target as HTMLElement)
             .find(
               (element) =>
-                element.classList.contains('intro-letter') &&
+                element.classList.contains('typed-letter') &&
                 !element.hasAttribute('data-unseen') &&
                 element.textContent?.trim(),
             );
@@ -147,7 +149,7 @@ test('new greeting letters develop gently without shifting or changing their tex
           // Compare within the typing layer: a deliberate whole-line glitch may move both.
           const measure = () => {
             const box = letter.getBoundingClientRect();
-            const origin = letter.closest('.intro-typing')!.getBoundingClientRect();
+            const origin = letter.closest('.typed-overlay')!.getBoundingClientRect();
             return { x: box.x - origin.x, y: box.y - origin.y };
           };
           const first = measure();
@@ -180,8 +182,8 @@ test('new greeting letters develop gently without shifting or changing their tex
   expect(reveal.duration).toBeGreaterThanOrEqual(45);
   expect(reveal.duration).toBeLessThan(130);
   expect(reveal.distance).toBeLessThan(0.1);
-  expect(reveal.color).toBe('rgb(163, 167, 173)');
-  await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(16, 17, 19)');
+  expect(reveal.color).toBe(cssColors['muted']);
+  await expect(page.locator('body')).toHaveCSS('background-color', cssColors['ink']);
   await expect(greeting).not.toHaveAttribute('data-greeting-opening');
   await expect(greeting.locator('[data-typed-text]')).not.toHaveAttribute('data-typing-fade');
 });
@@ -199,7 +201,7 @@ test('reduced motion during a letter reveal finishes clear text and releases the
   await expect
     .poll(() =>
       host
-        .locator('.intro-letter')
+        .locator('.typed-letter')
         .evaluateAll((letters) =>
           letters.every(
             (letter) =>
@@ -217,7 +219,7 @@ test('word spacing survives the large greeting and its final paragraph', async (
   await page.goto(routes.home);
   const greeting = page.locator('.hero-intro');
   const gaps = () =>
-    greeting.locator('.intro-word').evaluateAll((words) => {
+    greeting.locator('.typed-word').evaluateAll((words) => {
       const boxes = words.map((word) => word.getBoundingClientRect());
       return boxes
         .slice(1)
@@ -229,13 +231,13 @@ test('word spacing survives the large greeting and its final paragraph', async (
   expect(Math.min(...(await gaps()))).toBeGreaterThan(5);
   await expect(greeting.locator('[data-typed-text]')).toHaveAttribute('data-typing-complete', '');
   await testInfo.attach('greeting-large', {
-    body: await page.screenshot({ path: '.verification/greeting-large.png' }),
+    body: await page.screenshot(),
     contentType: 'image/png',
   });
   await expect(greeting).not.toHaveAttribute('data-greeting-opening');
   expect(Math.min(...(await gaps()))).toBeGreaterThan(2);
   await testInfo.attach('greeting-landed', {
-    body: await page.screenshot({ path: '.verification/greeting-landed.png' }),
+    body: await page.screenshot(),
     contentType: 'image/png',
   });
 });
@@ -247,9 +249,9 @@ test('the one-line greeting shrinks around its reading anchor inside the copy fi
   await page.goto(routes.home);
   const greeting = page.locator('.hero-intro');
   await expect(greeting).toHaveAttribute('data-greeting-opening', '');
-  const first = greeting.locator('.intro-word').first();
-  const profession = greeting.locator('.intro-word').filter({ hasText: /^an$/ });
-  const last = greeting.locator('.intro-letter').last();
+  const first = greeting.locator('.typed-word').first();
+  const profession = greeting.locator('.typed-word').filter({ hasText: /^an$/ });
+  const last = greeting.locator('.typed-letter').last();
   const initial = {
     first: (await first.boundingBox())!,
     profession: (await profession.boundingBox())!,
@@ -260,7 +262,7 @@ test('the one-line greeting shrinks around its reading anchor inside the copy fi
   const copy = (await page.locator('.hero-copy').boundingBox())!;
   const anchor = await first.evaluate((word) => {
     const paragraph = word.closest('.hero-intro')!;
-    const reading = paragraph.querySelector('.intro-copy')!;
+    const reading = paragraph.querySelector('.typed-copy')!;
     const range = document.createRange();
     range.setStart(reading.firstChild!, 0);
     range.setEnd(reading.firstChild!, 1);
@@ -271,7 +273,7 @@ test('the one-line greeting shrinks around its reading anchor inside the copy fi
   expect(Math.abs(initial.first.y - anchor.y)).toBeLessThan(0.25);
   expect(initial.last.x + initial.last.width).toBeLessThanOrEqual(copy.x + copy.width);
   const landing = await greeting.evaluate(async (paragraph) => {
-    const letters = Array.from(paragraph.querySelectorAll('.intro-letter'));
+    const letters = Array.from(paragraph.querySelectorAll('.typed-letter'));
     const first = letters[0];
     const last = letters.at(-1)!;
     const measure = () =>
@@ -356,14 +358,9 @@ test('a partly visible bio starts the portrait on landing without waiting for un
 test('a slower font and pending images cannot cancel the greeting preparation', async ({
   page,
 }) => {
-  let releaseFonts!: () => void;
+  const releaseFonts = await holdFonts(page);
   let releaseImages!: () => void;
-  const fonts = new Promise<void>((resolve) => (releaseFonts = resolve));
   const images = new Promise<void>((resolve) => (releaseImages = resolve));
-  await page.route('**/*.woff2', async (request) => {
-    await fonts;
-    await request.continue();
-  });
   await page.route(/\.(?:webp|png)(?:\?|$)/, async (request) => {
     await images;
     await request.continue();
@@ -397,7 +394,7 @@ test('the greeting holds page interactions until it has landed', async ({ page }
         .find((element) => element.hasAttribute('data-greeting-folding'));
       if (!paragraph) return;
       paragraph
-        .querySelector('.intro-typing')!
+        .querySelector('.typed-overlay')!
         .getAnimations()
         .forEach((animation) => animation.pause());
       observer.disconnect();
@@ -417,7 +414,7 @@ test('the greeting holds page interactions until it has landed', async ({ page }
   await page.keyboard.press('Tab');
   await page.keyboard.press('PageDown');
   await page.mouse.wheel(0, 700);
-  const research = (await page.locator('.site-header a[href="/research/"]').boundingBox())!;
+  const research = (await page.locator(`.site-header a[href="${routes.research}"]`).boundingBox())!;
   await page.mouse.click(research.x + research.width / 2, research.y + research.height / 2);
   await expect(page).toHaveURL(/127\.0\.0\.1:\d+\/$/);
   expect(await page.evaluate(() => window.scrollY)).toBe(0);
@@ -425,7 +422,7 @@ test('the greeting holds page interactions until it has landed', async ({ page }
     'data-typing-complete',
   );
   await expect(page.locator('html')).toHaveAttribute('data-greeting-locked', '');
-  await greeting.locator('.intro-typing').evaluate((element) => {
+  await greeting.locator('.typed-overlay').evaluate((element) => {
     element.getAnimations().forEach((animation) => animation.play());
   });
   await page.clock.resume();
@@ -434,8 +431,8 @@ test('the greeting holds page interactions until it has landed', async ({ page }
   await expect(page.locator('html')).not.toHaveAttribute('data-greeting-locked');
   await page.keyboard.press('Tab');
   await expect(page.locator('[data-home-motion] [data-typing-complete]')).toHaveCount(2);
-  await expect(greeting.locator('.intro-word[style]')).toHaveCount(0);
-  await expectBlinkingCaret(page.locator('.hero-bio .intro-cursor'));
+  await expect(greeting.locator('.typed-word[style]')).toHaveCount(0);
+  await expectBlinkingCaret(page.locator('.hero-bio .typed-cursor'));
 });
 
 for (const width of [800, 320]) {
@@ -451,8 +448,8 @@ for (const width of [800, 320]) {
     );
     await expect(greeting).toHaveAttribute('data-greeting-opening', '');
     await expect(greeting.locator('[data-typed-text]')).not.toHaveAttribute('data-typing-complete');
-    const first = (await greeting.locator('.intro-letter').first().boundingBox())!;
-    const last = (await greeting.locator('.intro-letter').last().boundingBox())!;
+    const first = (await greeting.locator('.typed-letter').first().boundingBox())!;
+    const last = (await greeting.locator('.typed-letter').last().boundingBox())!;
     expect(first.x).toBeGreaterThanOrEqual(-1);
     expect(last.x + last.width).toBeLessThanOrEqual(width + 1);
     await expect(greeting).toHaveAttribute('data-greeting-folding', '');
@@ -462,7 +459,7 @@ for (const width of [800, 320]) {
       return new Promise<{ left: number; right: number }>((resolve) => {
         const sample = () => {
           if (!paragraph.hasAttribute('data-greeting-opening')) return resolve({ left, right });
-          paragraph.querySelectorAll('.intro-letter').forEach((letter) => {
+          paragraph.querySelectorAll('.typed-letter').forEach((letter) => {
             const box = letter.getBoundingClientRect();
             left = Math.min(left, box.left);
             right = Math.max(right, box.right);
@@ -476,7 +473,7 @@ for (const width of [800, 320]) {
     expect(foldBounds.right).toBeLessThanOrEqual(width + 1);
     await expect(greeting).not.toHaveAttribute('data-greeting-opening');
     await expect(greeting.locator('[data-typed-text]')).toHaveAttribute('data-typing-complete', '');
-    await expect(greeting.locator('.intro-word[style]')).toHaveCount(0);
+    await expect(greeting.locator('.typed-word[style]')).toHaveCount(0);
     await expect(page.locator('[data-home-motion]')).toHaveAttribute('data-opening-started', /.+/);
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width);
   });

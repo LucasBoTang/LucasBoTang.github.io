@@ -62,12 +62,10 @@ export function onScrollFrame(update: () => void): { request(): void; stop(): vo
   return {
     request,
     stop() {
-      if (stopped) return;
       stopped = true;
       removeEventListener('scroll', request);
       removeEventListener('resize', request);
       cancelAnimationFrame(frame);
-      frame = 0;
     },
   };
 }

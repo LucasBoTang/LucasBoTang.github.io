@@ -33,7 +33,7 @@ test('at rest, the portrait replays its snow rather than drawing it', async ({ p
       return fill.apply(this, args);
     };
   });
-  await page.goto('/');
+  await page.goto(routes.home);
   await page.waitForTimeout(6000);
   await page.evaluate(() => ((window as unknown as { specks: number }).specks = 0));
   await page.waitForTimeout(3000);
@@ -41,7 +41,7 @@ test('at rest, the portrait replays its snow rather than drawing it', async ({ p
 });
 
 test('a wordmark trembles without laying the page out again', async ({ page }) => {
-  await page.goto('/software/');
+  await page.goto(routes.software);
   // Past the entries' arrivals and the wordmarks' power-on, which place their beams once.
   await page.waitForTimeout(8000);
   const read = await metrics(page);
@@ -72,8 +72,8 @@ test('every other page is fetched ahead, so moving to it waits for no network', 
   await page.goto(routes.research);
   const others = Object.values(routes).filter((route) => route !== routes.research);
   await expect.poll(() => others.filter((route) => !fetched.has(route))).toEqual([]);
-  await page.locator('nav a[href="/software/"]').click();
-  await page.waitForURL('**/software/');
+  await page.locator(`nav a[href="${routes.software}"]`).click();
+  await page.waitForURL(`**${routes.software}`);
   const { transferSize, encodedBodySize } = await page.evaluate(() => {
     const entry = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
     return { transferSize: entry.transferSize, encodedBodySize: entry.encodedBodySize };
@@ -86,7 +86,7 @@ test('every other page is fetched ahead, so moving to it waits for no network', 
 test('the pixel picture is fetched from the start, not once the opening asks for it', async ({
   page,
 }) => {
-  await page.goto('/');
+  await page.goto(routes.home);
   const pixels = await page.locator('[data-portrait-develop]').getAttribute('data-portrait-pixels');
   await expect(page.locator(`link[rel="preload"][as="image"][href="${pixels}"]`)).toHaveCount(1);
 });
@@ -96,7 +96,7 @@ test.describe('on a slowed CPU', () => {
 
   test('scrolling the home page to its foot raises no long task', async ({ page }) => {
     const session = await page.context().newCDPSession(page);
-    await page.goto('/');
+    await page.goto(routes.home);
     await page.waitForTimeout(6000);
     await session.send('Emulation.setCPUThrottlingRate', { rate: 4 });
     await page.evaluate(() => {
@@ -117,7 +117,7 @@ test.describe('on a slowed CPU', () => {
 
   test('the home page at rest keeps its scripts light', async ({ page }) => {
     const session = await page.context().newCDPSession(page);
-    await page.goto('/');
+    await page.goto(routes.home);
     await page.waitForTimeout(12000);
     await session.send('Emulation.setCPUThrottlingRate', { rate: 4 });
     const read = await metrics(page);

@@ -1,5 +1,5 @@
 ---
-import { workPreviews } from '../../data/research/figures';
+import { workPreviews } from '../../../data/research/figures';
 
 interface Props {
   project: string;
@@ -38,7 +38,7 @@ const preview = workPreviews[project as keyof typeof workPreviews];
   }
   /* Brightness and focus settle after the silhouettes have crossed. CSS transitions keep
      that overlap continuous when a pointer reverses direction halfway through. */
-  .work-preview :global(.project-wordmark) {
+  .work-preview :global([data-project-wordmark]) {
     align-self: center;
     filter: blur(0px) brightness(1);
     opacity: 1;
@@ -65,7 +65,7 @@ const preview = workPreviews[project as keyof typeof workPreviews];
     color-scheme: normal;
     transform: translate(-50%, -50%) scale(var(--preview-scale, 0));
   }
-  .work-preview[data-preview-visible] :global(.project-wordmark) {
+  .work-preview[data-preview-visible] :global([data-project-wordmark]) {
     filter: blur(3px) brightness(0.65);
     opacity: 0;
     transition:
@@ -88,7 +88,7 @@ const preview = workPreviews[project as keyof typeof workPreviews];
     }
   }
   @media (prefers-reduced-motion: reduce) {
-    .work-preview :global(.project-wordmark),
+    .work-preview :global([data-project-wordmark]),
     .work-preview-picture {
       transition: none;
     }

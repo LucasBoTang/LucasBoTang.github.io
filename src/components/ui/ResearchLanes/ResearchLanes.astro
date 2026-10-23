@@ -1,5 +1,9 @@
 ---
-import { featuredResearchAreas, getResearchAreaHref, type ResearchArea } from '../../data/research';
+import {
+  featuredResearchAreas,
+  getResearchAreaHref,
+  type ResearchArea,
+} from '../../../data/research';
 
 interface Props {
   areas?: ResearchArea[];
@@ -75,7 +79,7 @@ const laneStyle = (index: number, title: string) => {
 >
   <ul class="research-topics" aria-label={isIndex ? undefined : 'Research interests'}>
     {areas.map((area, index) => (
-      <li class="research-topic" style={laneStyle(index, area.title)}>
+      <li class="research-topic" data-lane-row style={laneStyle(index, area.title)}>
         <a
           class:list={['research-link', { 'text-link': isIndex }]}
           href={isIndex ? `#${area.id}` : getResearchAreaHref(area)}
@@ -91,8 +95,8 @@ const laneStyle = (index: number, title: string) => {
             )}
           </span>
           <span class="lane-visual" aria-hidden="true">
-            <span class="lane-field">
-              <span class="lane-ghosts">
+            <span class="lane-field" data-lane-field>
+              <span class="lane-ghosts" data-lane-ghosts>
                 <span class="lane-track">
                   {Array.from({ length: copies(area.title) }, () => (
                     <span class="lane-phrase">{area.title}</span>
@@ -100,7 +104,7 @@ const laneStyle = (index: number, title: string) => {
                 </span>
               </span>
               <span class="lane-foreground">
-                <span class="lane-light-window">
+                <span class="lane-light-window" data-lane-light>
                   <span class="lane-track">
                     {Array.from({ length: copies(area.title) }, () => (
                       <span class="lane-phrase">{area.title}</span>
@@ -316,8 +320,8 @@ const laneStyle = (index: number, title: string) => {
 </style>
 
 <script>
-  import { enhance } from '../../lib/lifecycle';
-  import { watchActivity } from '../../lib/motion';
+  import { enhance } from '../../../lib/lifecycle';
+  import { watchActivity } from '../../../lib/motion';
 
   // Home already owns its lanes' activity and opening through the hero controller.
   enhance<HTMLElement>('[data-research-lanes]', (lanes) => {

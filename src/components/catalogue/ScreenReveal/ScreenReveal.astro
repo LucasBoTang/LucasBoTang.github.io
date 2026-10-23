@@ -1,11 +1,4 @@
----
-import distortion from './screen-filters.svg?url&no-inline';
-import screenStyles from './screen.css?url&no-inline';
----
-
-<link rel="preload" as="image" href={distortion} />
-<link rel="stylesheet" href={screenStyles} />
-<div class="screen-reveal">
+<div class="screen-reveal" data-screen-reveal>
   <span class="screen-trigger" data-reveal="unit"></span>
   <div class="screen-picture">
     <slot />
@@ -16,7 +9,7 @@ import screenStyles from './screen.css?url&no-inline';
   import { enhance } from '../../../lib/lifecycle';
   import { screenArrival } from './arrival';
 
-  enhance('.screen-reveal', (screen) => {
+  enhance('[data-screen-reveal]', (screen) => {
     const trigger = screen.querySelector('[data-reveal="unit"]');
     trigger?.addEventListener('arrival:prepare', (event) => {
       const group = (event as CustomEvent<Animation[]>).detail;
@@ -27,3 +20,19 @@ import screenStyles from './screen.css?url&no-inline';
     });
   });
 </script>
+
+<style>
+  .screen-reveal {
+    position: relative;
+    margin-inline: calc(-1 * var(--gutter));
+    overflow: clip;
+    padding-inline: var(--gutter);
+  }
+  .screen-trigger {
+    position: absolute;
+    top: min(25%, 96px);
+    height: 1px;
+    width: 1px;
+    pointer-events: none;
+  }
+</style>

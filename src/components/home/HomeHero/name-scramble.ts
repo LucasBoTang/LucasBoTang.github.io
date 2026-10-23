@@ -1,4 +1,4 @@
-import { CALM_STEPS, DECODE_ECHO, decodeNoise, seeded } from '../../../lib/decode';
+import { DECODE_ECHO, decodeCharacter, sampleDecode } from '../../../lib/decode';
 import { currentPortraitTiming } from '../opening/opening';
 
 // The name's entrance, as a decode. Each letter is noise until it finds itself: it jumps through
@@ -23,7 +23,6 @@ const FALLBACK_SHAPES = 'ilo';
 const NOISE = 'BOTANGbotang0123#/+*';
 
 /** Each character holds this long; letters appear this far apart, from left to right. */
-const STEP = 45;
 const STAGGER = 55;
 /** When each letter locks, in milliseconds from `openingTiming.tearStart`, by its position. */
 const LOCKS = [280, 430, 590, 360, 510, 660];
@@ -72,7 +71,7 @@ export function createNameScramble(name: HTMLElement) {
       glyph.className = 'name-scramble-glyph';
       const block = document.createElement('span');
       block.className = 'name-scramble-block';
-      block.hidden = true;
+      block.style.visibility = 'hidden';
       layer.append(glyph, block);
       letters.push({ at, char, near: NEAR_SHAPES[char] ?? FALLBACK_SHAPES, glyph, block });
     }
@@ -113,18 +112,14 @@ export function createNameScramble(name: HTMLElement) {
         const appear = index * STAGGER;
         if (elapsed < appear) return;
         const lock = lockAt(index);
-        const locked = elapsed >= lock;
-        const step = Math.floor((elapsed - appear) / STEP);
-        // Steps left before the lock: the last few close in through the similar shapes.
-        const toLock = Math.ceil((lock - elapsed) / STEP);
+        const { locked, step, toLock, noise } = sampleDecode(index, elapsed, appear, lock);
+        // The final steps close in through shapes chosen for the home name.
         const closing = !locked && toLock <= near.length;
         const shown = locked
           ? char
           : closing
             ? near[near.length - toLock]
-            : NOISE[Math.floor(seeded(index * 97 + step) * NOISE.length)];
-        const calm = locked ? 0 : Math.min(1, toLock / CALM_STEPS);
-        const noise = decodeNoise(index, step, calm);
+            : decodeCharacter(index, step, NOISE);
         const blink = !locked && !closing && noise.blink;
         glyph.textContent = blink ? '' : shown;
         glyph.style.opacity = String(noise.opacity);
@@ -132,7 +127,7 @@ export function createNameScramble(name: HTMLElement) {
         glyph.toggleAttribute('data-light', !locked);
         glyph.toggleAttribute('data-echo', locked && elapsed < lock + DECODE_ECHO);
         const flash = locked ? undefined : noise.block;
-        block.hidden = !flash;
+        block.style.visibility = flash ? 'visible' : 'hidden';
         if (flash) {
           const { top, height, tone } = flash;
           block.style.top = `${top}em`;

@@ -1,30 +1,25 @@
 import assert from 'node:assert/strict';
-import { registerHooks } from 'node:module';
 import test from 'node:test';
+import { installGlobals, intersectionObservers } from '../helpers/browser.mjs';
+import { registerTypeScriptImports } from '../helpers/typescript-imports.mjs';
 
 // Browser modules use extensionless relative imports; Node needs their TypeScript extension.
-const hooks = registerHooks({
-  resolve(specifier, context, nextResolve) {
-    if (specifier.startsWith('.') && !/\.[a-z]+$/i.test(specifier)) {
-      return nextResolve(`${specifier}.ts`, context);
-    }
-    return nextResolve(specifier, context);
-  },
-});
-const { createTimeline } = await import('../../src/lib/timeline.ts');
-hooks.deregister();
+const hooks = registerTypeScriptImports();
+let createTimeline;
+try {
+  ({ createTimeline } = await import('../../src/lib/timeline.ts'));
+} finally {
+  hooks.deregister();
+}
 
 test('a finished timeline does not create new animations, timers or viewport waits', (t) => {
-  const previousWindow = globalThis.window;
-  globalThis.window = {
-    clearTimeout,
-    setTimeout() {
-      assert.fail('finished timelines must not allocate timers');
+  installGlobals(t, {
+    window: {
+      clearTimeout,
+      setTimeout() {
+        assert.fail('finished timelines must not allocate timers');
+      },
     },
-  };
-  t.after(() => {
-    if (previousWindow === undefined) delete globalThis.window;
-    else globalThis.window = previousWindow;
   });
   const timeline = createTimeline();
   timeline.finish();
@@ -46,30 +41,17 @@ test('a finished timeline does not create new animations, timers or viewport wai
 });
 
 test('queued viewport notifications cannot call back after the timeline finishes', (t) => {
-  const previousWindow = globalThis.window;
-  const previousObserver = globalThis.IntersectionObserver;
-  let notify;
+  const observers = intersectionObservers();
   let called = false;
-  class Observer {
-    constructor(callback) {
-      notify = callback;
-    }
-    observe() {}
-    disconnect() {}
-  }
-  globalThis.window = { innerHeight: 900, IntersectionObserver: Observer, clearTimeout };
-  globalThis.IntersectionObserver = Observer;
-  t.after(() => {
-    if (previousWindow === undefined) delete globalThis.window;
-    else globalThis.window = previousWindow;
-    if (previousObserver === undefined) delete globalThis.IntersectionObserver;
-    else globalThis.IntersectionObserver = previousObserver;
+  installGlobals(t, {
+    window: { innerHeight: 900, IntersectionObserver: observers.Observer, clearTimeout },
+    IntersectionObserver: observers.Observer,
   });
   const timeline = createTimeline();
   timeline.whenVisible({ getBoundingClientRect: () => ({ top: 1000 }) }, () => {
     called = true;
   });
   timeline.finish();
-  notify([{ isIntersecting: true }]);
+  observers.instances[0].callback([{ isIntersecting: true }]);
   assert.equal(called, false);
 });

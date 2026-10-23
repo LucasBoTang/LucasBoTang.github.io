@@ -12,9 +12,9 @@ export function createGreetingEntrance(
   remeasureCursor: () => void,
 ) {
   const paragraph = host.closest<HTMLElement>('.hero-intro')!;
-  const target = host.querySelector<HTMLElement>('[data-intro-typed]')!;
+  const target = host.querySelector<HTMLElement>('[data-typed-run]')!;
   const layer = target.parentElement!;
-  const first = target.querySelector<HTMLElement>('.intro-letter')!;
+  const first = target.querySelector<HTMLElement>('.typed-letter')!;
   const unlock = lockGreeting();
   const timers: number[] = [];
   let animation: Animation | undefined;

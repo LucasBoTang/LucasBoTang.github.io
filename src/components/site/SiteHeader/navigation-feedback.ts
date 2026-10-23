@@ -1,7 +1,7 @@
-import { enhance } from './lifecycle';
-import { reducedMotionQuery } from './motion';
-import { waitForOpeningVisible } from './opening-gate';
-import { waitForPageReady } from './page-ready';
+import { enhance } from '../../../lib/lifecycle';
+import { reducedMotionQuery } from '../../../lib/motion';
+import { waitForOpeningVisible } from '../../../lib/opening-gate';
+import { waitForPageReady } from '../../../lib/page-ready';
 
 /** Brief activation feedback; the browser still follows the link immediately. */
 enhance('[data-navigation-feedback]', (navigation) => {

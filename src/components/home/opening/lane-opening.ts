@@ -1,6 +1,6 @@
 import { phonePace } from '../../../lib/breakpoints';
 import type { Timeline } from '../../../lib/timeline';
-import { openingTiming as time, type HomeOpeningGroup } from '../opening/opening';
+import { openingTiming as time, type HomeOpeningGroup } from './opening';
 
 /** The lanes open quick to leave and slow to settle. */
 const OPEN_EASING = 'cubic-bezier(.3,0,.2,1)';
@@ -22,7 +22,7 @@ export function addLaneOpening(
   // Site returns keep their original first-light cue.
   const lightDelay = returning ? time.laneLightDelay : 0;
   let started = false;
-  const rows = Array.from(navigator.querySelectorAll<HTMLElement>('.research-topic'));
+  const rows = Array.from(navigator.querySelectorAll<HTMLElement>('[data-lane-row]'));
   rows.forEach((row, i) => {
     row.setAttribute('data-connecting', '');
     const group = `lane-${i}` as const;
@@ -33,19 +33,19 @@ export function addLaneOpening(
       group,
     );
     timeline.animate(
-      row.querySelector('.lane-field'),
+      row.querySelector('[data-lane-field]'),
       [{ '--lane-open': '0' }, { '--lane-open': '1' }],
       { duration: time.laneField * pace, easing: OPEN_EASING },
       group,
     );
     timeline.animate(
-      row.querySelector('.lane-ghosts'),
+      row.querySelector('[data-lane-ghosts]'),
       [{ opacity: 0 }, { opacity: 1 }],
       { duration: time.laneField * pace, easing: OPEN_EASING },
       group,
     );
     timeline.animate(
-      row.querySelector('.lane-light-window'),
+      row.querySelector('[data-lane-light]'),
       [
         { '--lane-open': '0', opacity: 0 },
         { '--lane-open': '1', opacity: 1 },

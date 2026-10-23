@@ -2,22 +2,17 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { parseHTML } from 'linkedom';
 import { whenFigureReady } from '../../src/lib/figure-ready.ts';
+import { installGlobals } from '../helpers/browser.mjs';
 
 function host(t, embedded = true) {
   const { document, MutationObserver } = parseHTML(
-    '<html data-opening-pending><body><div class="screen-reveal"><iframe></iframe></div></body></html>',
+    '<html data-opening-pending><body><div class="screen-reveal" data-screen-reveal><iframe></iframe></div></body></html>',
   );
   const values = {
     window: { frameElement: embedded ? document.querySelector('iframe') : null },
     MutationObserver,
   };
-  for (const [key, value] of Object.entries(values)) {
-    const descriptor = Object.getOwnPropertyDescriptor(globalThis, key);
-    Object.defineProperty(globalThis, key, { value, configurable: true });
-    t.after(() =>
-      descriptor ? Object.defineProperty(globalThis, key, descriptor) : delete globalThis[key],
-    );
-  }
+  installGlobals(t, values);
   return { page: document.documentElement, screen: document.querySelector('.screen-reveal') };
 }
 const flush = () => new Promise((resolve) => setImmediate(resolve));

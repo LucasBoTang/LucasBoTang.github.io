@@ -1,15 +1,18 @@
 import { expect, test } from '@playwright/test';
+import { routes } from '../../src/data/navigation';
+import { cssColors } from '../theme';
+import { holdFonts } from './helpers';
 
 for (const width of [1280, 375]) {
   test(`a navigation click connects in blue once, while hover keeps its colour at ${width}px`, async ({
     page,
   }) => {
     await page.setViewportSize({ width, height: 900 });
-    await page.goto('/research/');
+    await page.goto(routes.research);
     const navigation = page.getByRole('navigation', { name: 'Main navigation' });
     const software = navigation.getByRole('link', { name: 'Software', exact: true });
     await software.hover();
-    await expect(software).toHaveCSS('color', 'rgb(163, 167, 173)');
+    await expect(software).toHaveCSS('color', cssColors['muted']);
     await expect(navigation.locator('[data-nav-connect]')).toHaveCount(0);
     // Keep this document for the animation's complete cycle. Preventing at window happens
     // after navigation's click feedback, as a cancelled navigation would.
@@ -24,7 +27,7 @@ for (const width of [1280, 375]) {
       });
     });
     await software.click();
-    await expect(navigation).toHaveAttribute('data-test-pulse', '/software/');
+    await expect(navigation).toHaveAttribute('data-test-pulse', routes.software);
     await expect(navigation).toHaveAttribute('data-test-sweep', 'text');
     await expect
       .poll(() =>
@@ -40,16 +43,16 @@ for (const width of [1280, 375]) {
         ),
       )
       .toBe(true);
-    await expect(software).toHaveCSS('color', 'rgb(110, 141, 184)');
+    await expect(software).toHaveCSS('color', cssColors['blue']);
     await expect(software.locator('.roll-face').first()).toHaveCSS('transform', 'none');
     await page.evaluate(() =>
       window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: true })),
     );
     await expect(navigation.locator('[data-nav-connect]')).toHaveCount(0);
-    await expect(software).toHaveCSS('color', 'rgb(163, 167, 173)');
+    await expect(software).toHaveCSS('color', cssColors['muted']);
     await expect(navigation.getByRole('link', { name: 'Research', exact: true })).toHaveCSS(
       'color',
-      'rgb(110, 141, 184)',
+      cssColors['blue'],
     );
   });
 }
@@ -57,7 +60,7 @@ for (const width of [1280, 375]) {
 test('activation feedback keeps normal navigation and the destination current-page colour', async ({
   page,
 }) => {
-  await page.goto('/research/');
+  await page.goto(routes.research);
   await page
     .getByRole('navigation', { name: 'Main navigation' })
     .getByRole('link', { name: 'Software', exact: true })
@@ -68,7 +71,7 @@ test('activation feedback keeps normal navigation and the destination current-pa
   );
   await expect(page.locator('.site-header nav a[aria-current="page"]')).toHaveCSS(
     'color',
-    'rgb(110, 141, 184)',
+    cssColors['blue'],
   );
   const current = page.locator('.site-header nav a[aria-current="page"]');
   await expect(page.locator('.site-header')).toHaveAttribute('data-hover-ready', '');
@@ -78,22 +81,15 @@ test('activation feedback keeps normal navigation and the destination current-pa
   await page.mouse.move(0, 0);
   await current.hover();
   await expect(current.locator('.roll-face').first()).not.toHaveCSS('transform', 'none');
-  await expect(current).toHaveCSS('color', 'rgb(110, 141, 184)');
+  await expect(current).toHaveCSS('color', cssColors['blue']);
 });
 
 test('hover waits for fonts and page readiness before rolling an inactive link', async ({
   page,
 }) => {
-  let releaseFonts!: () => void;
-  const fonts = new Promise<void>((resolve) => {
-    releaseFonts = resolve;
-  });
-  await page.route('**/*.woff2', async (route) => {
-    await fonts;
-    await route.continue();
-  });
+  const releaseFonts = await holdFonts(page, '**/*.woff2');
   try {
-    await page.goto('/research/', { waitUntil: 'domcontentloaded' });
+    await page.goto(routes.research, { waitUntil: 'domcontentloaded' });
     const header = page.locator('.site-header');
     const software = header.getByRole('link', { name: 'Software', exact: true });
     await software.hover();
@@ -102,7 +98,7 @@ test('hover waits for fonts and page readiness before rolling an inactive link',
     releaseFonts();
     await expect(header).toHaveAttribute('data-hover-ready', '');
     await expect(software.locator('.roll-face').first()).not.toHaveCSS('transform', 'none');
-    await expect(software).toHaveCSS('color', 'rgb(163, 167, 173)');
+    await expect(software).toHaveCSS('color', cssColors['muted']);
   } finally {
     releaseFonts();
   }
@@ -111,7 +107,7 @@ test('hover waits for fonts and page readiness before rolling an inactive link',
 test('keyboard focus rolls the current page even when its initial hover is held', async ({
   page,
 }) => {
-  await page.goto('/research/');
+  await page.goto(routes.research);
   const header = page.locator('.site-header');
   const current = header.locator('nav a[aria-current="page"]');
   await expect(header).toHaveAttribute('data-hover-ready', '');
@@ -120,11 +116,11 @@ test('keyboard focus rolls the current page even when its initial hover is held'
   await current.focus();
   await expect(current.locator('.roll-face').first()).toHaveCSS('transition-duration', '0.48s');
   await expect(current.locator('.roll-face').first()).not.toHaveCSS('transform', 'none');
-  await expect(current).toHaveCSS('color', 'rgb(110, 141, 184)');
+  await expect(current).toHaveCSS('color', cssColors['blue']);
 });
 
 test('home hover waits until its header entrance has finished', async ({ page }) => {
-  await page.goto('/');
+  await page.goto(routes.home);
   await expect(page.locator('[data-home-motion]')).toHaveAttribute('data-opening-started', /.+/);
   const header = page.locator('.site-header');
   const research = header.getByRole('link', { name: 'Research', exact: true });
@@ -142,7 +138,7 @@ test('home hover waits until its header entrance has finished', async ({ page })
 
 test('reduced motion changes page without the activation impulse', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.goto('/research/');
+  await page.goto(routes.research);
   const navigation = page.getByRole('navigation', { name: 'Main navigation' });
   await navigation.evaluate(() => {
     window.addEventListener('click', (event) => event.preventDefault(), { once: true });

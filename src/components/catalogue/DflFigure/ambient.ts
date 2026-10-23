@@ -1,5 +1,5 @@
 /** One gentle ambient rhythm for the four DFL modules, independent of training light. */
-export const DFL_AMBIENT_PERIOD = 12;
+const DFL_AMBIENT_PERIOD = 12;
 export function ambientSwing(seconds: number, phase = 0) {
   return Math.sin((seconds * Math.PI * 2) / DFL_AMBIENT_PERIOD + phase);
 }
@@ -22,6 +22,4 @@ export function updateDatasetAmbient(root: Element | null, seconds: number) {
     );
   for (const [node, x, y] of sheets.get(root)!)
     node.setAttribute('transform', `translate(${(x * u).toFixed(4)} ${(y * u).toFixed(4)})`);
-  (root as HTMLElement).dataset.ambientPeriod = String(DFL_AMBIENT_PERIOD);
-  (root as HTMLElement).dataset.ambientTime = seconds.toFixed(3);
 }

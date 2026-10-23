@@ -14,11 +14,12 @@ export function reducedMotionQuery(): MediaQueryList {
 export function onKeyboardFocus(callback: () => void): () => void {
   const listener = (event: FocusEvent) => {
     if (!(event.target instanceof Element) || !event.target.matches(':focus-visible')) return;
-    document.removeEventListener('focusin', listener);
+    stop();
     callback();
   };
+  const stop = () => document.removeEventListener('focusin', listener);
   document.addEventListener('focusin', listener);
-  return () => document.removeEventListener('focusin', listener);
+  return stop;
 }
 
 /** Why `watchActivity` is reporting: targets moved in or out of view, the tab was hidden or shown, or the motion preference changed. */
@@ -42,29 +43,36 @@ export function watchActivity<T extends Element>(
   targets: T | T[],
   onChange: (activity: Activity<T>) => void,
   { threshold = 0 }: { threshold?: number } = {},
-): void {
+): () => void {
   const list = Array.isArray(targets) ? targets : [targets];
   const reducedMotion = reducedMotionQuery();
   const inView = new Set<T>();
-  const report = (reason: ActivityReason) =>
+  const report = (reason: ActivityReason = 'viewport') =>
     onChange({ reason, inView, hidden: document.hidden, reduced: reducedMotion.matches });
+  let observer: IntersectionObserver | undefined;
   if ('IntersectionObserver' in window) {
-    const observer = new IntersectionObserver(
+    observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
           const target = entry.target as T;
           if (entry.isIntersecting && entry.intersectionRatio >= threshold) inView.add(target);
           else inView.delete(target);
         }
-        report('viewport');
+        report();
       },
-      { threshold: threshold > 0 ? [0, threshold] : 0 },
+      { threshold: [0, threshold] },
     );
-    list.forEach((target) => observer.observe(target));
+    list.forEach((target) => observer!.observe(target));
   } else {
     list.forEach((target) => inView.add(target));
-    queueMicrotask(() => report('viewport'));
+    queueMicrotask(report);
   }
-  document.addEventListener('visibilitychange', () => report('page'));
-  reducedMotion.addEventListener('change', () => report('preference'));
+  const listeners = new AbortController();
+  const options = { signal: listeners.signal };
+  document.addEventListener('visibilitychange', () => report('page'), options);
+  reducedMotion.addEventListener('change', () => report('preference'), options);
+  return () => {
+    observer?.disconnect();
+    listeners.abort();
+  };
 }

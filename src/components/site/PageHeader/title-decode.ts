@@ -1,4 +1,4 @@
-import { CALM_STEPS, DECODE_ECHO, decodeNoise, seeded } from '../../../lib/decode';
+import { DECODE_ECHO, decodeCharacter, sampleDecode, seeded } from '../../../lib/decode';
 import { reducedMotionQuery } from '../../../lib/motion';
 import { slipDuration } from '../../../lib/signal';
 
@@ -23,8 +23,6 @@ const HOLD = 60;
 const WAIT = 240;
 /** Letters break this far apart, from left to right. */
 const STAGGER = 32;
-/** A breaking letter changes character this often, as the home name's letters do. */
-const STEP = 45;
 /** A letter locks this long after it breaks, up to `JITTER` more, so letters lock a little out of
  * order. */
 const SETTLE = 170;
@@ -93,19 +91,15 @@ export function decodeTitle(title: HTMLElement) {
     letters.forEach(({ glyph, from, to, breaks, locks }, index) => {
       const shape = to || from;
       const characters = shape !== shape.toLowerCase() ? NOISE.upper : NOISE.lower;
-      const broken = elapsed >= breaks;
-      const locked = elapsed >= locks;
-      const decoding = broken && !locked;
-      const step = Math.floor((elapsed - breaks) / STEP);
-      const calm = decoding ? Math.min(1, Math.ceil((locks - elapsed) / STEP) / CALM_STEPS) : 0;
-      // Letters break close together, so each is offset in the signal's cycle: neighbours never
-      // blink or flash on the same step and no hole opens in the word.
-      const noise = decodeNoise(index, step + index * PHASE, calm);
-      glyph.textContent = locked
-        ? to
-        : broken
-          ? characters[Math.floor(seeded(index * 97 + step) * characters.length)]
-          : from;
+      // Offset neighbouring letters in the signal so their blocks do not blink together.
+      const { broken, locked, decoding, step, noise } = sampleDecode(
+        index,
+        elapsed,
+        breaks,
+        locks,
+        PHASE,
+      );
+      glyph.textContent = locked ? to : broken ? decodeCharacter(index, step, characters) : from;
       glyph.toggleAttribute('data-noise', decoding);
       glyph.toggleAttribute('data-blink', decoding && noise.blink);
       glyph.toggleAttribute('data-echo', locked && elapsed < locks + DECODE_ECHO && to !== '');

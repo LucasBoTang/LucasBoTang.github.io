@@ -1,5 +1,8 @@
 import { expect, test } from '@playwright/test';
 import sharp from 'sharp';
+import { routes } from '../../src/data/navigation';
+import { contentPageRoutes, missingPageRoute } from '../test-routes';
+import { cssColors } from '../theme';
 import { firstBaseline, gridColumns, textExtent, textLeft } from './helpers';
 
 // Every page hangs on one grid: text starts on column 1 or column 6, and every link reads in one
@@ -14,7 +17,7 @@ const near = (actual: number, expected: number, tolerance = 1) =>
   expect(Math.abs(actual - expected)).toBeLessThanOrEqual(tolerance);
 
 test('the header sets the name on column 1 and the pages flush right', async ({ page }) => {
-  await page.goto('/research/');
+  await page.goto(routes.research);
   const cols = await gridColumns(page);
   near(await textLeft(page, '.site-header-name'), cols[0].left, 2);
   const links = page.locator('.site-header nav a');
@@ -27,12 +30,12 @@ test('the header sets the name on column 1 and the pages flush right', async ({ 
 });
 
 test('the CV is offered on the About page', async ({ page }) => {
-  await page.goto('/about/');
+  await page.goto(routes.about);
   await expect(page.locator('main a[download]')).toHaveText('Download CV');
 });
 
 test('utility links and buttons share one label style', async ({ page }) => {
-  await page.goto('/');
+  await page.goto(routes.home);
   const styles = await page.evaluate(() =>
     ['.arrow-link', '.resource-links a', '.contact-links a', '.contact-links--footer a'].map(
       (selector) => {
@@ -52,7 +55,7 @@ test('utility links and buttons share one label style', async ({ page }) => {
 });
 
 test('the footer mirrors the header: name left, contact links flush right', async ({ page }) => {
-  await page.goto('/research/');
+  await page.goto(routes.research);
   const cols = await gridColumns(page);
   near(await textLeft(page, '.site-footer-name'), cols[0].left, 2);
   const links = await textExtent(page, '.contact-links--footer a');
@@ -65,7 +68,7 @@ test('the footer mirrors the header: name left, contact links flush right', asyn
 });
 
 test('the hero name keeps its own size and starts on column 1', async ({ page }) => {
-  await page.goto('/');
+  await page.goto(routes.home);
   const cols = await gridColumns(page);
   const size = await page.locator('#hero-name').evaluate((name) => getComputedStyle(name).fontSize);
   expect(size).toBe('64px');
@@ -80,10 +83,10 @@ test('the hero name keeps its own size and starts on column 1', async ({ page })
 });
 
 test('the hero copy starts on column 6', async ({ page }) => {
-  await page.goto('/');
+  await page.goto(routes.home);
   const cols = await gridColumns(page);
   near(await textLeft(page, '.affiliation p'), cols[5].left);
-  near(await textLeft(page, '.hero-intro .intro-copy'), cols[5].left);
+  near(await textLeft(page, '.hero-intro .typed-copy'), cols[5].left);
 });
 
 test('the compact portrait stays in columns 2 to 4 and meets the action baseline on wide screens', async ({
@@ -91,7 +94,7 @@ test('the compact portrait stays in columns 2 to 4 and meets the action baseline
 }) => {
   for (const width of [800, 1280, 1440, 1935]) {
     await page.setViewportSize({ width, height: 900 });
-    await page.goto('/');
+    await page.goto(routes.home);
     await page.evaluate(() => document.fonts.ready);
     const cols = await gridColumns(page);
     const portrait = (await page.locator('.portrait-block').boundingBox())!;
@@ -104,7 +107,7 @@ test('the compact portrait stays in columns 2 to 4 and meets the action baseline
 
 test('the hero name stays left of column 6 at 900px', async ({ page }) => {
   await page.setViewportSize({ width: 900, height: 900 });
-  await page.goto('/');
+  await page.goto(routes.home);
   const cols = await gridColumns(page);
   const name = await page.locator('#hero-name').boundingBox();
   expect(name!.x + name!.width).toBeLessThan(cols[5].left);
@@ -113,7 +116,7 @@ test('the hero name stays left of column 6 at 900px', async ({ page }) => {
 test('selected work centres each wordmark in its column and starts the text on column 6', async ({
   page,
 }) => {
-  await page.goto('/');
+  await page.goto(routes.home);
   const cols = await gridColumns(page);
   const sideCentre = (cols[0].left + cols[4].right) / 2;
   const entries = await page.locator('.work-entry').count();
@@ -128,7 +131,7 @@ test('selected work centres each wordmark in its column and starts the text on c
 });
 
 test('the work note is in natural case', async ({ page }) => {
-  await page.goto('/');
+  await page.goto(routes.home);
   const transform = await page
     .locator('.work-note')
     .first()
@@ -139,7 +142,7 @@ test('the work note is in natural case', async ({ page }) => {
 test('about leaves column 1 empty, with copy in 2 to 7 and the sign in 9 to 11', async ({
   page,
 }) => {
-  await page.goto('/');
+  await page.goto(routes.home);
   const cols = await gridColumns(page);
   const sign = await page.locator('.about-fields').boundingBox();
   near(sign!.x, cols[8].left);
@@ -152,13 +155,13 @@ test('about leaves column 1 empty, with copy in 2 to 7 and the sign in 9 to 11',
 });
 
 test('the about sign hangs a tab below its lettering', async ({ page }) => {
-  await page.goto('/');
+  await page.goto(routes.home);
   const viewBox = await page.locator('.decision-sign svg').getAttribute('viewBox');
   expect(viewBox).toBe('0 0 300 134');
 });
 
 test('every page title is Display with its lead right under it', async ({ page }) => {
-  for (const route of ['/about/', '/research/', '/software/', '/missing-page/']) {
+  for (const route of [...contentPageRoutes, missingPageRoute]) {
     await page.goto(route);
     const cols = await gridColumns(page);
     const size = await page.locator('h1').evaluate((title) => getComputedStyle(title).fontSize);
@@ -169,7 +172,7 @@ test('every page title is Display with its lead right under it', async ({ page }
 });
 
 test('publications hang their year in column 5', async ({ page }) => {
-  await page.goto('/research/');
+  await page.goto(routes.research);
   const cols = await gridColumns(page);
   for (let index = 0; index < 3; index++) {
     near(await textLeft(page, '.publication-year', index), cols[4].left);
@@ -183,7 +186,7 @@ test('publications hang their year in column 5', async ({ page }) => {
 });
 
 test('the index fits columns 1 to 4 on one line each, at the navigation size', async ({ page }) => {
-  await page.goto('/research/');
+  await page.goto(routes.research);
   const cols = await gridColumns(page);
   const size = await page
     .locator('.research-index nav a')
@@ -198,7 +201,7 @@ test('the index fits columns 1 to 4 on one line each, at the navigation size', a
 });
 
 test('research headings hang with the years in column 5, on one line', async ({ page }) => {
-  await page.goto('/research/');
+  await page.goto(routes.research);
   const cols = await gridColumns(page);
   near(await textLeft(page, '.research-section h2'), cols[4].left, 3);
   near(await textLeft(page, '.research-question'), cols[4].left);
@@ -207,7 +210,7 @@ test('research headings hang with the years in column 5, on one line', async ({ 
 
 test('no entry text crosses column 11 at 800px', async ({ page }) => {
   await page.setViewportSize({ width: 800, height: 900 });
-  await page.goto('/research/');
+  await page.goto(routes.research);
   const cols = await gridColumns(page);
   const selectors =
     '.publication-body h3, .publication-year, .research-section h2, .research-introduction';
@@ -217,7 +220,7 @@ test('no entry text crosses column 11 at 800px', async ({ page }) => {
 
 test('a preprint keeps clear of its title at tablet widths', async ({ page }) => {
   await page.setViewportSize({ width: 760, height: 900 });
-  await page.goto('/research/');
+  await page.goto(routes.research);
   const year = await page.locator('.publication-year').first().boundingBox();
   const title = await page.locator('.publication-title-link').first().boundingBox();
   const [text] = await textExtent(page, '.publication-year');
@@ -231,9 +234,9 @@ test('the hero bio spans columns 6 to 12 beside the narrower affiliation and gre
 }) => {
   for (const width of [800, 1024, 1280, 1440]) {
     await page.setViewportSize({ width, height: 900 });
-    await page.goto('/');
+    await page.goto(routes.home);
     const cols = await gridColumns(page);
-    for (const { right } of await textExtent(page, '.hero-intro .intro-copy, .affiliation a'))
+    for (const { right } of await textExtent(page, '.hero-intro .typed-copy, .affiliation a'))
       expect(right).toBeLessThanOrEqual(cols[10].right + 1);
     const bio = (await page.locator('.hero-bio').boundingBox())!;
     near(bio.x, cols[5].left);
@@ -242,7 +245,7 @@ test('the hero bio spans columns 6 to 12 beside the narrower affiliation and gre
 });
 
 test('the BibTeX entry is set in the site mono', async ({ page }) => {
-  await page.goto('/research/');
+  await page.goto(routes.research);
   await page.locator('.bibtex-open').first().click();
   const family = await page
     .locator('.bibtex-dialog[open] code')
@@ -251,7 +254,7 @@ test('the BibTeX entry is set in the site mono', async ({ page }) => {
 });
 
 test('BibTeX keeps its spelling', async ({ page }) => {
-  await page.goto('/research/');
+  await page.goto(routes.research);
   const open = page.locator('.bibtex-open').first();
   expect(await open.evaluate((button) => getComputedStyle(button).textTransform)).toBe('none');
   await open.click();
@@ -261,7 +264,7 @@ test('BibTeX keeps its spelling', async ({ page }) => {
 });
 
 test('headings are set at weight 400, wordmarks aside', async ({ page }) => {
-  for (const route of ['/', '/about/', '/research/', '/software/']) {
+  for (const route of [routes.home, routes.about, routes.research, routes.software]) {
     await page.goto(route);
     const weights = await page
       .locator('h1, h2, h3:not(.project-wordmark), strong')
@@ -273,7 +276,7 @@ test('headings are set at weight 400, wordmarks aside', async ({ page }) => {
 });
 
 test('software hangs names on column 1 and project text on column 5', async ({ page }) => {
-  await page.goto('/software/');
+  await page.goto(routes.software);
   const cols = await gridColumns(page);
   const entries = await page.locator('.software-entry').count();
   const projects = await page.locator('.software-entry:not(.software-entry--compact)').count();
@@ -284,7 +287,7 @@ test('software hangs names on column 1 and project text on column 5', async ({ p
 });
 
 test('roles are not uppercased', async ({ page }) => {
-  await page.goto('/software/');
+  await page.goto(routes.software);
   const transforms = await page
     .locator('.entry-role')
     .evaluateAll((all) => [...new Set(all.map((role) => getComputedStyle(role).textTransform))]);
@@ -292,7 +295,7 @@ test('roles are not uppercased', async ({ page }) => {
 });
 
 test('about prose starts on column 6', async ({ page }) => {
-  await page.goto('/about/');
+  await page.goto(routes.about);
   const cols = await gridColumns(page);
   const sections = await page.locator('.about-prose').count();
   for (let index = 0; index < sections; index++) {
@@ -302,7 +305,7 @@ test('about prose starts on column 6', async ({ page }) => {
 });
 
 test('contributions read as one list, parted by space alone', async ({ page }) => {
-  await page.goto('/software/');
+  await page.goto(routes.software);
   const borders = await page
     .locator('.software-entry--compact')
     .evaluateAll((all) => [...new Set(all.map((entry) => getComputedStyle(entry).borderTopWidth))]);
@@ -310,7 +313,7 @@ test('contributions read as one list, parted by space alone', async ({ page }) =
 });
 
 test('the theme being read is cut out of a blue tag', async ({ page }) => {
-  await page.goto('/research/');
+  await page.goto(routes.research);
   const current = page.locator('.research-index nav a[aria-current="location"]');
   await expect(current).toHaveCount(1);
   const look = await current.evaluate((link) => {
@@ -321,13 +324,13 @@ test('the theme being read is cut out of a blue tag', async ({ page }) => {
       shape: plate.clipPath,
     };
   });
-  expect(look.text).toBe('rgb(16, 17, 19)');
-  expect(look.plate).toBe('rgb(110, 141, 184)');
+  expect(look.text).toBe(cssColors['ink']);
+  expect(look.plate).toBe(cssColors['blue']);
   expect(look.shape).toMatch(/^polygon/);
 });
 
 test('the about sign sits level with the middle of the two paragraphs', async ({ page }) => {
-  await page.goto('/');
+  await page.goto(routes.home);
   const sign = await page.locator('.about-fields').boundingBox();
   const first = await page.locator('.about-copy p').first().boundingBox();
   const last = await page.locator('.about-copy p').last().boundingBox();
@@ -340,7 +343,7 @@ test.describe('on a phone', () => {
   });
 
   test('the Selected work wordmarks stay centred, as on a wide screen', async ({ page }) => {
-    await page.goto('/');
+    await page.goto(routes.home);
     const entries = await page.locator('.work-entry').count();
     for (let index = 0; index < entries; index++) {
       const entry = page.locator('.work-entry').nth(index);
@@ -354,7 +357,7 @@ test.describe('on a phone', () => {
     page,
   }) => {
     await page.emulateMedia({ reducedMotion: 'no-preference' });
-    await page.goto('/research/');
+    await page.goto(routes.research);
     const lanes = page.locator('.research-index [data-research-lanes]');
     await expect(lanes).toHaveAttribute('data-motion-ready', '');
     const current = page.locator('.research-index nav a[aria-current="location"]');
@@ -377,14 +380,14 @@ test.describe('on a phone', () => {
       plate: 'none',
       marker: 'none',
       tear: 'none',
-      light: 'rgb(142, 175, 217)',
+      light: cssColors['signal-light'],
     });
     await expect(current.locator('.lane-static')).toBeHidden();
     await expect(current.locator('.lane-visual')).toBeVisible();
   });
 
   test('the Research index shows static labels when motion is reduced', async ({ page }) => {
-    await page.goto('/research/');
+    await page.goto(routes.research);
     const links = page.getByRole('navigation', { name: 'Research themes' }).getByRole('link');
     await expect(links).toHaveCount(4);
     for (const link of await links.all()) {
@@ -398,8 +401,8 @@ test.describe('on a phone', () => {
 
   test('labels that can wrap get room between their lines', async ({ page }) => {
     for (const [route, selector] of [
-      ['/', '.work-note'],
-      ['/research/', '.publication-venue'],
+      [routes.home, '.work-note'],
+      [routes.research, '.publication-venue'],
     ]) {
       await page.goto(route);
       const leading = await page
@@ -411,7 +414,7 @@ test.describe('on a phone', () => {
   });
 
   test('the about sign runs the width of the text', async ({ page }) => {
-    await page.goto('/');
+    await page.goto(routes.home);
     const sign = await page.locator('.about-fields').boundingBox();
     const copy = await page.locator('.about-copy').boundingBox();
     near(sign!.x, copy!.x);
@@ -419,7 +422,7 @@ test.describe('on a phone', () => {
   });
 
   test('the footer links start on the text edge', async ({ page }) => {
-    await page.goto('/');
+    await page.goto(routes.home);
     const name = await page.locator('.site-footer-name').boundingBox();
     const first = await page.locator('.contact-links--footer a').first().boundingBox();
     near(first!.x, name!.x);
@@ -430,7 +433,7 @@ test.describe('on a phone', () => {
   }) => {
     for (const width of [320, 375, 390, 430, 600, 720]) {
       await page.setViewportSize({ width, height: 800 });
-      await page.goto('/');
+      await page.goto(routes.home);
       await page.evaluate(() => document.fonts.ready);
       const name = (await page.locator('#hero-name .name-base').boundingBox())!;
       const portrait = (await page.locator('.portrait').boundingBox())!;
@@ -450,7 +453,7 @@ test.describe('on a phone', () => {
   });
 
   test('the footer links sit in two even rows', async ({ page }) => {
-    await page.goto('/');
+    await page.goto(routes.home);
     const tops = await page
       .locator('.contact-links--footer a')
       .evaluateAll((all) => all.map((link) => Math.round(link.getBoundingClientRect().top)));
@@ -471,8 +474,8 @@ test.describe('dividers', () => {
     page,
   }) => {
     for (const [route, selector] of [
-      ['/', '.work-entry + .work-entry'],
-      ['/software/', '.software-entry:not(.software-entry--compact) + .software-entry'],
+      [routes.home, '.work-entry + .work-entry'],
+      [routes.software, '.software-entry:not(.software-entry--compact) + .software-entry'],
     ]) {
       await page.goto(route);
       const look = await page
@@ -488,7 +491,7 @@ test.describe('dividers', () => {
   });
 
   test('publications are parted by the quieter item rule', async ({ page }) => {
-    await page.goto('/research/');
+    await page.goto(routes.research);
     const color = await page
       .locator('.publication')
       .first()
@@ -504,14 +507,14 @@ test.describe('measure, spacing, strokes and targets', () => {
   // other passages retain their six-column measure.
   test('running text ends on its assigned column line', async ({ page }) => {
     const checks: [string, string, number][] = [
-      ['/', '.hero-intro', 10],
-      ['/', '.hero-bio', 11],
-      ['/', '.work-description', 10],
-      ['/', '.about-copy', 6],
-      ['/research/', '.page-header p', 5],
-      ['/research/', '.research-introduction', 9],
-      ['/software/', '.entry-description', 10],
-      ['/about/', '.about-prose', 10],
+      [routes.home, '.hero-intro', 10],
+      [routes.home, '.hero-bio', 11],
+      [routes.home, '.work-description', 10],
+      [routes.home, '.about-copy', 6],
+      [routes.research, '.page-header p', 5],
+      [routes.research, '.research-introduction', 9],
+      [routes.software, '.entry-description', 10],
+      [routes.about, '.about-prose', 10],
     ];
     for (const [route, selector, last] of checks) {
       await page.goto(route);
@@ -523,9 +526,9 @@ test.describe('measure, spacing, strokes and targets', () => {
 
   test('sections stand 160px apart on every page', async ({ page }) => {
     for (const [route, selector] of [
-      ['/software/', '.software-group'],
-      ['/about/', '.about-section'],
-      ['/research/', '.research-section'],
+      [routes.software, '.software-group'],
+      [routes.about, '.about-section'],
+      [routes.research, '.research-section'],
     ]) {
       await page.goto(route);
       const gaps = await page.locator(selector).evaluateAll((all) =>
@@ -539,7 +542,7 @@ test.describe('measure, spacing, strokes and targets', () => {
   });
 
   test('line icons draw one pixel strokes at every size', async ({ page }) => {
-    await page.goto('/research/');
+    await page.goto(routes.research);
     await page.locator('.bibtex-open').first().click();
     const strokes = await page.evaluate(() =>
       [
@@ -562,7 +565,7 @@ test.describe('on a touch phone', () => {
   test.use({ hasTouch: true, isMobile: true, viewport: { width: 375, height: 800 } });
 
   test('the footer contact links are big enough to tap', async ({ page }) => {
-    await page.goto('/');
+    await page.goto(routes.home);
     const heights = await page
       .locator('.contact-links--footer a')
       .evaluateAll((all) => all.map((link) => link.getBoundingClientRect().height));
@@ -571,7 +574,7 @@ test.describe('on a touch phone', () => {
 });
 
 test('text is set in Geist and labels in Geist Mono, beside the Bodoni names', async ({ page }) => {
-  await page.goto('/');
+  await page.goto(routes.home);
   const families = await page.evaluate(() =>
     ['.hero-intro', '.section-label', '#hero-name'].map(
       (selector) => getComputedStyle(document.querySelector(selector)!).fontFamily.split(',')[0],
@@ -588,10 +591,10 @@ test('text is set in Geist and labels in Geist Mono, beside the Bodoni names', a
 });
 
 test('the Research lead says what the page holds, in one line', async ({ page }) => {
-  await page.goto('/research/');
+  await page.goto(routes.research);
   const lead = page.locator('.page-header p');
   await expect(lead).toHaveText('The questions I study, and the papers that answer them.');
-  const [extent] = await textExtent(page, '.page-header .intro-copy');
+  const [extent] = await textExtent(page, '.page-header .typed-copy');
   expect(extent.lines).toBe(1);
 });
 
@@ -599,10 +602,10 @@ test.describe('section openings', () => {
   // Every section label stands 64px above the first thing in its section.
   test('a section label stands 64px above its content on every page', async ({ page }) => {
     const checks: [string, string, string][] = [
-      ['/', '#work-heading', '.work-entry .work-details'],
-      ['/', '#about-title', '.about-copy'],
-      ['/software/', '#projects-title', '.software-entry .entry-identity'],
-      ['/software/', '#contributions-title', '.software-entry--compact .entry-identity'],
+      [routes.home, '#work-heading', '.work-entry .work-details'],
+      [routes.home, '#about-title', '.about-copy'],
+      [routes.software, '#projects-title', '.software-entry .entry-identity'],
+      [routes.software, '#contributions-title', '.software-entry--compact .entry-identity'],
     ];
     for (const [route, label, content] of checks) {
       await page.goto(route);
@@ -621,7 +624,7 @@ test.describe('section openings', () => {
   test('Research opens its content with a section rule, as Software and About do', async ({
     page,
   }) => {
-    await page.goto('/research/');
+    await page.goto(routes.research);
     const rule = await page
       .locator('.research-layout')
       .evaluate((layout) => getComputedStyle(layout).borderTopWidth);
@@ -629,7 +632,7 @@ test.describe('section openings', () => {
   });
 
   test('contributions are named in the sans and link from column 12', async ({ page }) => {
-    await page.goto('/software/');
+    await page.goto(routes.software);
     const cols = await gridColumns(page);
     const name = await page
       .locator('.software-entry--compact h3')
@@ -643,7 +646,7 @@ test.describe('section openings', () => {
       .locator('.software-entry--compact h3')
       .first()
       .evaluate((title) => getComputedStyle(title).color);
-    expect(color).toBe('rgb(238, 238, 240)');
+    expect(color).toBe(cssColors['paper']);
     const lefts = await page
       .locator('.software-entry--compact .resource-links')
       .evaluateAll((all) => all.map((links) => links.getBoundingClientRect().left));
@@ -660,22 +663,31 @@ test.describe('hover and wrapping rules', () => {
   ) => {
     const link = page.locator(selector).first();
     await link.hover();
-    await page.waitForTimeout(600);
+    await expect
+      .poll(() =>
+        link.evaluate((element) =>
+          element
+            .getAnimations({ subtree: true })
+            .filter((animation) => animation instanceof CSSTransition)
+            .every((animation) => animation.playState === 'finished'),
+        ),
+      )
+      .toBe(true);
     return link.evaluate((element, labelSelector) => {
       const label = element.querySelector(labelSelector) ?? element;
       const style = getComputedStyle(label);
       return { color: style.color, underline: style.backgroundSize };
     }, labelSelector);
   };
-  const blue = 'rgb(110, 141, 184)';
+  const blue = cssColors['blue'];
 
   test('only the current header page is blue, and hover and focus preserve each colour', async ({
     page,
   }) => {
-    const muted = 'rgb(163, 167, 173)';
+    const muted = cssColors['muted'];
     for (const width of [1280, 375]) {
       await page.setViewportSize({ width, height: 900 });
-      for (const route of ['/', '/research/', '/software/', '/about/']) {
+      for (const route of [routes.home, routes.research, routes.software, routes.about]) {
         await page.goto(route);
         for (const link of await page.locator('.site-header nav a').all()) {
           const color = (await link.getAttribute('href')) === route ? blue : muted;
@@ -688,24 +700,24 @@ test.describe('hover and wrapping rules', () => {
         }
       }
     }
-    await page.goto('/');
+    await page.goto(routes.home);
     expect((await hoverLook(page, '.contact-links a', '[data-contact-label]')).color).toBe(blue);
   });
 
   test('the Research index turns blue without an underline', async ({ page }) => {
-    await page.goto('/research/');
+    await page.goto(routes.research);
     const look = await hoverLook(page, '.research-index nav a:not([aria-current])', '.link-label');
     expect(look.color).toBe(blue);
     expect(look.underline.startsWith('0px')).toBe(true);
   });
 
   test('a preprint is cited by its server', async ({ page }) => {
-    await page.goto('/');
+    await page.goto(routes.home);
     await expect(page.locator('.work-note').first()).toHaveText('arXiv preprint, 2026');
   });
 
   test('a research question never leaves one word alone on its last line', async ({ page }) => {
-    await page.goto('/research/');
+    await page.goto(routes.research);
     const words = await page
       .locator('.research-question')
       .first()
@@ -730,7 +742,7 @@ test.describe('hover and wrapping rules', () => {
 test('contribution descriptions run over columns 5 to 10 in one line', async ({ page }) => {
   for (const width of [1280, 1024]) {
     await page.setViewportSize({ width, height: 900 });
-    await page.goto('/software/');
+    await page.goto(routes.software);
     const cols = await gridColumns(page);
     const lefts = await page
       .locator('.software-entry--compact .entry-description')
@@ -748,7 +760,7 @@ test('contribution descriptions run over columns 5 to 10 in one line', async ({ 
 test('a project wordmark and its description start level, capital to capital', async ({ page }) => {
   for (const width of [1280, 900]) {
     await page.setViewportSize({ width, height: 900 });
-    await page.goto('/software/');
+    await page.goto(routes.software);
     const tops = await page
       .locator('.software-entry:not(.software-entry--compact)')
       .evaluateAll((entries) =>
@@ -781,8 +793,8 @@ test('a project wordmark and its description start level, capital to capital', a
 
 test('an item rule starts where the text it parts starts', async ({ page }) => {
   for (const [route, entry, text] of [
-    ['/', '.work-entry + .work-entry', '.work-details'],
-    ['/software/', '.software-entry + .software-entry', '.entry-description'],
+    [routes.home, '.work-entry + .work-entry', '.work-details'],
+    [routes.software, '.software-entry + .software-entry', '.entry-description'],
   ]) {
     await page.goto(route);
     const target = page.locator(entry).first();

@@ -24,7 +24,7 @@ export function watchErrors(page: Page) {
 /** A completed introduction keeps its caret visible and blinking while active. */
 export async function expectBlinkingCaret(caret: Locator) {
   await expect(caret).toHaveCSS('visibility', 'visible');
-  await expect(caret).toHaveCSS('animation-name', /intro-cursor-blink/);
+  await expect(caret).toHaveCSS('animation-name', /typed-cursor-blink/);
   await expect(caret).toHaveCSS('animation-play-state', 'running');
 }
 
@@ -126,3 +126,24 @@ export const textExtent = (page: Page, selector: string) =>
       };
     });
   }, selector);
+
+/** Hold matching font responses until the caller releases them, even during a failed test. */
+export async function holdFonts(page: Page, pattern: string | RegExp = '**/*.woff2') {
+  let release!: () => void;
+  const ready = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route(pattern, async (route) => {
+    await ready;
+    await route.continue();
+  });
+  return release;
+}
+
+/** Open the first citation in a supplied publication scope. */
+export async function openBibtex(scope: Page | Locator) {
+  await scope
+    .getByRole('button', { name: /^BibTeX:/ })
+    .first()
+    .click();
+}

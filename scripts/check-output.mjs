@@ -1,11 +1,13 @@
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
+import { relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseHTML } from 'linkedom';
 import { openingParts } from '../src/components/home/opening/opening.ts';
 import { theme } from '../src/data/theme.ts';
+import { filesUnder } from './files.mjs';
 import { siteContent } from './site-content.mjs';
-import { pageFiles, validateOutput } from './validate-output.mjs';
+import { pageFiles, pageOutputFile, validateOutput } from './validate-output.mjs';
 
 const result = validateOutput(fileURLToPath(new URL('../dist/', import.meta.url)), siteContent);
 console.log(
@@ -61,13 +63,10 @@ for (const name of openingParts) {
   );
 }
 // Every page that asks SiteLayout for the reveal opening, found from its source.
-const pagesDirectory = new URL('../src/pages/', import.meta.url);
-const revealPages = readdirSync(pagesDirectory)
-  .filter((name) => name.endsWith('.astro'))
-  .filter((name) =>
-    readFileSync(new URL(name, pagesDirectory), 'utf8').includes('opening="reveal"'),
-  )
-  .map((name) => `${name.replace(/\.astro$/, '')}/index.html`);
+const pagesDirectory = fileURLToPath(new URL('../src/pages/', import.meta.url));
+const revealPages = filesUnder(pagesDirectory, /\.astro$/)
+  .filter((file) => readFileSync(file, 'utf8').includes('opening="reveal"'))
+  .map((file) => pageOutputFile(relative(pagesDirectory, file)));
 assert.ok(revealPages.length > 0, 'No page uses the reveal opening');
 for (const file of revealPages) {
   const root = readPage(file).querySelector('[data-reveal-root]');

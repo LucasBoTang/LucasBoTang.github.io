@@ -4,7 +4,7 @@
 
 const MAX_STEP = 80;
 
-export interface Loop {
+interface Loop {
   start(): void;
   stop(): void;
   readonly running: boolean;

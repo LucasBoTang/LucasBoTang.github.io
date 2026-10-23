@@ -10,12 +10,6 @@ const palette = {
   'signal-light': '#8eafd9',
   // The pixels of the About sign.
   'sign-pixel': '#6183a9',
-  // Used only by design studies (src/studies/): the About field names' second and third lines,
-  // and the two screens of the moiré study.
-  'type-light': '#d8dbde',
-  'type-dim': '#929aa3',
-  'grid-light': '#7699bd',
-  'grid-dark': '#6688ae',
 } as const;
 
 /** The red, green and blue channels, 0 to 255, of a six-digit hex colour. */

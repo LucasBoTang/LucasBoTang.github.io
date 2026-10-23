@@ -2,7 +2,7 @@
  * Standalone figures and hosts without an entrance start immediately. The host's opening
  * fallback and keyboard/reduced-motion skip both release the same gate. */
 export function whenFigureReady(start: () => void): void {
-  const screen = window.frameElement?.closest('.screen-reveal, [data-figure-preview]');
+  const screen = window.frameElement?.closest('[data-screen-reveal], [data-figure-preview]');
   if (!screen) {
     start();
     return;

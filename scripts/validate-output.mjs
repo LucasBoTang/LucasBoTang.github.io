@@ -9,6 +9,13 @@ const origin = 'https://preview.invalid';
 /** The built file of every page in the site's routes, such as `research/index.html`. */
 export const pageFiles = Object.values(routes).map((route) => `${route.slice(1)}index.html`);
 
+/** Map a static Astro page source (relative to src/pages) to its generated HTML. */
+export function pageOutputFile(source) {
+  const path = source.replaceAll('\\', '/').replace(/\.astro$/, '');
+  if (path === '404') return '404.html';
+  return path === 'index' || path.endsWith('/index') ? `${path}.html` : `${path}/index.html`;
+}
+
 function sameRecords(actual, expected, message) {
   assert.deepEqual([...actual].sort(), [...expected].sort(), message);
 }

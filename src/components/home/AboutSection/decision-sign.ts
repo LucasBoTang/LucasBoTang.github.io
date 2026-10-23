@@ -78,9 +78,15 @@ function setupDecisionSign(svg: SVGSVGElement) {
     ['dark', cycle],
   ];
 
+  let displayedState: string | undefined;
+
   /** Paints the sign at `phase` milliseconds into the cycle. */
   const paint = (phase: number) => {
-    svg.dataset.signState = states.find(([, until]) => phase < until)?.[0];
+    const state = states.find(([, until]) => phase < until)?.[0];
+    if (state !== displayedState) {
+      svg.dataset.signState = state;
+      displayedState = state;
+    }
     let lit =
       phase < timing.write
         ? surface.writing(phase / timing.write)

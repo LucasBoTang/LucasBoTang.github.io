@@ -1,4 +1,4 @@
-import { enhance } from './lifecycle';
+import { enhance } from '../../../lib/lifecycle';
 
 // Anchor clearance follows the header's actual rows, including after resizing or font loading.
 // The CSS height remains a conservative fallback before the first observation or without JS.

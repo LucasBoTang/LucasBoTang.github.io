@@ -1,12 +1,19 @@
 import { expect, test } from '@playwright/test';
 import { routes } from '../../src/data/navigation';
-import { attributeChanges, recordAttribute, recordRestores, restoredAt } from './helpers';
+import {
+  attributeChanges,
+  recordAttribute,
+  recordRestores,
+  restoredAt,
+  holdFonts,
+  openBibtex,
+} from './helpers';
 
 // The motion that keeps running after the openings: project wordmarks, page-title glitches and the
 // About sign, including after a return through the back-forward cache.
 
 test('project wordmarks are disturbed now and then on their own', async ({ page }) => {
-  for (const route of ['/', '/software/']) {
+  for (const route of [routes.home, routes.software]) {
     await page.goto(route);
     const wordmark = page.locator('.project-wordmark').first();
     await wordmark.scrollIntoViewIfNeeded();
@@ -18,7 +25,7 @@ test('project wordmarks are disturbed now and then on their own', async ({ page 
 test('pointing at an entry holds its wordmark still, and leaving lets it drift again', async ({
   page,
 }) => {
-  await page.goto('/software/');
+  await page.goto(routes.software);
   const entry = page.locator('[data-project-host]').first();
   await entry.scrollIntoViewIfNeeded();
   const wordmark = entry.locator('.project-wordmark');
@@ -39,8 +46,8 @@ test('a unit is lit as a whole while pointed at: a project, or the contributions
   page,
 }) => {
   for (const [route, unit] of [
-    ['/software/', '.software-entry'],
-    ['/software/', '#contributions'],
+    [routes.software, '.software-entry'],
+    [routes.software, '#contributions'],
   ]) {
     await page.goto(route);
     const lit = page.locator(`${unit}[data-lit]`).first();
@@ -54,7 +61,7 @@ test('a unit is lit as a whole while pointed at: a project, or the contributions
 });
 
 test('the Research index marks the theme being read', async ({ page }) => {
-  await page.goto('/research/');
+  await page.goto(routes.research);
   const current = () =>
     page.locator('[data-reading-index] a[aria-current="location"]').getAttribute('href');
   const links = page.locator('[data-reading-index] a');
@@ -71,7 +78,7 @@ test('the Research index marks the theme being read', async ({ page }) => {
 
 test('page titles glitch briefly after the first second', async ({ page }) => {
   await recordAttribute(page, 'data-slip');
-  await page.goto('/research/');
+  await page.goto(routes.research);
   await expect
     .poll(async () => (await attributeChanges(page, 'data-slip')).some(({ on }) => !on), {
       timeout: 5000,
@@ -87,7 +94,7 @@ test('page titles glitch briefly after the first second', async ({ page }) => {
 });
 
 test('the About sign writes the research fields, then switches to the slogan', async ({ page }) => {
-  await page.goto('/');
+  await page.goto(routes.home);
   const sign = page.locator('[data-decision-sign] svg');
   await sign.scrollIntoViewIfNeeded();
   await expect(sign).toHaveAttribute('data-sign-state', 'fields', { timeout: 9000 });
@@ -102,7 +109,7 @@ test('a page title glitches a moment after the page opens, rests, and pointing a
   page,
 }) => {
   await recordAttribute(page, 'data-slip');
-  await page.goto('/research/');
+  await page.goto(routes.research);
   const bursts = async () =>
     (await attributeChanges(page, 'data-slip')).filter(({ on }) => on).length;
   await expect.poll(bursts, { timeout: 5000 }).toBe(1);
@@ -113,10 +120,10 @@ test('a page title glitches a moment after the page opens, rests, and pointing a
 });
 
 test('moving between pages, the page title rewrites itself in place', async ({ page }) => {
-  await page.goto('/research/');
+  await page.goto(routes.research);
   await expect(page.locator('h1')).toHaveCSS('opacity', '1');
   await recordAttribute(page, 'data-title-from');
-  await page.locator('nav a[href="/software/"]').click();
+  await page.locator(`nav a[href="${routes.software}"]`).click();
   await expect(page).toHaveURL(/\/software\/$/);
   // The new page starts from the last title, rewrites it, then settles on its own. Each step is
   // waited for, as the rewriting takes its own time.
@@ -150,7 +157,7 @@ test('motion resumes after going Back through the back-forward cache', async ({ 
   // Regression: scripts that stopped on `pagehide` stayed stopped once the page was restored.
   await recordRestores(page);
   const goAwayAndBack = async () => {
-    await page.goto('/about/');
+    await page.goto(routes.about);
     await page.goBack({ waitUntil: 'commit' });
     const restored = await expect
       .poll(() => restoredAt(page), { timeout: 3000 })
@@ -161,7 +168,7 @@ test('motion resumes after going Back through the back-forward cache', async ({ 
     return (await restoredAt(page))!;
   };
 
-  await page.goto('/');
+  await page.goto(routes.home);
   const sign = page.locator('[data-decision-sign] svg');
   await sign.scrollIntoViewIfNeeded();
   await expect(sign).toHaveAttribute('data-sign-state', /.+/, { timeout: 5000 });
@@ -173,17 +180,17 @@ test('motion resumes after going Back through the back-forward cache', async ({ 
 test('a click lands on an entry still arriving, and Tab shows every entry at once', async ({
   page,
 }) => {
-  await page.goto('/research/');
+  await page.goto(routes.research);
   const paper = page.locator('#h-pdlp');
   await paper.scrollIntoViewIfNeeded();
   // Clicked as it arrives, the entry keeps arriving under the pointer instead of jumping away.
   await expect.poll(() => paper.evaluate((element) => element.getAnimations().length)).toBe(1);
-  await paper.getByRole('button', { name: /^BibTeX:/ }).click();
+  await openBibtex(paper);
   await expect(page.locator('#h-pdlp-bibtex')).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(page.locator('#h-pdlp-bibtex')).toBeHidden();
 
-  await page.goto('/research/');
+  await page.goto(routes.research);
   await page.keyboard.press('Tab');
   await expect
     .poll(() =>
@@ -200,7 +207,7 @@ test('a click lands on an entry still arriving, and Tab shows every entry at onc
 test('a wordmark powers on once its entry has landed, 800ms after the entry sets off', async ({
   page,
 }) => {
-  await page.goto('/software/');
+  await page.goto(routes.software);
   // Arrivals are prepared paused before the opening releases and schedules their wordmarks.
   await expect(page.locator('html')).not.toHaveAttribute('data-opening-pending', '');
   const entry = page.locator('.software-entry').first();
@@ -217,7 +224,7 @@ test('a wordmark powers on once its entry has landed, 800ms after the entry sets
 
 test('a wordmark waits to power on until it has come into view', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 700 });
-  await page.goto('/');
+  await page.goto(routes.home);
   const entry = page.locator('.work-entry').first();
   const beamState = () =>
     entry.evaluate(
@@ -242,7 +249,7 @@ test('the About sign draws its fields through a single clip that also carries th
 }) => {
   // Safari on phones does not redraw a clipped shape inside a group whose own clip changes, so the
   // fields would be lost after their first cycle: the band must ride on the fields' one clip.
-  await page.goto('/');
+  await page.goto(routes.home);
   const sign = page.locator('.decision-sign');
   await sign.scrollIntoViewIfNeeded();
   await expect
@@ -262,12 +269,7 @@ test('the About sign draws its fields through a single clip that also carries th
 });
 test('project tear bands stay hidden while the Software body waits to enter', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
-  let releaseFonts!: () => void;
-  const fontsReady = new Promise<void>((resolve) => (releaseFonts = resolve));
-  await page.route('**/*.woff2', async (request) => {
-    await fontsReady;
-    await request.continue();
-  });
+  const releaseFonts = await holdFonts(page, '**/*.woff2');
   try {
     await page.goto(routes.software, { waitUntil: 'domcontentloaded' });
     await expect(page.locator('main')).toHaveCSS('visibility', 'hidden');

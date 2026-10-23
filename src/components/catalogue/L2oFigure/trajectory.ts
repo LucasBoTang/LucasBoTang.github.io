@@ -1,5 +1,6 @@
+import { clamp } from '../../../lib/easing.ts';
+
 type Point = [number, number, number];
-const clamp = (value: number) => Math.max(0, Math.min(1, value));
 
 /** Linear progress keeps the projected reveal and marker at one visible speed. */
 export const trajectoryProgress = clamp;

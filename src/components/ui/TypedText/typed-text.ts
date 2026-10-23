@@ -17,14 +17,14 @@ function spell(text: string, into: HTMLElement, breakAt = 0): HTMLElement[] {
   for (const token of text.match(/\S+|\s+/g) ?? []) {
     if (breakAt > 0 && letters.length === breakAt) {
       line = document.createElement('span');
-      line.className = 'intro-line';
+      line.className = 'typed-line';
       into.append(line);
     }
     const word = document.createElement('span');
-    if (token.trim()) word.className = 'intro-word';
+    if (token.trim()) word.className = 'typed-word';
     for (const character of token) {
       const letter = document.createElement('span');
-      letter.className = 'intro-letter';
+      letter.className = 'typed-letter';
       letter.textContent = character;
       letter.setAttribute('data-unseen', '');
       word.append(letter);
@@ -50,10 +50,10 @@ interface TypingOptions extends TypingRhythm {
 
 /** Types one pre-laid-out sentence; its host decides when it may run. */
 export function createTyping(host: HTMLElement, options: TypingOptions = {}) {
-  const target = host.querySelector<HTMLElement>('[data-intro-typed]');
-  const original = host.querySelector<HTMLElement>('.intro-copy');
+  const target = host.querySelector<HTMLElement>('[data-typed-run]');
+  const original = host.querySelector<HTMLElement>('.typed-copy');
   if (!target || !original) return { setRunning: () => {}, finish: () => {}, remeasure: () => {} };
-  const cursor = host.querySelector<HTMLElement>('.intro-cursor');
+  const cursor = host.querySelector<HTMLElement>('.typed-cursor');
   // TypedText puts the live copy and its caret in this shared layer.
   const layer = target.parentElement!;
   const text = original.textContent?.trim() ?? '';

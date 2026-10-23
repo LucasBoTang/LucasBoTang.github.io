@@ -6,7 +6,7 @@ import { liftOpeningGate, openingPending } from '../../../lib/opening-gate';
 import { waitForPageReady } from '../../../lib/page-ready';
 import { createTimeline } from '../../../lib/timeline';
 import { addHeroOpening } from '../HomeHero/hero-opening';
-import { addLaneOpening } from '../ResearchNavigator/lane-opening';
+import { addLaneOpening } from './lane-opening';
 import {
   isHomeReturn,
   openingEvents,
@@ -45,7 +45,12 @@ function setupHomeOpening(page: HTMLElement) {
   };
   const hero = addHeroOpening(timeline, heroElement);
   if (!returning) {
-    timeline.appear(document.querySelector('.site-header'), time.frameAt, 'frame', time.headerFade);
+    timeline.appear(
+      document.querySelector('[data-sticky-header]'),
+      time.frameAt,
+      'frame',
+      time.headerFade,
+    );
   }
   const navigator = page.querySelector<HTMLElement>(part('topics'));
   const lanes = navigator ? addLaneOpening(timeline, navigator, returning) : undefined;
@@ -71,7 +76,7 @@ function setupHomeOpening(page: HTMLElement) {
     .querySelectorAll(part('work-entry'))
     .forEach((entry, i) => readingUnit(entry, `work-entry-${i}`));
   readingUnit(page.querySelector(part('about')), 'about');
-  readingUnit(document.querySelector('.site-footer'), 'footer');
+  readingUnit(document.querySelector('[data-site-footer]'), 'footer');
 
   let introComplete = !returning && (bio?.hasAttribute('data-typing-complete') ?? false);
   let introEnding = false;
@@ -98,15 +103,24 @@ function setupHomeOpening(page: HTMLElement) {
     // A unit already scrolled past starts at once, so units in view never wait behind it. Units on
     // screen now are called back at once, and keep the beat; later ones may be hurried.
     let firstScreen = true;
-    for (const [element, group] of readingUnits) {
+    const measured = readingUnits.map(([element, group]) => ({
+      element,
+      group,
+      box: element.getBoundingClientRect(),
+    }));
+    for (const { element, group, box } of measured) {
       const arrive = () => {
         timeline.start(group);
         announceArrival(element);
       };
-      timeline.whenVisible(element, () => {
-        if (element.getBoundingClientRect().bottom <= 0) arrive();
-        else timeline.later(arrive, nextArrival(firstScreen));
-      });
+      timeline.whenVisible(
+        element,
+        () => {
+          if ((firstScreen ? box : element.getBoundingClientRect()).bottom <= 0) arrive();
+          else timeline.later(arrive, nextArrival(firstScreen));
+        },
+        box,
+      );
     }
     firstScreen = false;
   };

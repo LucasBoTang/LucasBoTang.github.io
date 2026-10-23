@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import test from 'node:test';
-import { validateOutput } from '../../scripts/validate-output.mjs';
+import { pageOutputFile, validateOutput } from '../../scripts/validate-output.mjs';
 import { outputFixture } from './fixtures.mjs';
 
 test('accepts valid static pages and their local asset graph', (t) => {
@@ -47,4 +47,16 @@ test('detects missing responsive images, favicons, and CSS font resources', asyn
       assert.throws(() => validateOutput(root, content), /missing.*(asset|resource|file)/i);
     });
   }
+});
+
+test('Astro source paths resolve root/nested indexes and the special 404 output', () => {
+  for (const [source, output] of [
+    ['index.astro', 'index.html'],
+    ['about.astro', 'about/index.html'],
+    ['figures/index.astro', 'figures/index.html'],
+    ['figures/solver.astro', 'figures/solver/index.html'],
+    ['figures\\index.astro', 'figures/index.html'],
+    ['404.astro', '404.html'],
+  ])
+    assert.equal(pageOutputFile(source), output);
 });

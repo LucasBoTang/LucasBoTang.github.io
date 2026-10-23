@@ -21,7 +21,7 @@ export interface Timeline<Group extends string> {
   /** Runs `callback` after `delay` unless the timeline has finished. */
   later(callback: () => void, delay: number): void;
   /** Runs `callback` once `element` is (or comes) on screen. */
-  whenVisible(element: Element | null, callback: () => void): void;
+  whenVisible(element: Element | null, callback: () => void, box?: DOMRect): void;
   /** Cancels every animation, timer and viewport wait. Further work is ignored. */
   finish(): void;
   readonly finished: boolean;
@@ -66,10 +66,10 @@ export function createTimeline<Group extends string>(): Timeline<Group> {
         }, delay),
       );
     },
-    whenVisible(element, callback) {
+    whenVisible(element, callback, box) {
       if (finished || !element) return;
       if (
-        element.getBoundingClientRect().top < window.innerHeight ||
+        (box ?? element.getBoundingClientRect()).top < window.innerHeight ||
         !('IntersectionObserver' in window)
       ) {
         callback();

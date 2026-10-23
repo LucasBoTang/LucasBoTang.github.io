@@ -6,14 +6,20 @@ import { neon } from './material';
 const bag = [
     'M-6 38L-10 29Q-6 31-2 28Q3 32 9 29L6 38C8 44 17 49 19 59C21 68 15 73 3 74C-9 75-19 72-19 63C-20 53-10 45-6 38Z',
     'M-7 38Q0 40 7 38M-7 41Q0 43 7 40M-3 31L-1 36M4 32L3 36',
-    'M-4 46C-9 51-12 57-10 62M5 46Q10 51 10 56M-7 68Q-1 71 6 69M-5 40C-12 36-15 41-10 43L-6 41M5 40Q11 42 10 47',
   ].map((d) => new Path2D(d)),
-  beam = [
-    'M69 43C76 37 91 39 105 39L144 40M156 40L195 39C209 39 224 37 231 43',
-    'M69 45Q105 46 144 45M156 45Q195 46 231 45',
-    'M85 41L136 42M164 42L215 41',
-    'M150 49V68',
-  ].map((d) => new Path2D(d));
+  beam = ['M69 43C76 37 91 39 105 39L144 40M156 40L195 39C209 39 224 37 231 43'].map(
+    (d) => new Path2D(d),
+  );
+const paths = new Map<string, Path2D>();
+function cachedPath(d: string) {
+  let path = paths.get(d);
+  if (!path) {
+    path = new Path2D(d);
+    paths.set(d, path);
+  }
+  return path;
+}
+
 export function drawDecisionBalance(
   ctx: CanvasRenderingContext2D,
   ambient: number,
@@ -29,7 +35,7 @@ export function drawDecisionBalance(
     ctx.lineWidth = stroke;
     if (!glow) ctx.strokeStyle = neon.body;
     function path(d: string | Path2D, a = 1) {
-      const p = typeof d === 'string' ? new Path2D(d) : d;
+      const p = typeof d === 'string' ? cachedPath(d) : d;
       ctx.globalAlpha = glow ? 0.85 : a * 0.95;
       if (glow) {
         ctx.stroke(p);
@@ -59,9 +65,7 @@ export function drawDecisionBalance(
     ctx.translate(150, 43);
     ctx.rotate(angle);
     ctx.translate(-150, -43);
-    beam.forEach((p, i) => {
-      if (i === 0) path(p, 1);
-    });
+    path(beam[0]);
     circle(69, 43, 2);
     circle(231, 43, 2);
     ctx.restore();
@@ -88,7 +92,7 @@ export function drawDecisionBalance(
         ctx.restore();
       }
       bag.forEach((p, i) => {
-        if (i !== 2) path(p, i === 2 ? 0.55 : i === 1 && true ? 0.45 : 1);
+        path(p, i === 1 ? 0.45 : 1);
       });
       path('M-30 74Q-25 80 0 80Q25 80 30 74');
       path('M-29 76Q0 84 29 76', 0.32);

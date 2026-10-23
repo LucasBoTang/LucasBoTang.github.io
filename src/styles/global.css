@@ -29,6 +29,11 @@
      the 8px step scale. The page grid has 12 columns; text starts on column 1 or 6, and column 12
      stays empty. */
   :root {
+    --anchor-figure-offset: calc(
+      var(--site-header-height) + var(--site-header-fade) + var(--step-24)
+    );
+    --anchor-item-offset: 2rem;
+    --anchor-section-offset: 2.5rem;
     --column-gap: 1.5rem;
     --font: 'Geist Variable', 'Helvetica Neue', sans-serif;
     --font-mono: 'Geist Mono Variable', ui-monospace, Menlo, Consolas, monospace;
@@ -49,6 +54,7 @@
     --line-title: 3.5rem;
     --page-width: 75rem;
     --rule-line: 1px solid var(--rule);
+    --section-space: var(--step-160);
     --site-header-fade: 2rem;
     --site-header-height: 4rem;
     --site-header-safe-area: env(safe-area-inset-top, 0px);
@@ -74,8 +80,6 @@
     /* The home name keeps its own size, a step under Display: the owner's call. */
     --type-name: 4rem;
     --type-title: 3rem;
-    /* Software: a project's description runs from column 5 to column 11. */
-    --zone-entry: 5 / 12;
     --zone-full: 1 / -1;
     /* The main zone with the margin column before it, where the Research years hang. */
     --zone-hanging: 5 / 12;
@@ -116,12 +120,12 @@
       --item-rule: linear-gradient(var(--rule-item), var(--rule-item)) left top / 100% 1px no-repeat;
       --line-heading: 1.75rem;
       --line-lane: 2rem;
+      --section-space: var(--step-96);
       --site-header-fade: 1.25rem;
       --site-header-height: 5rem;
       --type-display: 3.5rem;
       --type-heading: 1.25rem;
       --type-lane: 1.25rem;
-      --zone-entry: 1 / -1;
       --zone-hanging: 1 / -1;
       --zone-index: 1 / -1;
       --zone-lead: 1 / -1;

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { parseHTML } from 'linkedom';
+import { installGlobals, mediaQuery } from '../helpers/browser.mjs';
 
 let instance = 0;
 async function preview(t, { reduced = false, booting = false } = {}) {
@@ -21,7 +22,7 @@ async function preview(t, { reduced = false, booting = false } = {}) {
     document,
     MutationObserver,
     window: { setTimeout, IntersectionObserver: undefined },
-    matchMedia: () => Object.assign(new EventTarget(), { matches: reduced }),
+    matchMedia: () => mediaQuery(reduced),
     ResizeObserver: class {
       constructor(callback) {
         this.callback = callback;
@@ -39,14 +40,8 @@ async function preview(t, { reduced = false, booting = false } = {}) {
       }
     },
   };
-  for (const [key, value] of Object.entries(values)) {
-    const descriptor = Object.getOwnPropertyDescriptor(globalThis, key);
-    Object.defineProperty(globalThis, key, { value, configurable: true });
-    t.after(() =>
-      descriptor ? Object.defineProperty(globalThis, key, descriptor) : delete globalThis[key],
-    );
-  }
-  await import(`../../src/components/home/work-preview.ts?test=${++instance}`);
+  installGlobals(t, values);
+  await import(`../../src/components/home/WorkPreview/work-preview.ts?test=${++instance}`);
   const emit = (target, name, properties = {}) => {
     const event = Object.assign(new Event(name, { cancelable: true }), properties);
     target.dispatchEvent(event);

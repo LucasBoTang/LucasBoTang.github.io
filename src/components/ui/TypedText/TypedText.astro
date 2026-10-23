@@ -10,19 +10,19 @@ const breakAt = mobileBreakBefore ? sentence.indexOf(` ${mobileBreakBefore} `) +
 ---
 
 <span class="typed-text" data-typed-text data-mobile-break-at={breakAt || undefined}>
-  <span class="intro-copy">
+  <span class="typed-copy">
     {breakAt ? (
       <>
         {sentence.slice(0, breakAt)}
-        <span class="intro-line">{sentence.slice(breakAt)}</span>
+        <span class="typed-line">{sentence.slice(breakAt)}</span>
       </>
     ) : (
       sentence
     )}
   </span>
-  <span class="intro-typing" aria-hidden="true">
-    <span data-intro-typed></span>
-    <span class="intro-cursor"></span>
+  <span class="typed-overlay" data-typed-layer aria-hidden="true">
+    <span data-typed-run></span>
+    <span class="typed-cursor"></span>
   </span>
 </span>
 
@@ -31,24 +31,24 @@ const breakAt = mobileBreakBefore ? sentence.indexOf(` ${mobileBreakBefore} `) +
     position: relative;
     display: block;
   }
-  .intro-typing {
+  .typed-overlay {
     display: none;
   }
-  .intro-copy {
+  .typed-copy {
     display: block;
   }
-  [data-typing-ready] .intro-copy {
+  [data-typing-ready] .typed-copy {
     color: transparent;
   }
   /* The typed letters lie over the sentence, which carries its text for reading and copying; the
      letters are not selectable, so a copy holds the sentence once. */
-  [data-typing-ready] .intro-typing {
+  [data-typing-ready] .typed-overlay {
     inset: 0;
     position: absolute;
     display: block;
     user-select: none;
   }
-  .intro-cursor {
+  .typed-cursor {
     left: 0;
     position: absolute;
     top: 0.12em;
@@ -59,43 +59,43 @@ const breakAt = mobileBreakBefore ? sentence.indexOf(` ${mobileBreakBefore} `) +
     vertical-align: -0.14em;
     background: var(--blue);
   }
-  [data-typing-ready]:not([data-typing-started]):not([data-typing-complete]) .intro-cursor {
+  [data-typing-ready]:not([data-typing-started]):not([data-typing-complete]) .typed-cursor {
     visibility: hidden;
   }
   /* Letters laid out by typed-text.ts, revealed one by one. */
-  .intro-typing :global(.intro-word) {
+  .typed-overlay :global(.typed-word) {
     white-space: nowrap;
   }
-  .intro-typing :global(.intro-letter) {
+  .typed-overlay :global(.typed-letter) {
     position: relative;
   }
-  .intro-typing :global(.intro-letter[data-unseen]) {
+  .typed-overlay :global(.typed-letter[data-unseen]) {
     visibility: hidden;
   }
 
   @media (max-width: 720px) {
-    .typed-text :global(.intro-line) {
+    .typed-text :global(.typed-line) {
       display: block;
     }
   }
   @media (prefers-reduced-motion: no-preference) {
-    [data-typing-fade] .intro-typing :global(.intro-letter) {
+    [data-typing-fade] .typed-overlay :global(.typed-letter) {
       transition: opacity var(--typing-letter-fade) linear;
     }
-    [data-typing-fade] .intro-typing :global(.intro-letter[data-unseen]) {
+    [data-typing-fade] .typed-overlay :global(.typed-letter[data-unseen]) {
       opacity: 0;
     }
-    .intro-cursor {
-      animation: intro-cursor-blink 1.1s step-end infinite;
+    .typed-cursor {
+      animation: typed-cursor-blink 1.1s step-end infinite;
     }
-    [data-typing-suspended] .intro-cursor {
+    [data-typing-suspended] .typed-cursor {
       animation-play-state: paused;
     }
-    [data-typing] .intro-cursor {
+    [data-typing] .typed-cursor {
       animation: none;
     }
   }
-  @keyframes intro-cursor-blink {
+  @keyframes typed-cursor-blink {
     0%,
     55%,
     100% {

@@ -97,7 +97,7 @@ function setupReveal(page: HTMLElement) {
   // browser work out the page's style again for each unit.
   const units = [
     ...page.querySelectorAll('[data-reveal="lead"]:not([data-page-intro]), [data-reveal="unit"]'),
-    ...document.querySelectorAll('.site-footer'),
+    ...document.querySelectorAll('[data-site-footer]'),
   ];
   const boxes = units.map((element) => element.getBoundingClientRect());
   units.forEach((element, i) => prepare(element, boxes[i], arrivalFrames(element)));
