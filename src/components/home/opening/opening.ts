@@ -30,9 +30,13 @@ export const openingTiming = {
   typingKey: 9.5,
   /** The ordinary greeting outside the enlarged desktop opening. */
   greetingKey: 22,
-  /** Phone paragraphs keep their simple typing treatment at a slightly brisker pace. */
-  phoneGreetingKey: 20,
-  phoneTypingKey: 12,
+  /** Wrapped phone prose needs visible keystrokes, a short paragraph handoff and phrase breaths.
+   * These are independent of the enlarged desktop greeting and the portrait's timing. */
+  phoneGreetingKey: 32,
+  phoneTypingKey: 26,
+  phoneCommaPause: 110,
+  // The opening "My" supplies the paragraph handoff; the other pauses follow phrase boundaries.
+  phoneThinkBefore: { my: 180, to: 110, reusable: 95, for: 110 },
   /** The larger desktop opening gives each word more time to read. */
   greetingOpeningKey: 28,
   /** A new opening letter develops briefly, without blur or a change in its position. */

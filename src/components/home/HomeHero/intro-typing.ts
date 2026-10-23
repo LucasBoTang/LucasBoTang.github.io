@@ -10,7 +10,8 @@ export function createIntroTyping(hero: HTMLElement) {
   const bio = hero.querySelector<HTMLElement>('.hero-bio [data-typed-text]');
   if (!greeting || !bio) return { start: () => {}, setRunning: () => {}, finish: () => {} };
   const returning = isHomeReturn();
-  const greetingKey = isPhone() ? time.phoneGreetingKey : time.greetingKey;
+  const phone = isPhone();
+  const greetingKey = phone ? time.phoneGreetingKey : time.greetingKey;
   const lineHeight = parseFloat(getComputedStyle(greeting).lineHeight);
   let greeted = false;
   let greetingStartsAt = 0;
@@ -28,9 +29,10 @@ export function createIntroTyping(hero: HTMLElement) {
   };
   const body = createTyping(bio, {
     held: () => !greeted || hero.hasAttribute('data-bio-waiting'),
-    keyDelay: isPhone() ? time.phoneTypingKey : time.typingKey,
-    thinkBefore: time.thinkBefore,
-    slipWord: time.slipWord,
+    keyDelay: phone ? time.phoneTypingKey : time.typingKey,
+    thinkBefore: phone ? time.phoneThinkBefore : time.thinkBefore,
+    // The short, wrapped phone passage reads continuously; the desktop keeps its one correction.
+    slipWord: phone ? undefined : time.slipWord,
     slipPace: time.slipPace,
     cue: {
       after: ' ',
@@ -61,7 +63,7 @@ export function createIntroTyping(hero: HTMLElement) {
           glitch.play();
       },
     },
-    commaPause: time.commaPause,
+    commaPause: phone ? time.phoneCommaPause : time.commaPause,
     onComplete: () => {
       glitch.stop();
       if (entrance) entrance.settle();
