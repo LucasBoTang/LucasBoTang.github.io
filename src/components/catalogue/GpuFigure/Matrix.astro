@@ -23,6 +23,16 @@ const { maskId } = Astro.props;
       motion is not solver telemetry.
     </desc>
     <defs>
+      <linearGradient id={`${maskId}-plate`} x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#1d2834" stop-opacity=".88" />
+        <stop offset=".48" stop-color="#10171e" stop-opacity=".93" />
+        <stop offset="1" stop-color="#101113" stop-opacity=".96" />
+      </linearGradient>
+      <linearGradient id={`${maskId}-etch`} x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#aec5df" />
+        <stop offset=".5" stop-color="#7f9cbd" />
+        <stop offset="1" stop-color="#7692ad" />
+      </linearGradient>
       <mask id={maskId}>
         <image
           href={'/images/research/rail4284-density.png'}
@@ -45,6 +55,9 @@ const { maskId } = Astro.props;
         <stop offset="1" stop-color="var(--scan)" stop-opacity="0" />
       </linearGradient>
     </defs>
+    <rect {...MATRIX} fill={`url(#${maskId}-plate)`} />
+    <path d="M85 151H515" fill="none" stroke="#9aafc6" stroke-width=".65" opacity=".3" />
+    <path d="M85 385H515" fill="none" stroke="#536a80" stroke-width=".55" opacity=".35" />
     <g data-vector="x">
       <foreignObject data-math-label x="16" y="112" width="55" height="32">
         <div class="gpu-math-label" style="justify-content:flex-end">
@@ -63,7 +76,7 @@ const { maskId } = Astro.props;
       ))}
     </g>
     <g mask={`url(#${maskId})`}>
-      <rect class="matrix-density" {...MATRIX} />
+      <rect class="matrix-density" {...MATRIX} fill={`url(#${maskId}-etch)`} />
     </g>
     <!-- A separate density-masked pass strengthens only existing nonzero marks. -->
     <g mask={`url(#${maskId})`}>
@@ -142,7 +155,7 @@ const { maskId } = Astro.props;
         <g stroke-linecap="round" stroke-linejoin="round">
           <path
             d={`M${106 + i * 43} 139v8m-2.5-3 2.5 3 2.5-3`}
-            stroke="var(--surface)"
+            stroke="var(--ink)"
             stroke-width="2.3"
             stroke-opacity=".8"
           />
@@ -153,7 +166,7 @@ const { maskId } = Astro.props;
         <g data-flow-output="a" stroke-linecap="round" stroke-linejoin="round">
           <path
             d={`M519 ${166 + i * 29}h8m-3-2.5 3 2.5-3 2.5`}
-            stroke="var(--surface)"
+            stroke="var(--ink)"
             stroke-width="2.3"
             stroke-opacity=".8"
           />
@@ -166,7 +179,7 @@ const { maskId } = Astro.props;
         <g stroke-linecap="round" stroke-linejoin="round">
           <path
             d={`M73 ${166 + i * 29}h8m-3-2.5 3 2.5-3 2.5`}
-            stroke="var(--surface)"
+            stroke="var(--ink)"
             stroke-width="2.3"
             stroke-opacity=".8"
           />
@@ -177,7 +190,7 @@ const { maskId } = Astro.props;
         <g data-flow-output="at" stroke-linecap="round" stroke-linejoin="round">
           <path
             d={`M${106 + i * 43} 389v8m-2.5-3 2.5 3 2.5-3`}
-            stroke="var(--surface)"
+            stroke="var(--ink)"
             stroke-width="2.3"
             stroke-opacity=".8"
           />
@@ -198,8 +211,7 @@ const { maskId } = Astro.props;
     paint-order: stroke fill;
   }
   .matrix-density {
-    fill: var(--signal-light);
-    opacity: 1;
+    opacity: 0.83;
   }
   .gpu-study {
     --flow: var(--signal-light);

@@ -1,0 +1,353 @@
+---
+import Illustration from './Illustration.astro';
+import { researchFigures } from '../../../data/research/figures';
+import data from '../../../data/research/rail4284-convergence.json';
+import { gpuTheme } from '../../../data/theme';
+
+const last = data.points.at(-1)!;
+const channels = [
+  {
+    key: 'primal',
+    label: 'Primal',
+    description: 'Relative primal residual',
+    color: gpuTheme['gpu-primal'],
+  },
+  {
+    key: 'dual',
+    label: 'Dual',
+    description: 'Relative dual residual',
+    color: gpuTheme['gpu-dual'],
+  },
+  {
+    key: 'gap',
+    label: 'Gap',
+    description: 'Relative objective gap',
+    color: gpuTheme['gpu-gap'],
+  },
+] as const;
+const artworkTheme = Object.entries(gpuTheme)
+  .map(([key, value]) => `--${key}:${value}`)
+  .join(';');
+const h100 = data.metadata.illustrative_h100_time.seconds;
+---
+
+<div class="instrument-frame">
+  <section
+    class="gpu-instrument"
+    data-gpu-instrument
+    aria-label="H-PDLP solving rail4284"
+    style={`--gpu-canvas-height:${researchFigures.gpu.canvas.height}px;${artworkTheme}`}
+  >
+    <div class="machine-scene" aria-hidden="true">
+      <Illustration id="instrument" />
+    </div>
+    <aside class="readout" aria-label="Solver instrument readings" aria-live="off">
+      <div class="channel-readings" aria-label="Relative KKT residuals">
+        {channels.map((channel) => (
+          <div class="channel" style={`--channel:${channel.color}`}>
+            <span title={channel.description}>
+              <i aria-hidden="true"></i>
+              {channel.label}
+            </span>
+            <output data-reading={channel.key} aria-label={channel.description}>
+              {last[channel.key].toExponential(1)}
+            </output>
+          </div>
+        ))}
+      </div>
+      <div class="operating-readings">
+        <div class="operating-reading">
+          <span class="reading-label">Iteration</span>
+          <output data-iteration aria-label="Iteration">
+            {last.iteration.toLocaleString('en-US')}
+          </output>
+        </div>
+        <div class="operating-reading">
+          <span class="reading-label">
+            Time <span class="hardware">H100</span>
+          </span>
+          <span class="time-value">
+            <output data-time aria-label="Solve time in seconds">
+              {h100.toFixed(1)}
+            </output>
+            <span class="unit">s</span>
+          </span>
+        </div>
+        <div class="operating-reading">
+          <span class="reading-label">Restarts</span>
+          <span class="restart-value">
+            <i class="restart-light" aria-hidden="true"></i>
+            <output data-restarts aria-label="Restarts">
+              {String(last.restart_count).padStart(2, '0')}
+            </output>
+          </span>
+        </div>
+      </div>
+    </aside>
+    <div class="trace-field">
+      <svg
+        data-scope
+        role="img"
+        aria-label="Three relative KKT metrics decrease over 17,800 iterations, on a logarithmic vertical scale. Blue: primal residual. Green: dual residual. White: relative gap. Faint vertical lines mark nine restarts."
+        viewBox="0 0 398 162"
+      >
+        <path d="M26 18V156H393" fill="none" stroke="#475362" stroke-width="0.6" />
+        <text x="26" y="8" fill="#8997a7" font-size="9">
+          Relative KKT
+        </text>
+        {[-1, -4, -7, -10].map((exponent) => {
+          const y = 20 + (136 * (-1 - exponent)) / 9;
+          return (
+            <g>
+              <line x1="23" x2="26" y1={y} y2={y} stroke="#627084" stroke-width="0.7" />
+              <text x="20" y={y + 2.5} fill="#8795a6" font-size="8" text-anchor="end">
+                10
+                <tspan baseline-shift="super" font-size="6">
+                  {exponent}
+                </tspan>
+              </text>
+            </g>
+          );
+        })}
+        {data.points
+          .filter((point) => point.restart)
+          .map((point) => {
+            const x = 26 + (367 * point.iteration) / last.iteration;
+            return (
+              <line
+                x1={x}
+                x2={x}
+                y1="20"
+                y2="156"
+                stroke="#8191a5"
+                stroke-width="0.65"
+                opacity="0.2"
+              />
+            );
+          })}
+        {channels.map((channel) => (
+          <path
+            d={data.points
+              .map(
+                (p, i) =>
+                  `${i ? 'L' : 'M'}${(26 + (367 * p.iteration) / last.iteration).toFixed(2)} ${(20 + (136 * (-1 - Math.log10(p[channel.key]))) / 9).toFixed(2)}`,
+              )
+              .join(' ')}
+            fill="none"
+            stroke={channel.color}
+            stroke-width="1.25"
+          />
+        ))}
+      </svg>
+    </div>
+  </section>
+</div>
+<script>
+  import { initializeInstrument } from './instrument';
+  for (const root of document.querySelectorAll<HTMLElement>('[data-gpu-instrument]'))
+    initializeInstrument(root);
+</script>
+
+<style>
+  .instrument-frame {
+    container-type: inline-size;
+  }
+  .gpu-instrument {
+    --readout-top: 10px;
+    isolation: isolate;
+    position: relative;
+    height: var(--gpu-canvas-height);
+    width: 100%;
+    font-family: var(--font);
+    color: var(--gpu-text);
+  }
+  /* Preserve the accepted lower photograph, matrix and hardware composition. */
+  .machine-scene {
+    bottom: 0;
+    left: 0;
+    position: absolute;
+    right: 0;
+    pointer-events: none;
+  }
+  .machine-scene :global(.scene-title) {
+    display: none;
+  }
+  .readout {
+    left: 0;
+    position: absolute;
+    top: var(--readout-top);
+    z-index: 4;
+    width: 142px;
+    font-family: var(--font-mono);
+  }
+  .channel-readings {
+    display: grid;
+    gap: 3px; /* optical: spacing within the GPU artwork */
+    border-bottom: 1px solid var(--gpu-rule);
+    padding: 0 0 7px; /* optical: spacing within the GPU artwork */
+  }
+  .channel {
+    align-items: baseline;
+    display: flex;
+    gap: 6px; /* optical: spacing within the GPU artwork */
+    justify-content: space-between;
+    line-height: 15px;
+  }
+  .channel > span {
+    align-items: center;
+    display: flex;
+    gap: 8px; /* optical: spacing within the GPU artwork */
+    font-size: 10px;
+    line-height: 15px;
+    color: var(--gpu-channel-label);
+  }
+  .channel i {
+    flex-shrink: 0;
+    height: 1.5px;
+    width: 10px;
+    background: var(--channel);
+  }
+  output {
+    display: inline-flex;
+    font: 400 11px/1.2 var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .channel output {
+    letter-spacing: -0.04em;
+    color: var(--channel);
+  }
+  .operating-readings {
+    display: grid;
+    gap: 5px; /* optical: spacing within the GPU artwork */
+    margin-top: 9px; /* optical: spacing within the GPU artwork */
+  }
+  .operating-reading {
+    align-items: baseline;
+    display: flex;
+    gap: 6px; /* optical: spacing within the GPU artwork */
+    justify-content: space-between;
+    min-height: 17px;
+    line-height: 17px;
+  }
+  .reading-label {
+    font-size: 9px;
+    line-height: 14px;
+    color: var(--gpu-label);
+  }
+  .operating-reading output {
+    font-size: 13px;
+    letter-spacing: -0.045em;
+    line-height: 17px;
+    text-shadow: 0 0 9px var(--gpu-digit-glow);
+    color: var(--gpu-metric);
+  }
+  .hardware {
+    margin-left: 4px; /* optical: spacing within the GPU artwork */
+    font-size: 8px;
+    color: var(--gpu-hardware);
+  }
+  .time-value,
+  .restart-value {
+    align-items: baseline;
+    display: flex;
+    gap: 5px; /* optical: spacing within the GPU artwork */
+  }
+  .unit {
+    font-size: 10px;
+    color: var(--gpu-unit);
+  }
+  .restart-value {
+    align-items: center;
+    gap: 8px; /* optical: spacing within the GPU artwork */
+  }
+  .restart-light {
+    border-radius: 50%;
+    height: 3px;
+    width: 3px;
+    background: var(--gpu-idle);
+    transition: background 120ms;
+  }
+  [data-restarting='true'] .restart-light {
+    background: var(--gpu-active);
+    box-shadow: 0 0 5px var(--gpu-indicator-glow);
+  }
+  output :global(.digit) {
+    display: inline-block;
+  }
+  .trace-field {
+    left: 190px;
+    position: absolute;
+    right: 0;
+    top: var(--readout-top);
+    z-index: 2;
+    height: 162px;
+    background: var(--ink);
+    box-shadow: 0 0 0 6px var(--ink);
+  }
+  .trace-field svg {
+    display: block;
+    height: 100%;
+    overflow: visible;
+    width: 100%;
+    font-family: var(--font-mono);
+  }
+  @container (max-width:480px) {
+    .gpu-instrument {
+      --readout-top: 20px;
+    }
+    .readout {
+      width: 110px;
+    }
+    .channel-readings {
+      gap: 3px; /* optical: spacing within the GPU artwork */
+      padding-bottom: 7px; /* optical: spacing within the GPU artwork */
+    }
+    .channel {
+      gap: 5px; /* optical: spacing within the GPU artwork */
+    }
+    .channel > span {
+      gap: 6px; /* optical: spacing within the GPU artwork */
+      font-size: 9px;
+    }
+    .channel output {
+      font-size: 10px;
+    }
+    .channel i {
+      width: 8px;
+    }
+    .operating-reading output {
+      font-size: 11px;
+      line-height: 16px;
+    }
+    .reading-label {
+      font-size: 8px;
+    }
+    .hardware {
+      margin-left: 3px; /* optical: spacing within the GPU artwork */
+      font-size: 7px;
+    }
+    .trace-field {
+      left: 139px;
+      height: 162px;
+    }
+  }
+  @container (max-width:320px) {
+    .gpu-instrument {
+      --readout-top: 36px;
+    }
+    .readout {
+      width: 103px;
+    }
+    .channel > span {
+      gap: 5px; /* optical: spacing within the GPU artwork */
+    }
+    .channel output {
+      font-size: 9.5px;
+    }
+    .trace-field {
+      left: 128px;
+      height: 196px;
+    }
+  }
+</style>

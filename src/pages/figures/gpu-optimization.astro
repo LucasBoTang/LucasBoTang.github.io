@@ -1,12 +1,13 @@
 ---
 import FigureDocument from '../../components/catalogue/FigureDocument.astro';
-import Illustration from '../../components/catalogue/GpuFigure/Illustration.astro';
+import Instrument from '../../components/catalogue/GpuFigure/Instrument.astro';
+import { researchFigures } from '../../data/research/figures';
 ---
 
 <FigureDocument
   title="Large-scale optimization with GPUs"
-  description="Sparse matrix products and a GPU computing platform."
-  bleed={64}
+  description="H-PDLP convergence, sparse matrix products and a GPU computing platform."
+  bleed={researchFigures.gpu.canvas.bleed}
 >
-  <Illustration />
+  <Instrument />
 </FigureDocument>

@@ -1,13 +1,15 @@
 import { routes } from '../navigation.ts';
 import type { ResearchFigure } from '../schema.ts';
 
+export const gpuConvergenceData = '/data/research/rail4284-convergence.json';
+
 /** One record per artwork: composition, fitting, home preview, copy and provenance.
  * Build-time consumers emit only the fields needed by each document. */
 export const researchFigures = {
   gpu: {
     src: '/figures/gpu-optimization/',
     project: 'h-pdlp',
-    canvas: { width: 716, height: 392, bleed: 64 },
+    canvas: { width: 716, height: 539, bleed: 64 },
     fitting: { compactAt: 480, compactCanvas: null },
     area: 'first-order-methods',
     anchor: 'bo-gpu-study',
@@ -23,6 +25,14 @@ export const researchFigures = {
           href: 'https://people.brunel.ac.uk/~mastjjb/jeb/orlib/scpinfo.html',
         },
         ' .',
+      ],
+      [
+        'Convergence shows the relative primal residual, dual residual and objective gap from an H-PDLP run to 10⁻⁴. Matrix-product motion is illustrative. ',
+        {
+          label: 'Run data & provenance',
+          href: gpuConvergenceData,
+        },
+        '.',
       ],
       [
         'Photo: ',

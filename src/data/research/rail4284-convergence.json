@@ -1,0 +1,959 @@
+{
+  "metadata": {
+    "instance": "rail4284",
+    "solver": "H-PDLP",
+    "status": "OPTIMAL",
+    "commit": "a89543313b0aa81b0e57c88f964f12daebfe5c65",
+    "gpu": "name, driver_version, memory.total [MiB]\nNVIDIA GeForce RTX 5080, 610.60, 16303 MiB",
+    "cuda": "nvcc: NVIDIA (R) Cuda compiler driver\nCopyright (c) 2005-2026 NVIDIA Corporation\nBuilt on Tue_Jun_09_02:43:40_PM_PDT_2026\nCuda compilation tools, release 13.3, V13.3.73\nBuild cuda_13.3.r13.3/compiler.38244171_0",
+    "started_utc": "2026-10-23T02:09:51Z",
+    "finished_utc": "2026-10-23T02:10:17Z",
+    "input": {
+      "instance": "Mittelmann/rail4284",
+      "rows": 4284,
+      "columns": 1096894,
+      "nonzeros": 11284032,
+      "source": "https://sparse.tamu.edu/Mittelmann/rail4284",
+      "representation": "SuiteSparse equality standard form, including auxiliary variables",
+      "archive_sha256": "084d77a0ef65b86cab1766dc7246b43a281fcc96bc3982e515aa76275caa3707",
+      "constraint_bounds": "lower = upper = b",
+      "objective": "minimize c^T x",
+      "arrays": {
+        "row_ptr": {
+          "dtype": "int32",
+          "count": 4285
+        },
+        "col_ind": {
+          "dtype": "int32",
+          "count": 11284032
+        },
+        "values": {
+          "dtype": "float64",
+          "count": 11284032
+        },
+        "b": {
+          "dtype": "float64",
+          "count": 4284
+        },
+        "c": {
+          "dtype": "float64",
+          "count": 1096894
+        },
+        "lo": {
+          "dtype": "float64",
+          "count": 1096894
+        },
+        "hi": {
+          "dtype": "float64",
+          "count": 1096894
+        }
+      }
+    },
+    "command": "./run: exact SuiteSparse rail4284; presolve=true; relative feasibility=1e-4; relative optimality=1e-4; eval_freq=200; l2 norm; otherwise current defaults",
+    "settings": {
+      "presolve": true,
+      "optimality_norm": "l2",
+      "relative_feasibility_tolerance": 0.0001,
+      "relative_optimality_tolerance": 0.0001,
+      "termination_evaluation_frequency": 200,
+      "other_parameters": "current solver defaults except solve time limit 600s"
+    },
+    "samples": 89,
+    "last_iteration": 17800,
+    "result": {
+      "status_code": 1,
+      "iterations": 17800,
+      "relative_primal_residual": 9.10761395146337e-5,
+      "relative_dual_residual": 1.018146829609825e-6,
+      "relative_objective_gap": 2.6335380520919677e-8,
+      "primal_objective": 1054.0559757602714,
+      "dual_objective": 1054.055920216007,
+      "reported_solve_seconds": 11.147316,
+      "rows": 4284,
+      "columns": 1096894,
+      "nonzeros": 11284032,
+      "reduced_rows": 4176,
+      "reduced_columns": 1090538,
+      "reduced_nonzeros": 11174651
+    },
+    "restart_recording": "Cumulative adaptive restarts from all restart-tagged CSV records. Each is emitted directly after restart_count increments. The run reports zero active-set reverts.",
+    "illustrative_h100_time": {
+      "scale": 0.28656716417910444,
+      "seconds": 3.194454734328358,
+      "method": "Illustrative memory-bandwidth-only scaling of solver-reported seconds from RTX 5080 to one H100 SXM. Not measured on H100 and not a validated performance prediction.",
+      "rtx5080_bandwidth_TB_s": 0.96,
+      "h100_sxm_bandwidth_TB_s": 3.35,
+      "sources": [
+        "https://www.nvidia.com/en-gb/geforce/graphics-cards/50-series/rtx-5080/",
+        "https://docs.nvidia.com/enterprise-reference-architectures/hgx-ai-factory-h100-h200-b200/latest/components.html"
+      ]
+    },
+    "recording": "17-digit relative metrics at existing evaluation/display calls, every 200 iterations. Logging-only instrumentation; algorithm and termination logic unchanged. Final metrics exported directly from the C result.",
+    "logging_instrumentation": {
+      "file": "src/utils/display.c",
+      "change": "Append 17-digit relative metrics to CSV at existing display/evaluation calls. No algorithm/termination changes.",
+      "original_sha256": "ac7c5ba2dc522cd5869fd48486359c3df42c8157f9b4e1f131a90b37b12fcb94",
+      "instrumented_sha256": "7cdcf0dd121b189843585d045f69560ded6b3943c0e9d291900034b31e950153"
+    },
+    "initial_record": "The unevaluated zero-filled iteration-zero log is excluded; no initial values are invented.",
+    "curve_processing": "Raw logged values; duplicate iteration rows retain the last printed evaluation; no smoothing, monotone envelope or time rescaling.",
+    "source_sha256": {
+      "solve.log": "b7a0a85a273a1dd36301b1ac2f27036c6e727df4c9dca0dfbc4d973000b380a2",
+      "trace.csv": "0df73a99a66bfd3ed4717a70132c734f060c3e72b224c8dc9f3fb6891a51eadf",
+      "source-commit.txt": "ee9f4b87c2db9c9c8f5a5de3c6cf6246a9008f67e95418cc06f81c5f1ca738c0",
+      "command.txt": "3c8291150cfd482dcdc90ec0f55cb61eea41038d440e589eacc0511c02025073"
+    },
+    "source_snapshot_hashes": {
+      "src\\cli.c": "a9ad0e4b8446c8ce9c139ba8cdfe9af142bd9b2251f8cb807aa42759d750632d",
+      "src\\cone_projector.cu": "2b4a79a56cb858fe412d8b42ef04281696280bfd8c1dfbb33b1660addb796536",
+      "src\\hpdlp.c": "63527dd63160e0f199a441fcea282ea526b3920b2398df6e9332aeac7c0bc8ec",
+      "src\\parameters.c": "6ee16ca78c45474b95f5768508cfbdb587fa5cd6b3890b6f3bfa2c8952a32f89",
+      "src\\preconditioner.cu": "7d3b9d4ae39f4a883cbb9368988f5ef69aa0a62955748a5fef19d30310aec351",
+      "src\\presolver.c": "7d5855a0b607df65826a1038244429acdd923de3cbf97e700d1c57cec1ab979d",
+      "src\\result.cu": "a53a02f1c8b3e81d0721de15dc954382334a0ce247002cc4a223ff6cf525686e",
+      "src\\setup.cu": "d89cbd71eeea4b9f722f353c1ca3849d3f7fd09d8bc6295debdb59e97f7224b7",
+      "src\\solver.cu": "94d39e3b5b7ac1b83ffc11bb6252b228fda969b784649a186e62e2a8308a85cd",
+      "src\\spmv_backend.cu": "0d571f80ecf98cb4c96c27b4fa1f59f1f984f882d4b77c9c54a47bd0ea0023e6",
+      "src\\termination_checker.cu": "3a8ade6f19ff2d9d47637aa153f0d625b60c7c58922a76462a28c6fbd2f98b3c",
+      "src\\step_control\\active_set_boost.cu": "4fdd2d95e723c0033a8651618f4c34510305843fb33fd098e973bf35a3916e34",
+      "src\\step_control\\pid_controller.c": "3625944c5e5a57eb3454bddc4a3e72d50847e436eac96e1e4d704b0667429f5e",
+      "src\\step_control\\power_iteration.cu": "eef1d322fcd3e5552ab02626ce4759075147f0307e90c5451087328d98772ef1",
+      "src\\utils\\cuda_utils.cu": "cc8d678eb12c2fb9a7cfe24293b8299aedf1ebdc8837ea4a8e6df18a1370b2a8",
+      "src\\utils\\display.c": "ac7c5ba2dc522cd5869fd48486359c3df42c8157f9b4e1f131a90b37b12fcb94",
+      "src\\utils\\error_handling.c": "31c77a81b69ccf818c9bf27bf4cbd3903f4136e79159da93966274468224ed4e",
+      "src\\utils\\matrix_formats.c": "0b1c5f10b297c63fb441bc428aeab497205e9697f9a89460b72d22020a3a408f",
+      "src\\utils\\mps_parser.c": "42e090c9e2e400c8602fa70d439ea75f5c115098a1fdf3b9da495f0d9b56c1d9",
+      "src\\utils\\utils.c": "07f1c89324280bcef54f0e2b99a0387a057da7dfe62b53ba784858d1072a4fbe",
+      "include\\hpdlp.h": "6dfeaea3cefb917a4fb072b5475f1cc5ad70aedd071f5229ef232418d411d3f6",
+      "include\\hpdlp_types.h": "4ec340cfe2d34c008fedf96a269eef5ed884d7fc8ed8c09a0911406a1ff707ae",
+      "include\\mps_parser.h": "8346873b31f9f950a028c0a02068b73e456bf59302f3a3cc169d74288422d463",
+      "internal\\active_set_boost.h": "769ebbf4aa0afe8b8c16c94915c122812b906944269d49dd51dc0752a1e56b7f",
+      "internal\\cone_projector.h": "66dbf30ed23f0814f913edb08a1dbe3706fb6889b2aabdf1b6bb18b32bcd66ab",
+      "internal\\cublas_checks.h": "6e0677bcb3ee9408493944026081d55092c8211898ee2cf4bd820e670c5c4561",
+      "internal\\cuda_macros.h": "f8c8b2ccaf0a1802c54d7b85ee91498a38756d5c4bfee3fc24b35975e9cbdac5",
+      "internal\\cuda_utils.h": "766bec6521149e3851ceb76394343bde9027ac619d1ab26226202d526525b6dc",
+      "internal\\curand_checks.h": "00a54ecb01acfde6e99252dce1349fddaa88b308cf2fc9dbd69cc5fc8641d04c",
+      "internal\\cusparse_checks.h": "907632922ba4799aff21d3d9611b7611aee348d90b925821bfd6280871c95608",
+      "internal\\cusparse_compat.h": "cac39958d9347cb14ae00f88d4d03f690bc3f7eaebee67a9fbbe1ace9df277f0",
+      "internal\\display.h": "0a44e76cf146e95a56b3606bd059b98b2ac3b64b2c6c27534c62c6d88c933e6a",
+      "internal\\error_handling.h": "1df3bf38400b9be28a5bbb12fc83a25bd624e760d2d1789c59fa804e1c29b6fc",
+      "internal\\internal_types.h": "4a2b42ef8b08c1258867a3e9d76159a1d15741d7b3ce7e6343f875bd27880474",
+      "internal\\matrix_formats.h": "3d964892d0dc1318fd9b9262be0f5a805932e081b7f3e69d29f0990d6ff5fd42",
+      "internal\\pid_controller.h": "8d8836985e1793126ca6ed81f7bf9da7acdb5b7abc2e54a67d978c2364edd644",
+      "internal\\power_iteration.h": "c165eb13121b5985f20f23893681796ec62d56998624b2d800700d77b25b08ee",
+      "internal\\preconditioner.h": "e5d72b50e75d7218b00a836960c94634de902fdb365326d6e96b182dadfbde36",
+      "internal\\presolver.h": "79d1fe428521690f35660ac27600ab4721f6828f2514871e1023b4cea89b97b4",
+      "internal\\result.h": "7a78a37b0afb0a03b9e47add0232b3c4ad82f7e7d49fbfca47366ae6a37aaf06",
+      "internal\\setup.h": "dbbb57f09da6987a2cad0be008ea9e66c9e467541f140941dce84998c5df5ea0",
+      "internal\\solver.h": "c8c2f68b803690b733daaba07b646cf4e42462b56fa53ad3c76ce8dbbc26ca98",
+      "internal\\spmv_backend.h": "5039cba173c7ff84be901343bfee8e2b83e2324c74930496c435e3996f3b2848",
+      "internal\\termination_checker.h": "3ba5b7a5ad631ff7df0b14d3dc1b889dc924195b9295e80282cb7cb6d8da0f8e",
+      "internal\\utils.h": "df32f946ad23e6cafbc005ccb0243a399816649c0f2d9e2d3fbffef7f834c458",
+      "CMakeLists.txt": "40daae4b76064bc5dd497a6ee17732a8e06ed0599ec9f5311155c5309336b7a1",
+      "LICENSE": "1b18de633e08be5746f7a2744c023ba2533ecbcd9327fab5273e30c5bd172210"
+    }
+  },
+  "points": [
+    {
+      "iteration": 200,
+      "primal": 0.018414768691362476,
+      "dual": 0.007583631564621025,
+      "gap": 0.045853973140660795,
+      "restart": true,
+      "reported_seconds": 0.149118,
+      "restart_count": 1
+    },
+    {
+      "iteration": 400,
+      "primal": 0.0037737841260311565,
+      "dual": 0.003768947766206042,
+      "gap": 0.001959802090398681,
+      "restart": true,
+      "reported_seconds": 0.28842,
+      "restart_count": 2
+    },
+    {
+      "iteration": 600,
+      "primal": 0.0054908980169479805,
+      "dual": 0.001709952284592247,
+      "gap": 0.0006329363746179758,
+      "restart": false,
+      "reported_seconds": 0.424591,
+      "restart_count": 2
+    },
+    {
+      "iteration": 800,
+      "primal": 0.004402978740161733,
+      "dual": 0.0011219848555670954,
+      "gap": 0.00048707617863338296,
+      "restart": true,
+      "reported_seconds": 0.56085,
+      "restart_count": 3
+    },
+    {
+      "iteration": 1000,
+      "primal": 0.00727908633338055,
+      "dual": 0.0006458295304588492,
+      "gap": 0.00010426309366790617,
+      "restart": false,
+      "reported_seconds": 0.697119,
+      "restart_count": 3
+    },
+    {
+      "iteration": 1200,
+      "primal": 0.006024582892785877,
+      "dual": 0.00043760193323079844,
+      "gap": 7.577459481130828e-5,
+      "restart": false,
+      "reported_seconds": 0.833338,
+      "restart_count": 3
+    },
+    {
+      "iteration": 1400,
+      "primal": 0.004670745122079963,
+      "dual": 0.00033656865956489297,
+      "gap": 6.497804882417318e-5,
+      "restart": true,
+      "reported_seconds": 0.967149,
+      "restart_count": 4
+    },
+    {
+      "iteration": 1600,
+      "primal": 0.005802252745177659,
+      "dual": 0.00022781494021031356,
+      "gap": 1.0893422247658776e-5,
+      "restart": false,
+      "reported_seconds": 1.101191,
+      "restart_count": 4
+    },
+    {
+      "iteration": 1800,
+      "primal": 0.005335376599960598,
+      "dual": 0.00017140447328967883,
+      "gap": 1.0102302667075145e-5,
+      "restart": false,
+      "reported_seconds": 1.237813,
+      "restart_count": 4
+    },
+    {
+      "iteration": 2000,
+      "primal": 0.004214389118153215,
+      "dual": 0.00013752593263323705,
+      "gap": 7.693366372068589e-6,
+      "restart": false,
+      "reported_seconds": 1.37312,
+      "restart_count": 4
+    },
+    {
+      "iteration": 2200,
+      "primal": 0.0034307929413719793,
+      "dual": 0.00011516186620380583,
+      "gap": 7.938874101535457e-6,
+      "restart": true,
+      "reported_seconds": 1.509433,
+      "restart_count": 5
+    },
+    {
+      "iteration": 2400,
+      "primal": 0.0040486671290420285,
+      "dual": 9.437049648131903e-5,
+      "gap": 2.3722895467977734e-6,
+      "restart": false,
+      "reported_seconds": 1.644956,
+      "restart_count": 5
+    },
+    {
+      "iteration": 2600,
+      "primal": 0.004314111811302233,
+      "dual": 7.561604583253977e-5,
+      "gap": 2.9596311401638648e-6,
+      "restart": false,
+      "reported_seconds": 1.78171,
+      "restart_count": 5
+    },
+    {
+      "iteration": 2800,
+      "primal": 0.003909312602929171,
+      "dual": 6.186627072484955e-5,
+      "gap": 2.518942819154701e-6,
+      "restart": false,
+      "reported_seconds": 1.922987,
+      "restart_count": 5
+    },
+    {
+      "iteration": 3000,
+      "primal": 0.003622529916294095,
+      "dual": 5.134295592545399e-5,
+      "gap": 2.537323872342556e-6,
+      "restart": false,
+      "reported_seconds": 2.060803,
+      "restart_count": 5
+    },
+    {
+      "iteration": 3200,
+      "primal": 0.0032852347688176373,
+      "dual": 4.4726872368598744e-5,
+      "gap": 2.4378566638588724e-6,
+      "restart": false,
+      "reported_seconds": 2.194208,
+      "restart_count": 5
+    },
+    {
+      "iteration": 3400,
+      "primal": 0.0033058207222597374,
+      "dual": 3.858905432993273e-5,
+      "gap": 2.3119237326703223e-6,
+      "restart": false,
+      "reported_seconds": 2.332489,
+      "restart_count": 5
+    },
+    {
+      "iteration": 3600,
+      "primal": 0.003087412245553434,
+      "dual": 3.461091137418952e-5,
+      "gap": 1.5301289781747637e-6,
+      "restart": true,
+      "reported_seconds": 2.467093,
+      "restart_count": 6
+    },
+    {
+      "iteration": 3800,
+      "primal": 0.0032259902620089226,
+      "dual": 2.927358216165023e-5,
+      "gap": 6.728496516151489e-8,
+      "restart": false,
+      "reported_seconds": 2.589297,
+      "restart_count": 6
+    },
+    {
+      "iteration": 4000,
+      "primal": 0.0031510014907922116,
+      "dual": 2.5769404988117288e-5,
+      "gap": 5.3721633891317056e-8,
+      "restart": false,
+      "reported_seconds": 2.71036,
+      "restart_count": 6
+    },
+    {
+      "iteration": 4200,
+      "primal": 0.003053564796271324,
+      "dual": 2.2207856212060174e-5,
+      "gap": 9.462568913886397e-9,
+      "restart": false,
+      "reported_seconds": 2.831983,
+      "restart_count": 6
+    },
+    {
+      "iteration": 4400,
+      "primal": 0.002911933708616803,
+      "dual": 1.9431047773238003e-5,
+      "gap": 1.7541524377000715e-7,
+      "restart": false,
+      "reported_seconds": 2.956192,
+      "restart_count": 6
+    },
+    {
+      "iteration": 4600,
+      "primal": 0.002812379574685907,
+      "dual": 1.6643524140411333e-5,
+      "gap": 2.1116355938248134e-7,
+      "restart": false,
+      "reported_seconds": 3.079421,
+      "restart_count": 6
+    },
+    {
+      "iteration": 4800,
+      "primal": 0.0028371552943931575,
+      "dual": 1.432969858439902e-5,
+      "gap": 5.6683410819780506e-8,
+      "restart": false,
+      "reported_seconds": 3.208412,
+      "restart_count": 6
+    },
+    {
+      "iteration": 5000,
+      "primal": 0.002706438048163118,
+      "dual": 1.2593852231891021e-5,
+      "gap": 7.441858959513591e-8,
+      "restart": false,
+      "reported_seconds": 3.336694,
+      "restart_count": 6
+    },
+    {
+      "iteration": 5200,
+      "primal": 0.002492972126379503,
+      "dual": 1.09702667696781e-5,
+      "gap": 9.892445284757199e-9,
+      "restart": false,
+      "reported_seconds": 3.461727,
+      "restart_count": 6
+    },
+    {
+      "iteration": 5400,
+      "primal": 0.0023600938563194678,
+      "dual": 9.664209325804399e-6,
+      "gap": 5.555946315281208e-9,
+      "restart": false,
+      "reported_seconds": 3.587025,
+      "restart_count": 6
+    },
+    {
+      "iteration": 5600,
+      "primal": 0.002270709870097714,
+      "dual": 8.707976662661496e-6,
+      "gap": 5.383803963047578e-9,
+      "restart": false,
+      "reported_seconds": 3.705703,
+      "restart_count": 6
+    },
+    {
+      "iteration": 5800,
+      "primal": 0.00219780572472286,
+      "dual": 7.94579174161409e-6,
+      "gap": 5.3828135821508374e-8,
+      "restart": true,
+      "reported_seconds": 3.826139,
+      "restart_count": 7
+    },
+    {
+      "iteration": 6000,
+      "primal": 0.0020922403438264326,
+      "dual": 7.527122126393178e-6,
+      "gap": 1.955635605958545e-7,
+      "restart": false,
+      "reported_seconds": 3.947978,
+      "restart_count": 7
+    },
+    {
+      "iteration": 6200,
+      "primal": 0.0019360019244336097,
+      "dual": 7.336689121578919e-6,
+      "gap": 1.6894333777591316e-7,
+      "restart": false,
+      "reported_seconds": 4.067034,
+      "restart_count": 7
+    },
+    {
+      "iteration": 6400,
+      "primal": 0.001840973806665246,
+      "dual": 7.091413666990914e-6,
+      "gap": 1.5054200658457528e-7,
+      "restart": false,
+      "reported_seconds": 4.18784,
+      "restart_count": 7
+    },
+    {
+      "iteration": 6600,
+      "primal": 0.001812836882492407,
+      "dual": 6.78028706069477e-6,
+      "gap": 1.445642089118843e-7,
+      "restart": false,
+      "reported_seconds": 4.308064,
+      "restart_count": 7
+    },
+    {
+      "iteration": 6800,
+      "primal": 0.001804583085525682,
+      "dual": 6.568889025085024e-6,
+      "gap": 1.4563165629182137e-7,
+      "restart": false,
+      "reported_seconds": 4.428746,
+      "restart_count": 7
+    },
+    {
+      "iteration": 7000,
+      "primal": 0.001802301866753512,
+      "dual": 6.244348756969512e-6,
+      "gap": 1.424968318197123e-7,
+      "restart": false,
+      "reported_seconds": 4.549482,
+      "restart_count": 7
+    },
+    {
+      "iteration": 7200,
+      "primal": 0.0018011000095515329,
+      "dual": 5.798095874407091e-6,
+      "gap": 9.713140615996801e-8,
+      "restart": false,
+      "reported_seconds": 4.670255,
+      "restart_count": 7
+    },
+    {
+      "iteration": 7400,
+      "primal": 0.001800172858740395,
+      "dual": 5.343521694395336e-6,
+      "gap": 8.112035888156476e-8,
+      "restart": false,
+      "reported_seconds": 4.789744,
+      "restart_count": 7
+    },
+    {
+      "iteration": 7600,
+      "primal": 0.0017823663348084937,
+      "dual": 4.766031693032197e-6,
+      "gap": 6.987927594241557e-8,
+      "restart": false,
+      "reported_seconds": 4.9109,
+      "restart_count": 7
+    },
+    {
+      "iteration": 7800,
+      "primal": 0.0017630081208323033,
+      "dual": 4.3576921577289464e-6,
+      "gap": 7.172671001056697e-8,
+      "restart": false,
+      "reported_seconds": 5.030155,
+      "restart_count": 7
+    },
+    {
+      "iteration": 8000,
+      "primal": 0.0017167925186508844,
+      "dual": 4.004022814019957e-6,
+      "gap": 5.67313655682887e-8,
+      "restart": false,
+      "reported_seconds": 5.151437,
+      "restart_count": 7
+    },
+    {
+      "iteration": 8200,
+      "primal": 0.0016333069843983985,
+      "dual": 3.814935342971861e-6,
+      "gap": 8.648894900082966e-8,
+      "restart": false,
+      "reported_seconds": 5.272263,
+      "restart_count": 7
+    },
+    {
+      "iteration": 8400,
+      "primal": 0.0015559306753903826,
+      "dual": 3.730157964591246e-6,
+      "gap": 9.468611367119695e-8,
+      "restart": false,
+      "reported_seconds": 5.392889,
+      "restart_count": 7
+    },
+    {
+      "iteration": 8600,
+      "primal": 0.0014875167678119975,
+      "dual": 3.720491883436282e-6,
+      "gap": 9.855532847287747e-8,
+      "restart": false,
+      "reported_seconds": 5.512392,
+      "restart_count": 7
+    },
+    {
+      "iteration": 8800,
+      "primal": 0.0014204771590120653,
+      "dual": 3.673750678857539e-6,
+      "gap": 1.0579915508023265e-7,
+      "restart": false,
+      "reported_seconds": 5.631999,
+      "restart_count": 7
+    },
+    {
+      "iteration": 9000,
+      "primal": 0.0013369863845675769,
+      "dual": 3.6630436196686765e-6,
+      "gap": 8.712539775797089e-8,
+      "restart": false,
+      "reported_seconds": 5.751103,
+      "restart_count": 7
+    },
+    {
+      "iteration": 9200,
+      "primal": 0.001266720094593119,
+      "dual": 3.6477897229837655e-6,
+      "gap": 4.749593941445125e-8,
+      "restart": true,
+      "reported_seconds": 5.870783,
+      "restart_count": 8
+    },
+    {
+      "iteration": 9400,
+      "primal": 0.0012313772523424925,
+      "dual": 4.05762131982203e-6,
+      "gap": 1.0647836641449946e-7,
+      "restart": false,
+      "reported_seconds": 5.992388,
+      "restart_count": 8
+    },
+    {
+      "iteration": 9600,
+      "primal": 0.0011840989745217898,
+      "dual": 4.353934616455596e-6,
+      "gap": 1.0438844216519376e-7,
+      "restart": false,
+      "reported_seconds": 6.113524,
+      "restart_count": 8
+    },
+    {
+      "iteration": 9800,
+      "primal": 0.0011323793215310422,
+      "dual": 4.573108607516633e-6,
+      "gap": 8.807947312179369e-8,
+      "restart": false,
+      "reported_seconds": 6.231895,
+      "restart_count": 8
+    },
+    {
+      "iteration": 10000,
+      "primal": 0.0010784578307215075,
+      "dual": 4.817597828777081e-6,
+      "gap": 9.020609288608124e-8,
+      "restart": false,
+      "reported_seconds": 6.35216,
+      "restart_count": 8
+    },
+    {
+      "iteration": 10200,
+      "primal": 0.0010219539133045524,
+      "dual": 4.977660801253035e-6,
+      "gap": 1.09789433034768e-7,
+      "restart": false,
+      "reported_seconds": 6.47166,
+      "restart_count": 8
+    },
+    {
+      "iteration": 10400,
+      "primal": 0.0009468092317115539,
+      "dual": 5.1824376970892065e-6,
+      "gap": 8.888007509334055e-8,
+      "restart": false,
+      "reported_seconds": 6.593406,
+      "restart_count": 8
+    },
+    {
+      "iteration": 10600,
+      "primal": 0.0008718937141673934,
+      "dual": 5.188527504309188e-6,
+      "gap": 9.624247365172259e-8,
+      "restart": false,
+      "reported_seconds": 6.714539,
+      "restart_count": 8
+    },
+    {
+      "iteration": 10800,
+      "primal": 0.00079725505055458,
+      "dual": 5.19309614868279e-6,
+      "gap": 8.910594409750453e-8,
+      "restart": false,
+      "reported_seconds": 6.834871,
+      "restart_count": 8
+    },
+    {
+      "iteration": 11000,
+      "primal": 0.0007255314951933168,
+      "dual": 5.160628871595864e-6,
+      "gap": 8.349207352922172e-8,
+      "restart": false,
+      "reported_seconds": 6.954003,
+      "restart_count": 8
+    },
+    {
+      "iteration": 11200,
+      "primal": 0.0006659515190252494,
+      "dual": 5.056368275000499e-6,
+      "gap": 6.408246422814999e-8,
+      "restart": false,
+      "reported_seconds": 7.07406,
+      "restart_count": 8
+    },
+    {
+      "iteration": 11400,
+      "primal": 0.0006059382140062257,
+      "dual": 4.941961548310781e-6,
+      "gap": 5.250410904828039e-8,
+      "restart": false,
+      "reported_seconds": 7.195298,
+      "restart_count": 8
+    },
+    {
+      "iteration": 11600,
+      "primal": 0.0005505150222214524,
+      "dual": 4.828208377033902e-6,
+      "gap": 4.341322787671741e-8,
+      "restart": false,
+      "reported_seconds": 7.317711,
+      "restart_count": 8
+    },
+    {
+      "iteration": 11800,
+      "primal": 0.000498855030207414,
+      "dual": 4.702616155127258e-6,
+      "gap": 2.096573103245003e-8,
+      "restart": false,
+      "reported_seconds": 7.437172,
+      "restart_count": 8
+    },
+    {
+      "iteration": 12000,
+      "primal": 0.00044934007458082665,
+      "dual": 4.595334092894939e-6,
+      "gap": 1.0832547293019234e-9,
+      "restart": false,
+      "reported_seconds": 7.556726,
+      "restart_count": 8
+    },
+    {
+      "iteration": 12200,
+      "primal": 0.00040063643550686235,
+      "dual": 4.504138635504428e-6,
+      "gap": 2.39046608406375e-8,
+      "restart": false,
+      "reported_seconds": 7.676187,
+      "restart_count": 8
+    },
+    {
+      "iteration": 12400,
+      "primal": 0.00035330117714068595,
+      "dual": 4.372678157395962e-6,
+      "gap": 3.03477435539497e-8,
+      "restart": false,
+      "reported_seconds": 7.795929,
+      "restart_count": 8
+    },
+    {
+      "iteration": 12600,
+      "primal": 0.00032042146496139424,
+      "dual": 4.2142113217553e-6,
+      "gap": 3.92224669316639e-8,
+      "restart": false,
+      "reported_seconds": 7.917108,
+      "restart_count": 8
+    },
+    {
+      "iteration": 12800,
+      "primal": 0.0002914815150910282,
+      "dual": 4.106358923054534e-6,
+      "gap": 1.4043672905910847e-8,
+      "restart": false,
+      "reported_seconds": 8.037025,
+      "restart_count": 8
+    },
+    {
+      "iteration": 13000,
+      "primal": 0.0002622213874276405,
+      "dual": 3.961493368750907e-6,
+      "gap": 5.267367112308672e-9,
+      "restart": false,
+      "reported_seconds": 8.155669,
+      "restart_count": 8
+    },
+    {
+      "iteration": 13200,
+      "primal": 0.00023620542965528034,
+      "dual": 3.7927206006619858e-6,
+      "gap": 2.002042828175103e-8,
+      "restart": false,
+      "reported_seconds": 8.274958,
+      "restart_count": 8
+    },
+    {
+      "iteration": 13400,
+      "primal": 0.00021863997163327765,
+      "dual": 3.62842272789787e-6,
+      "gap": 1.4867969699783598e-8,
+      "restart": false,
+      "reported_seconds": 8.396477,
+      "restart_count": 8
+    },
+    {
+      "iteration": 13600,
+      "primal": 0.00021093988211469332,
+      "dual": 3.4755945269992237e-6,
+      "gap": 2.0956247626598868e-8,
+      "restart": false,
+      "reported_seconds": 8.516552,
+      "restart_count": 8
+    },
+    {
+      "iteration": 13800,
+      "primal": 0.00019879774933900606,
+      "dual": 3.3417088633029513e-6,
+      "gap": 3.546958138484709e-8,
+      "restart": false,
+      "reported_seconds": 8.638284,
+      "restart_count": 8
+    },
+    {
+      "iteration": 14000,
+      "primal": 0.00018976080954873032,
+      "dual": 3.2124476524941353e-6,
+      "gap": 2.4601610075342508e-8,
+      "restart": false,
+      "reported_seconds": 8.756602,
+      "restart_count": 8
+    },
+    {
+      "iteration": 14200,
+      "primal": 0.00017513302071061587,
+      "dual": 3.0719788170251845e-6,
+      "gap": 2.0371970538552133e-8,
+      "restart": false,
+      "reported_seconds": 8.877324,
+      "restart_count": 8
+    },
+    {
+      "iteration": 14400,
+      "primal": 0.0001665755811780613,
+      "dual": 2.9583161465587064e-6,
+      "gap": 2.4791059858037962e-8,
+      "restart": true,
+      "reported_seconds": 8.996517,
+      "restart_count": 9
+    },
+    {
+      "iteration": 14600,
+      "primal": 0.0001554414369829176,
+      "dual": 2.8417234474287595e-6,
+      "gap": 1.8488460686920647e-9,
+      "restart": false,
+      "reported_seconds": 9.228204,
+      "restart_count": 9
+    },
+    {
+      "iteration": 14800,
+      "primal": 0.0001481922473318692,
+      "dual": 2.733912289600118e-6,
+      "gap": 3.2687127166033562e-9,
+      "restart": false,
+      "reported_seconds": 9.347187,
+      "restart_count": 9
+    },
+    {
+      "iteration": 15000,
+      "primal": 0.00014352846165749522,
+      "dual": 2.570815079593294e-6,
+      "gap": 1.1320935775001936e-9,
+      "restart": false,
+      "reported_seconds": 9.468475,
+      "restart_count": 9
+    },
+    {
+      "iteration": 15200,
+      "primal": 0.0001369009175248113,
+      "dual": 2.4382173533411747e-6,
+      "gap": 5.354249432587708e-9,
+      "restart": false,
+      "reported_seconds": 9.587568,
+      "restart_count": 9
+    },
+    {
+      "iteration": 15400,
+      "primal": 0.0001328112259632273,
+      "dual": 2.3072950385442465e-6,
+      "gap": 2.770614071193497e-9,
+      "restart": false,
+      "reported_seconds": 9.707833,
+      "restart_count": 9
+    },
+    {
+      "iteration": 15600,
+      "primal": 0.00012893070768801022,
+      "dual": 2.18333393232471e-6,
+      "gap": 1.86188224151991e-8,
+      "restart": false,
+      "reported_seconds": 9.826482,
+      "restart_count": 9
+    },
+    {
+      "iteration": 15800,
+      "primal": 0.00012694879677225068,
+      "dual": 2.0699524916567277e-6,
+      "gap": 2.9099168957918383e-8,
+      "restart": false,
+      "reported_seconds": 9.947064,
+      "restart_count": 9
+    },
+    {
+      "iteration": 16000,
+      "primal": 0.00012816843929975313,
+      "dual": 1.9425232748242587e-6,
+      "gap": 2.4879705968714816e-8,
+      "restart": false,
+      "reported_seconds": 10.06742,
+      "restart_count": 9
+    },
+    {
+      "iteration": 16200,
+      "primal": 0.00012804150429357032,
+      "dual": 1.7933274387979525e-6,
+      "gap": 1.9166333072931212e-8,
+      "restart": false,
+      "reported_seconds": 10.188167,
+      "restart_count": 9
+    },
+    {
+      "iteration": 16400,
+      "primal": 0.0001244515151516776,
+      "dual": 1.6486413225748147e-6,
+      "gap": 7.250798476859201e-9,
+      "restart": false,
+      "reported_seconds": 10.307711,
+      "restart_count": 9
+    },
+    {
+      "iteration": 16600,
+      "primal": 0.00012441945510772187,
+      "dual": 1.4931854617787075e-6,
+      "gap": 1.227880842964664e-8,
+      "restart": false,
+      "reported_seconds": 10.427916,
+      "restart_count": 9
+    },
+    {
+      "iteration": 16800,
+      "primal": 0.00012616999356766592,
+      "dual": 1.350964443917086e-6,
+      "gap": 1.648820910384165e-8,
+      "restart": false,
+      "reported_seconds": 10.547647,
+      "restart_count": 9
+    },
+    {
+      "iteration": 17000,
+      "primal": 0.00012322340986270592,
+      "dual": 1.2272638562563376e-6,
+      "gap": 2.5781988053456072e-8,
+      "restart": false,
+      "reported_seconds": 10.667131,
+      "restart_count": 9
+    },
+    {
+      "iteration": 17200,
+      "primal": 0.00011713690062854118,
+      "dual": 1.1340831042774956e-6,
+      "gap": 2.7572573822961198e-9,
+      "restart": false,
+      "reported_seconds": 10.787839,
+      "restart_count": 9
+    },
+    {
+      "iteration": 17400,
+      "primal": 0.00010792247985959551,
+      "dual": 1.0848669823819702e-6,
+      "gap": 9.289291843002227e-10,
+      "restart": false,
+      "reported_seconds": 10.907694,
+      "restart_count": 9
+    },
+    {
+      "iteration": 17600,
+      "primal": 0.00010108584662783063,
+      "dual": 1.0471162195661168e-6,
+      "gap": 1.5004410820753173e-8,
+      "restart": false,
+      "reported_seconds": 11.028009,
+      "restart_count": 9
+    },
+    {
+      "iteration": 17800,
+      "primal": 9.10761395146337e-5,
+      "dual": 1.018146829609825e-6,
+      "gap": 2.6335380520919677e-8,
+      "restart": false,
+      "reported_seconds": 11.147316,
+      "restart_count": 9
+    }
+  ]
+}

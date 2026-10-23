@@ -1,12 +1,12 @@
+import { smoothstep as smooth } from '../../../lib/easing.ts';
+import { createFigureClock } from '../../../lib/figure-clock.ts';
 import { whenFigureReady } from '../../../lib/figure-ready';
-import { smoothstep as smooth } from './easing.ts';
 import { MATRIX, SCAN_BAND } from './gpu-layout.ts';
-import { createPlayback } from './playback.ts';
 
 type VectorKey = 'x' | 'a' | 'y' | 'at';
-interface MatrixProducts {
+interface MatrixProductRecording {
   maxRms: Record<VectorKey, number>;
-  frames: Array<Record<VectorKey, number[]> & { iteration: number }>;
+  frames: ReadonlyArray<Record<VectorKey, readonly number[]> & { iteration: number }>;
 }
 interface VectorLayout {
   key: VectorKey;
@@ -17,27 +17,30 @@ interface VectorLayout {
   anchor?: number;
 }
 
-const PHRASE_DURATION = 6500;
-const CYCLE_DURATION = 2 * PHRASE_DURATION;
+const PHRASE_DURATION_MS = 2700;
+const CYCLE_DURATION_MS = 2 * PHRASE_DURATION_MS;
+// Ease the complete breath together, retaining the relative scan and light choreography.
+const PLAYBACK_RATE = 0.85;
 // Envelope and hardware timings are in seconds within each phrase.
-const ENVELOPE = { fadeDuration: 0.6, fadeOutStart: 5.7, arrowsStart: 0.75 };
+// The result's rise meets its release: one breath, without a display plateau.
+const ENVELOPE = { fadeDuration: 0.5, fadeOutStart: 2, arrowsStart: 0.4 };
 const SCAN = {
-  start: 1,
-  duration: 0.95,
-  resultStart: 2,
+  start: 0.65,
+  duration: 0.8,
+  resultStart: 1.5,
   arrowFadeDuration: 0.3,
 };
 const LIGHTS = {
-  start: 0.75,
-  riseDuration: 1,
-  fadeOutStart: 2.5,
-  fadeOutDuration: 1.5,
+  start: 0.4,
+  riseDuration: 0.65,
+  fadeOutStart: 1.7,
+  fadeOutDuration: 0.7,
   indicatorOpacity: 0.85,
   chipOpacity: 0.9,
 };
 const BUS_PULSE = {
-  start: 1,
-  duration: 1.65,
+  start: 0.65,
+  duration: 1.35,
   fadeInFraction: 0.18,
   fadeOutStart: 0.78,
   fadeOutFraction: 0.22,
@@ -70,27 +73,27 @@ function setOpacity(element: Element, value: number) {
  * Animate matrix products and the matching hardware lights on one clock.
  * Call once per GPU composition; its component owns the required SVG markup.
  */
-export function initializeGpuFigure(
-  root: HTMLElement,
-  products: MatrixProducts,
-  browser: Window & typeof globalThis,
-) {
-  const frame = products.frames[0];
-  const atMinimum = Math.min(...frame.at);
-  const atRange = Math.max(1e-12, Math.max(...frame.at) - atMinimum);
+export function initializeGpuFigure(root: HTMLElement, products: MatrixProductRecording) {
+  const initialFrame = products.frames[0];
+  const transposeMinimum = Math.min(...initialFrame.at);
+  const transposeRange = Math.max(1e-12, Math.max(...initialFrame.at) - transposeMinimum);
   const vectors = VECTOR_LAYOUT.map((layout) => ({
-    magnitudes: frame[layout.key].map((value) =>
+    magnitudes: initialFrame[layout.key].map((value) =>
       layout.key === 'at'
-        ? 0.25 + (0.75 * (value - atMinimum)) / atRange
+        ? 0.25 + (0.75 * (value - transposeMinimum)) / transposeRange
         : Math.log1p((BAR.logGain * value) / products.maxRms[layout.key]) / Math.log1p(BAR.logGain),
     ),
     wasVisible: true,
     ...layout,
-    bars: root.querySelectorAll(`[data-${layout.key}]`),
-    label: requireElement(root, `[data-vector="${layout.key}"] [data-math-label]`),
+    group: requireElement(root, `[data-vector="${layout.key}"]`),
+    bars: Array.from(root.querySelectorAll(`[data-${layout.key}]`), (element, index) => {
+      const seed = (index + 1) * 73 + layout.key.charCodeAt(0) * 19;
+      setOpacity(element, BAR.opacity);
+      return { element, seed, period: 390 + (seed % 310), offset: (seed % 29) / 29 };
+    }),
   }));
-  const flowA = requireElement(root, '[data-flow="a"]');
-  const flowAT = requireElement(root, '[data-flow="at"]');
+  const productFlow = requireElement(root, '[data-flow="a"]');
+  const transposeProductFlow = requireElement(root, '[data-flow="at"]');
   const scanDown = requireElement(root, '[data-matrix-scan="down"]');
   const scanRight = requireElement(root, '[data-matrix-scan="right"]');
   const outputArrows = root.querySelectorAll('[data-flow-output]');
@@ -98,27 +101,43 @@ export function initializeGpuFigure(
   const chips = requireElement(root, '[data-gpu-chips]');
   const bus = requireElement(root, '[data-gpu-bus]');
   const pulses = bus.querySelectorAll('[data-bus-pulse]');
-  function render(elapsed: number, reducedMotion: boolean) {
-    const phase = Math.floor((elapsed % CYCLE_DURATION) / PHRASE_DURATION);
-    const seconds = (elapsed % PHRASE_DURATION) / 1000;
-    // Each phrase ends with a fade, then 0.35 seconds of empty space.
+  // Flow topology and dash setup never change; only displacement and reveal vary per frame.
+  const flows = (
+    [
+      [productFlow, true],
+      [transposeProductFlow, false],
+    ] as const
+  ).flatMap(([flow, downInput]) =>
+    [...flow.querySelectorAll<SVGGElement>(':scope > g')].map((group) => {
+      const output = group.hasAttribute('data-flow-output');
+      const paths = [...group.querySelectorAll('path')];
+      for (const path of paths) {
+        path.setAttribute('pathLength', '1');
+        path.setAttribute('stroke-dasharray', '1 1');
+      }
+      return { group, paths, output, down: output ? !downInput : downInput };
+    }),
+  );
+  function render(elapsedMs: number, reducedMotion: boolean) {
+    const phase = Math.floor((elapsedMs % CYCLE_DURATION_MS) / PHRASE_DURATION_MS);
+    const phraseSeconds = (elapsedMs % PHRASE_DURATION_MS) / 1000;
+    // A brief clear interval separates the two multiplication directions.
     const envelope = (start: number) =>
-      smooth((seconds - start) / ENVELOPE.fadeDuration) *
-      (1 - smooth((seconds - ENVELOPE.fadeOutStart) / ENVELOPE.fadeDuration));
+      smooth((phraseSeconds - start) / ENVELOPE.fadeDuration) *
+      (1 - smooth((phraseSeconds - ENVELOPE.fadeOutStart) / ENVELOPE.fadeDuration));
 
     for (const vector of vectors) {
       const alpha = reducedMotion ? 1 : vector.phase === phase ? envelope(vector.delay) : 0;
       const visible = alpha > 0;
       if (!visible && !vector.wasVisible) continue;
       vector.wasVisible = visible;
-      setOpacity(vector.label, alpha);
-      vector.label.setAttribute('visibility', visible ? 'visible' : 'hidden');
-      vector.bars.forEach((bar, index) => {
+      setOpacity(vector.group, alpha);
+      vector.group.setAttribute('visibility', visible ? 'visible' : 'hidden');
+      vector.bars.forEach(({ element: bar, seed, period, offset }, index) => {
         const magnitude = vector.magnitudes[index];
         // Smooth deterministic irregular motion, with a different clock per bar.
-        const seed = (index + 1) * 73 + vector.key.charCodeAt(0) * 19;
         const noise = (step: number) => (((seed * (step * 37 + 17)) % 997) / 996) * 2 - 1;
-        const clock = elapsed / (390 + (seed % 310)) + (seed % 29) / 29;
+        const clock = elapsedMs / period + offset;
         const segment = Math.floor(clock);
         const mix = smooth(clock - segment);
         const jitter = reducedMotion
@@ -130,15 +149,13 @@ export function initializeGpuFigure(
         if (vector.edge !== undefined && vector.anchor !== undefined) {
           bar.setAttribute(vector.edge, String(vector.anchor - size));
         }
-        setOpacity(bar, BAR.opacity * alpha);
-        bar.setAttribute('visibility', size > 0 ? 'visible' : 'hidden');
       });
     }
 
     // Finish sweeping the density mask before revealing the products.
-    const scanProgress = smooth((seconds - SCAN.start) / SCAN.duration);
+    const scanProgress = smooth((phraseSeconds - SCAN.start) / SCAN.duration);
     const scanning =
-      !reducedMotion && seconds >= SCAN.start && seconds < SCAN.start + SCAN.duration;
+      !reducedMotion && phraseSeconds >= SCAN.start && phraseSeconds < SCAN.start + SCAN.duration;
     scanDown.setAttribute(
       'y',
       String(MATRIX.y - SCAN_BAND.height + (MATRIX.height + SCAN_BAND.height) * scanProgress),
@@ -148,8 +165,8 @@ export function initializeGpuFigure(
       String(MATRIX.x - SCAN_BAND.width + (MATRIX.width + SCAN_BAND.width) * scanProgress),
     );
     const scanAlpha =
-      smooth((seconds - SCAN.start) / 0.18) *
-      (1 - smooth((seconds - (SCAN.start + SCAN.duration - 0.18)) / 0.18));
+      smooth((phraseSeconds - SCAN.start) / 0.18) *
+      (1 - smooth((phraseSeconds - (SCAN.start + SCAN.duration - 0.18)) / 0.18));
     setOpacity(scanDown, scanning && phase === 0 ? scanAlpha : 0);
     setOpacity(scanRight, scanning && phase === 1 ? scanAlpha : 0);
     for (const arrow of outputArrows) {
@@ -157,39 +174,30 @@ export function initializeGpuFigure(
         arrow,
         reducedMotion
           ? 0
-          : smooth((seconds - SCAN.resultStart) / SCAN.arrowFadeDuration) *
-              (1 - smooth((seconds - ENVELOPE.fadeOutStart) / ENVELOPE.fadeDuration)),
+          : smooth((phraseSeconds - SCAN.resultStart) / SCAN.arrowFadeDuration) *
+              (1 - smooth((phraseSeconds - ENVELOPE.fadeOutStart) / ENVELOPE.fadeDuration)),
       );
     }
 
     // Reveal shaft then tip along the path; one restrained directional gesture.
-    for (const [flow, downInput] of [
-      [flowA, true],
-      [flowAT, false],
-    ] as const) {
-      for (const group of flow.querySelectorAll<SVGGElement>(':scope > g')) {
-        const output = group.hasAttribute('data-flow-output');
-        const age = seconds - (output ? SCAN.resultStart : ENVELOPE.arrowsStart);
-        const reveal = reducedMotion ? 0 : smooth(age / 0.38);
-        const nudge =
-          age > 0.38 && age < 0.94 ? 1.5 * Math.sin((Math.PI * (age - 0.38)) / 0.56) ** 2 : 0;
-        const down = output ? !downInput : downInput;
-        group.setAttribute('transform', `translate(${down ? 0 : nudge} ${down ? nudge : 0})`);
-        for (const path of group.querySelectorAll('path')) {
-          path.setAttribute('pathLength', '1');
-          path.setAttribute('stroke-dasharray', '1 1');
-          path.setAttribute('stroke-dashoffset', String(1 - reveal));
-        }
+    for (const { group, paths, output, down } of flows) {
+      const age = phraseSeconds - (output ? SCAN.resultStart : ENVELOPE.arrowsStart);
+      const reveal = reducedMotion ? 0 : smooth(age / 0.38);
+      const nudge =
+        age > 0.38 && age < 0.94 ? 1.5 * Math.sin((Math.PI * (age - 0.38)) / 0.56) ** 2 : 0;
+      group.setAttribute('transform', `translate(${down ? 0 : nudge} ${down ? nudge : 0})`);
+      for (const path of paths) {
+        path.setAttribute('stroke-dashoffset', String(1 - reveal));
       }
     }
 
     const breath = reducedMotion
       ? 0
-      : smooth((seconds - LIGHTS.start) / LIGHTS.riseDuration) *
-        (1 - smooth((seconds - LIGHTS.fadeOutStart) / LIGHTS.fadeOutDuration));
+      : smooth((phraseSeconds - LIGHTS.start) / LIGHTS.riseDuration) *
+        (1 - smooth((phraseSeconds - LIGHTS.fadeOutStart) / LIGHTS.fadeOutDuration));
     setOpacity(indicators, LIGHTS.indicatorOpacity * breath);
     setOpacity(chips, LIGHTS.chipOpacity * breath);
-    const travel = Math.max(0, Math.min(1, (seconds - BUS_PULSE.start) / BUS_PULSE.duration));
+    const travel = Math.max(0, Math.min(1, (phraseSeconds - BUS_PULSE.start) / BUS_PULSE.duration));
     const busOpacity = reducedMotion
       ? 0
       : smooth(travel / BUS_PULSE.fadeInFraction) *
@@ -202,9 +210,9 @@ export function initializeGpuFigure(
       );
     }
     const arrows = envelope(ENVELOPE.arrowsStart);
-    setOpacity(flowA, reducedMotion || phase === 1 ? 0 : arrows);
-    setOpacity(flowAT, reducedMotion || phase === 0 ? 0 : arrows);
+    setOpacity(productFlow, reducedMotion || phase === 1 ? 0 : arrows);
+    setOpacity(transposeProductFlow, reducedMotion || phase === 0 ? 0 : arrows);
   }
 
-  return createPlayback(root, browser, render, { startWhen: whenFigureReady });
+  return createFigureClock(root, render, { rate: PLAYBACK_RATE, startWhen: whenFigureReady });
 }

@@ -47,3 +47,35 @@ export const theme = {
 export const themeVariables = Object.entries(theme)
   .map(([name, value]) => `--${name}: ${value}`)
   .join('; ');
+
+// The approved GPU artwork palette; emitted only by its figure document.
+const gpuPalette = {
+  'gpu-primal': '#91afd2',
+  'gpu-dual': '#97b5a8',
+  'gpu-gap': '#d6d6d0',
+  'gpu-text': '#c3cedd',
+  'gpu-rule': '#30373e',
+  'gpu-idle': '#3b4a5a',
+  'gpu-hardware': '#5f7287',
+  'gpu-unit': '#7b8897',
+  'gpu-label': '#87929e',
+  'gpu-channel-label': '#9ba5af',
+  'gpu-active': '#c0d3eb',
+  'gpu-metric': '#d0ddec',
+  'gpu-instance': '#8b949f',
+  'gpu-dimension-label': '#8d97a3',
+  'gpu-title': '#9db3cf',
+  'gpu-caption': '#9eb2cc',
+  'gpu-dimension': '#aec0d7',
+} as const;
+
+// This figure-only initializer is removed from the main-page client bundle.
+export const gpuTheme = /* @__PURE__ */ (() =>
+  ({
+    ...gpuPalette,
+    'gpu-digit-glow': withAlpha(gpuPalette['gpu-metric'], 13),
+    'gpu-indicator-glow': withAlpha(gpuPalette['gpu-primal'], 40),
+    'gpu-ink-clear': withAlpha(palette.ink, 0),
+    'gpu-ink-soft': withAlpha(palette.ink, 16),
+    'gpu-ink-shade': withAlpha(palette.ink, 38),
+  }) as const)();

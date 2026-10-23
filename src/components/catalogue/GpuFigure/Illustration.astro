@@ -2,8 +2,9 @@
 import { Image } from 'astro:assets';
 import GpuMatrixAnimation from './Matrix.astro';
 import matrix from '../../../data/research/rail4284-figure.json';
+import products from '../../../data/research/rail4284-products.json';
 import railwayPhoto from '../../../assets/research/railway-oakland.webp';
-import gpuPlatform from '../../../assets/research/gpu-platform.webp';
+import gpuPlatform from '../../../assets/research/gpu-platform-refined.png';
 
 interface Props {
   id?: string;
@@ -15,17 +16,24 @@ const reflectionId = `${id}-reflection`;
 const variables = (matrix.columns / 1_000_000).toFixed(2);
 const constraints = matrix.rows.toLocaleString('en-US');
 const nonzeros = (matrix.nonzeros / 1_000_000).toFixed(2);
+// This illustration animates the initial recorded vectors. Keep the full recording as source
+// provenance while sending only the frame and global normalization the drawing actually uses.
+const animationProducts = JSON.stringify({
+  maxRms: products.maxRms,
+  frames: [products.frames[0]],
+}).replaceAll('<', '\\u003c');
 ---
 
 <div class="gpu-container">
   <div class="gpu-composition">
+    <script is:inline type="application/json" data-matrix-products set:html={animationProducts} />
     <div class="rail-scene">
       <Image
         src={railwayPhoto}
         widths={[640, 1280]}
         sizes="(max-width: 760px) 100vw, 560px"
         format="webp"
-        quality={80}
+        quality={88}
         alt="Aerial view of the West Oakland rail yards."
         loading="eager"
         decoding="async"
@@ -35,7 +43,7 @@ const nonzeros = (matrix.nonzeros / 1_000_000).toFixed(2);
       <span>Large-scale optimization</span>
       <span>with GPUs</span>
     </h1>
-    <div class="matrix-panel">
+    <div>
       <div class="matrix-artwork">
         <GpuMatrixAnimation maskId={`${id}-density`} />
         <div class="matrix-title">
@@ -57,10 +65,10 @@ const nonzeros = (matrix.nonzeros / 1_000_000).toFixed(2);
     <div class="gpu-platform">
       <Image
         src={gpuPlatform}
-        widths={[400, 800]}
+        widths={[480, 960]}
         sizes="(max-width: 760px) 56vw, 315px"
         format="webp"
-        quality={80}
+        quality={88}
         alt="Illustration of a multi-GPU computing platform."
         loading="lazy"
         decoding="async"
@@ -117,21 +125,21 @@ const nonzeros = (matrix.nonzeros / 1_000_000).toFixed(2);
         <g data-gpu-chips opacity="0">
           {/* Insets follow the two silver die faces; no light spills beyond their packages. */}
           <g fill="var(--signal-light)" opacity=".12">
-            <polygon points="1047,494 1128,445 1217,502 1132,552" />
-            <polygon points="746,678 831,627 920,684 829,744" />
+            <polygon points="1097,517 1155,480 1210,517 1158,551" />
+            <polygon points="791,737 848,701 903,738 848,773" />
           </g>
           <g fill={`url(#${reflectionId})`}>
-            <polygon points="1087,494 1127,469 1170,499 1132,524" />
-            <polygon points="789,680 832,653 876,683 831,711" />
+            <polygon points="1125,517 1155,498 1186,518 1158,536" />
+            <polygon points="819,737 848,718 878,739 848,758" />
           </g>
         </g>
         <g data-gpu-lights opacity="0">
           {/* Paired indicators follow the matching dark front bevel on each module. */}
           {[
-            { x: 512, y: 426 },
-            { x: 777, y: 267 },
-            { x: 712, y: 565 },
-            { x: 980, y: 397 },
+            { x: 500, y: 426 },
+            { x: 796, y: 252 },
+            { x: 720, y: 573 },
+            { x: 1010, y: 391 },
           ].map(({ x, y }) => (
             <g transform={`translate(${x} ${y}) rotate(-29)`}>
               {[-17, 17].map((offset) => (
@@ -148,10 +156,11 @@ const nonzeros = (matrix.nonzeros / 1_000_000).toFixed(2);
   </div>
 </div>
 <script>
-  import products from '../../../data/research/rail4284-products.json';
   import { initializeGpuFigure } from './gpu-matrix-animation';
   for (const root of document.querySelectorAll<HTMLElement>('.gpu-composition')) {
-    initializeGpuFigure(root, products, window);
+    const recording = root.querySelector<HTMLScriptElement>('[data-matrix-products]');
+    if (!recording?.textContent) throw new Error('GPU matrix recording is missing.');
+    initializeGpuFigure(root, JSON.parse(recording.textContent));
   }
 </script>
 
@@ -162,14 +171,14 @@ const nonzeros = (matrix.nonzeros / 1_000_000).toFixed(2);
   .gpu-composition {
     isolation: isolate;
     position: relative;
-    aspect-ratio: 3 / 2;
+    aspect-ratio: 3/2;
     margin: 0;
     width: 100%;
   }
   .rail-scene {
-    inset: 0 0 auto 8%;
+    inset: 1% 0 auto 12%;
     position: absolute;
-    height: 65%;
+    height: 68%;
     overflow: hidden;
   }
   .rail-scene :global(img) {
@@ -178,21 +187,22 @@ const nonzeros = (matrix.nonzeros / 1_000_000).toFixed(2);
     object-fit: cover;
     object-position: 50% 22%;
     width: 100%;
-    filter: saturate(0.76) contrast(1.04) brightness(0.96);
-    mask-image: linear-gradient(180deg, #000 24%, rgb(0 0 0 / 0.78) 48%, transparent 98%);
+    filter: saturate(0.67) contrast(1.04) brightness(0.92);
+    mask-image: linear-gradient(
+      180deg,
+      #000 6%,
+      rgb(0 0 0/0.86) 25%,
+      rgb(0 0 0/0.42) 58%,
+      transparent 96%
+    );
   }
   .rail-scene::after {
     content: '';
     inset: 0;
     position: absolute;
-    background: linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--blue) 18%, transparent),
-      color-mix(in srgb, var(--blue) 10%, transparent) 80%
-    );
-    -webkit-mask-image: linear-gradient(#000, transparent 65%);
-    mask-image: linear-gradient(#000, transparent 65%);
-    mix-blend-mode: color;
+    background:
+      linear-gradient(115deg, var(--gpu-ink-clear) 20%, var(--gpu-ink-soft) 60%),
+      linear-gradient(180deg, transparent 25%, var(--gpu-ink-shade) 56%, var(--ink) 100%);
     pointer-events: none;
   }
   .scene-title {
@@ -202,96 +212,83 @@ const nonzeros = (matrix.nonzeros / 1_000_000).toFixed(2);
     z-index: 1;
     margin: 0;
     padding: 0;
-    font-family: var(--font-serif);
+    font: 400 clamp(24px, 4.65cqw, 35px)/1.04 var(--font-serif);
     font-optical-sizing: auto;
-    font-size: clamp(24px, 4.7cqw, 32px);
-    font-weight: 400;
     letter-spacing: -0.035em;
-    line-height: 1.06;
-    color: var(--blue);
+    color: var(--gpu-title);
   }
   .scene-title span {
     display: table;
-    padding: 3px 17px 5px 0; /* optical: spacing within the illustration */
+    padding: 2px 17px 5px 0; /* optical: spacing within the GPU artwork */
     background: var(--ink);
   }
   .scene-title span + span {
-    padding-bottom: 11px; /* optical: spacing within the illustration */
+    padding-bottom: 10px; /* optical: spacing within the GPU artwork */
     padding-top: 0;
     box-shadow: 0 -1px 0 var(--ink);
   }
   .matrix-artwork {
-    left: -9%;
+    left: -9.2%;
     position: absolute;
-    top: 20%;
-    width: 78%;
+    top: 18.5%;
+    width: 80%;
   }
   .matrix-title {
-    bottom: 13.5%;
+    bottom: 13.3%;
     left: 14.1667%;
     position: absolute;
     display: grid;
-    gap: 2px; /* optical: spacing within the illustration */
+    gap: 3px; /* optical: spacing within the GPU artwork */
     max-width: none;
-    padding: 5px 8px 9px 0; /* optical: spacing within the illustration */
-    font-family: var(--font-mono);
-    font-size: 11px;
-    font-weight: 400;
-    line-height: 1.3;
+    padding: 5px 10px 7px 0; /* optical: spacing within the GPU artwork */
+    font: 400 10px/1.35 var(--font-mono);
     background: var(--ink);
-    color: var(--blue);
+    color: var(--gpu-caption);
   }
   .matrix-title span {
-    font-size: 11px;
-    font-weight: 400;
-    color: var(--muted);
+    font-size: 10px;
+    color: var(--gpu-instance);
   }
   .matrix-stats {
-    bottom: auto;
     left: 2.1%;
     position: absolute;
-    top: 86%;
+    top: 88%;
     align-items: baseline;
-    column-gap: 18px; /* optical: spacing within the illustration */
+    column-gap: 16px; /* optical: spacing within the GPU artwork */
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     margin: 0;
     width: 54%;
-    font-family: var(--font-mono);
-    font-size: 16px;
-    font-variant-numeric: lining-nums tabular-nums;
-    font-weight: 400;
-    letter-spacing: 0;
-    line-height: 20px;
-    color: var(--blue);
+    font: 400 14px/20px var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.025em;
+    color: var(--gpu-dimension);
   }
   .matrix-stats > span {
     align-items: flex-start;
     display: flex;
     flex-direction: column;
-    gap: 9px; /* optical: spacing within the illustration */
+    gap: 5px; /* optical: spacing within the GPU artwork */
     white-space: nowrap;
   }
   .matrix-stats small {
-    font-size: 12px;
-    font-weight: 400;
+    font: 400 11px/16px var(--font);
     letter-spacing: 0;
-    line-height: 16px;
-    color: var(--muted);
+    color: var(--gpu-dimension-label);
   }
   .gpu-platform {
     position: absolute;
     right: -1%;
-    top: 48%;
+    top: 47%;
     z-index: 3;
-    width: 44%;
+    width: 46%;
     text-align: right;
   }
   .gpu-platform :global(img) {
     display: block;
     height: auto;
     width: 100%;
-    filter: saturate(0.42) brightness(1.12) contrast(1.04);
+    filter: saturate(0.73) brightness(0.9) contrast(1.06);
   }
   .gpu-lights {
     inset: 0;
@@ -300,67 +297,86 @@ const nonzeros = (matrix.nonzeros / 1_000_000).toFixed(2);
     width: 100%;
     pointer-events: none;
   }
-  @container (max-width: 480px) {
+  @container (max-width:480px) {
     .gpu-composition {
-      aspect-ratio: 1 / 1.2;
-      margin-bottom: -7%;
+      aspect-ratio: 1/1.13;
     }
     .rail-scene {
-      left: 4%;
-      height: 48%;
+      left: 7%;
+      height: 47%;
+    }
+    .rail-scene :global(img) {
+      mask-image: linear-gradient(
+        180deg,
+        #000,
+        rgba(0, 0, 0, 0.85) 27%,
+        rgba(0, 0, 0, 0.24) 73%,
+        transparent 100%
+      );
     }
     .scene-title {
-      font-size: 23px;
+      font-size: clamp(20px, 6cqw, 26px);
     }
     .scene-title span {
-      padding-right: 12px; /* optical: spacing within the illustration */
+      padding-right: 12px; /* optical: spacing within the GPU artwork */
     }
     .matrix-artwork {
-      left: -11%;
-      top: 25%;
-      width: 100%;
+      left: -6%;
+      top: 24%;
+      width: 107%;
     }
     .matrix-title {
-      max-width: 55%;
+      bottom: 13%;
+      gap: 2px; /* optical: spacing within the GPU artwork */
+      max-width: 57%;
+      font-size: 9px;
+    }
+    .matrix-title span {
+      font-size: 9px;
     }
     .gpu-platform {
-      top: 54%;
-      width: 54%;
+      right: -3%;
+      top: 57%;
+      width: 57%;
     }
     .matrix-stats {
-      left: 2%;
-      top: 72%;
+      left: 2.1%;
+      top: 78%;
       align-items: stretch;
       display: flex;
       flex-direction: column;
-      gap: 8px; /* optical: spacing within the illustration */
-      width: 49%;
-      font-size: 14px;
-      line-height: 18px;
+      gap: 7px; /* optical: spacing within the GPU artwork */
+      width: 46%;
+      font-size: 12px;
+      line-height: 17px;
     }
     .matrix-stats > span {
       align-items: baseline;
       flex-direction: row;
-      gap: 10px; /* optical: spacing within the illustration */
+      gap: 8px; /* optical: spacing within the GPU artwork */
       justify-content: space-between;
     }
     .matrix-stats small {
-      font-size: 11px;
-      line-height: 18px;
-    }
-    :global(.formula) {
-      font-size: 24px;
+      font-size: 10px;
+      line-height: 17px;
     }
   }
-  @container (max-width: 320px) {
+  @container (max-width:320px) {
     .gpu-composition {
-      aspect-ratio: 1 / 1.36;
+      aspect-ratio: 1/1.23;
     }
     .matrix-artwork {
-      top: 27%;
+      top: 26%;
     }
     .gpu-platform {
-      top: 55%;
+      top: 58%;
+    }
+    .matrix-stats {
+      top: 78%;
+      font-size: 11px;
+    }
+    .matrix-stats small {
+      font-size: 9px;
     }
   }
 </style>

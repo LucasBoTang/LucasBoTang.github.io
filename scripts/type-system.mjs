@@ -11,6 +11,7 @@ const ARTWORK = new Set([
   'src/components/catalogue/DflFigure/Illustration.astro',
   'src/components/catalogue/GpuFigure/Illustration.astro',
   'src/components/catalogue/GpuFigure/Matrix.astro',
+  'src/components/catalogue/GpuFigure/Instrument.astro',
 
   'src/components/catalogue/ProjectWordmark/ProjectWordmark.astro',
   'src/components/home/AboutSection/DecisionSign.astro',
