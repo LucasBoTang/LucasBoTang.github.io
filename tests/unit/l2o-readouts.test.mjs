@@ -150,3 +150,31 @@ test('a reduced-motion switch settles unchanged final-checkpoint digits and stat
   );
   assert.ok([f.step, f.state, f.value].every((slot) => slot.children.length === 0));
 });
+
+test('prediction fields reserve sign and decimal columns through animated and steady readings', (t) => {
+  const f = fixture(t);
+  const row = f.value.ownerDocument.createElement('div');
+  row.className = 'prediction-readings';
+  f.value.parentNode.append(row);
+  row.append(f.value);
+  for (const [value, aligned] of [
+    ['−1.125', '−1.125'],
+    ['2.889', '\u00a02.889'],
+    ['4', '\u00a04\u00a0\u00a0\u00a0\u00a0'],
+    ['−1', '−1\u00a0\u00a0\u00a0\u00a0'],
+  ]) {
+    f.write(f.value, value, true);
+    assert.equal(
+      [...f.value.querySelectorAll('.readout-current')].map((cell) => cell.textContent).join(''),
+      aligned,
+    );
+    assert.equal(f.value.getAttribute('aria-label'), value);
+    assert.equal(f.value.dataset.readingValue, value);
+  }
+  f.reduce();
+  f.write(f.value, '2.889');
+  assert.equal(f.value.textContent, '\u00a02.889');
+  f.settle();
+  assert.equal(f.value.textContent, '\u00a02.889');
+  assert.equal(f.value.getAttribute('aria-label'), '2.889');
+});

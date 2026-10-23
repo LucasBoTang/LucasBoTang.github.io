@@ -302,8 +302,12 @@ import recording from '../../../data/research/l2o-training-snapshots.json';
     left: 0;
     position: absolute;
     right: auto;
-    top: 223px;
+    top: 215px;
     z-index: 2;
+    display: grid;
+    gap: 6px; /* optical: match the label-to-value spacing of the prediction readouts. */
+    grid-template-rows: 12px 24px;
+    padding: 0 8px; /* optical: share the neighboring panel inset. */
     width: 40%;
   }
   .eyeline {
@@ -311,21 +315,26 @@ import recording from '../../../data/research/l2o-training-snapshots.json';
     color: inherit;
   }
   .parameter-values {
-    display: inline-flex;
-    gap: 18px; /* optical: space the paired parameter symbols and readings. */
-    margin-top: 8px; /* optical: space the paired parameter symbols and readings. */
+    display: grid;
+    gap: 8px; /* optical: use the same paired reading rhythm as the prediction instruments. */
+    grid-template-columns: repeat(2, max-content);
+    height: 24px;
+    width: max-content;
+    font: 400 var(--readout-size)/24px var(--font-mono);
     color: var(--reading);
   }
   .parameter-values > span {
     align-items: baseline;
-    display: flex;
-    gap: 9px; /* optical: space the paired parameter symbols and readings. */
+    display: grid;
+    gap: 4px; /* optical: share the fixed symbol-to-number spacing of all other readings. */
+    grid-template-columns: 20px 6ch;
+    height: 24px;
   }
   .parameter-values :global(math) {
     font-size: 17px;
   }
   .parameter-values b {
-    font: 400 var(--readout-size)/1.3 var(--font-mono);
+    font: inherit;
     font-variant-numeric: tabular-nums;
   }
   .instrument-panel {
@@ -365,10 +374,10 @@ import recording from '../../../data/research/l2o-training-snapshots.json';
     letter-spacing: -0.015em;
   }
   .network-face h3 {
-    left: 10px;
+    left: 8px;
     position: absolute;
-    top: 10px;
-    font: 11px/1.3 var(--font-mono);
+    top: 8px;
+    font: 11px/14px var(--font-mono);
     font-weight: 500;
     letter-spacing: -0.035em;
     color: #a6bad0;
@@ -390,7 +399,7 @@ import recording from '../../../data/research/l2o-training-snapshots.json';
     height: 54px;
     min-width: 0;
     outline-offset: 3px;
-    padding: 8px 5px; /* optical: align symbols and values within the fixed instrument strip. */
+    padding: 8px; /* optical: align the title and reading to one shared panel inset. */
     background: none;
   }
   .panel-readout .eyeline {
@@ -400,8 +409,8 @@ import recording from '../../../data/research/l2o-training-snapshots.json';
   }
   .prediction-readings {
     display: grid;
-    gap: 4px; /* optical: align symbols and values within the fixed instrument strip. */
-    grid-template-columns: 1fr 1fr;
+    gap: 8px; /* optical: align symbols and values within the fixed instrument strip. */
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     height: 24px;
     margin: 0;
     font: 400 var(--readout-size)/24px var(--font-mono);
@@ -409,8 +418,8 @@ import recording from '../../../data/research/l2o-training-snapshots.json';
   .prediction-readings > span {
     align-items: baseline;
     display: grid;
-    gap: 2px; /* optical: align symbols and values within the fixed instrument strip. */
-    grid-template-columns: 16px minmax(0, 1fr);
+    gap: 4px; /* optical: reserve the same symbol, sign and decimal columns in every pair. */
+    grid-template-columns: 20px 6ch;
     height: 24px;
     white-space: nowrap;
   }
@@ -450,17 +459,17 @@ import recording from '../../../data/research/l2o-training-snapshots.json';
   .variable-visual {
     display: grid;
     gap: 4px; /* optical: fit the heading, diagram and operation within the illustration panel. */
-    grid-template-rows: 14px 40px 40px;
+    grid-template-rows: 14px repeat(2, minmax(0, 1fr));
     border-top: 1px solid #647e985e;
     height: 106px;
-    padding: 10px 10px 0; /* optical: fit the heading, diagram and operation within the illustration panel. */
+    padding: 8px 8px 0; /* optical: match the neighboring panels without overflowing the readout. */
     background: linear-gradient(145deg, #23303d66, #10111300 80%);
     clip-path: none;
     color: #b8cadc;
   }
   .variable-visual > h3 {
     margin: 0;
-    font: 500 12px/14px var(--font-mono);
+    font: 500 11px/14px var(--font-mono);
     letter-spacing: -0.035em;
     color: #a6bad0;
   }
@@ -468,9 +477,7 @@ import recording from '../../../data/research/l2o-training-snapshots.json';
     position: relative;
     min-height: 0;
     min-width: 0;
-    padding: 4px 6px; /* optical: fit the heading, diagram and operation within the illustration panel. */
-    padding-left: 0;
-    padding-right: 0;
+    padding: 2px 0; /* optical: keep both mathematical operations inside the shared panel height. */
     background: none;
     color: var(--module-ink);
   }
@@ -557,7 +564,7 @@ import recording from '../../../data/research/l2o-training-snapshots.json';
   .loss-terms > div {
     align-items: center;
     display: flex;
-    gap: 7px; /* optical: align the loss expression with its three recorded values. */
+    gap: 8px; /* optical: align the loss expression with its three recorded values. */
   }
   .loss-terms svg {
     flex: none;
@@ -583,7 +590,7 @@ import recording from '../../../data/research/l2o-training-snapshots.json';
     align-content: center;
     display: grid;
     gap: 8px; /* optical: align the loss expression with its three recorded values. */
-    grid-template-columns: 1.15fr 1fr 0.8fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     border-color: #354352;
     border-left: 1px solid #aebdc92b;
     border-left-color: #9aaac12b;
@@ -592,7 +599,7 @@ import recording from '../../../data/research/l2o-training-snapshots.json';
   .loss-readings > div {
     display: flex;
     flex-direction: column;
-    gap: 7px; /* optical: align the loss expression with its three recorded values. */
+    gap: 8px; /* optical: align the loss expression with its three recorded values. */
   }
   .loss-readings .eyeline {
     font-size: 10px;
@@ -635,9 +642,8 @@ import recording from '../../../data/research/l2o-training-snapshots.json';
       --module-ink: #b8cadc;
       --output-field: transparent;
       --reading: #c4d0db;
+      --readout-size: 12px;
       --surface-top-trim: 16px;
-      --update-icon-lane: 34px;
-      --update-label-width: 54px;
       --value-ink: #d5e0eb;
       aspect-ratio: auto;
       height: calc(648px - var(--surface-top-trim));
@@ -681,18 +687,22 @@ import recording from '../../../data/research/l2o-training-snapshots.json';
       left: 0;
       right: auto;
       top: calc(224px - var(--surface-top-trim));
-      display: block;
+      display: grid;
+      gap: 4px; /* optical: match the compact prediction label and reading rows. */
+      grid-template-rows: 10px 20px;
       height: 48px;
-      padding: 0;
+      padding: 0 4px; /* optical: share the compact readout inset. */
       width: 100%;
       transform: none;
     }
     .parameter-values {
-      display: flex;
-      gap: 30px; /* optical: space the paired parameter symbols and readings. */
-      grid-template-columns: max-content max-content;
-      margin-top: 8px; /* optical: space the paired parameter symbols and readings. */
+      gap: 4px; /* optical: match the compact paired reading columns. */
+      height: 20px;
       width: max-content;
+      line-height: 20px;
+    }
+    .parameter-values > span {
+      height: 20px;
     }
     .parameter-values :global(math) {
       font-size: 16px;
@@ -725,9 +735,9 @@ import recording from '../../../data/research/l2o-training-snapshots.json';
       color: #b8cadc;
     }
     .network-face h3 {
-      left: 9px;
-      top: 10px;
-      font: 500 11px/1.3 var(--font-mono);
+      left: 4px;
+      top: 8px;
+      font: 500 11px/14px var(--font-mono);
       letter-spacing: -0.035em;
       color: #a6bad0;
     }
@@ -741,7 +751,7 @@ import recording from '../../../data/research/l2o-training-snapshots.json';
       grid-template-rows: 10px 20px;
       border-top: 1px solid #35435266;
       height: 54px;
-      padding: 8px 5px; /* optical: align symbols and values within the fixed instrument strip. */
+      padding: 8px 4px; /* optical: share the compact panel inset without clipping signed values. */
       background: none;
     }
     .prediction-readings {
@@ -750,8 +760,6 @@ import recording from '../../../data/research/l2o-training-snapshots.json';
       font: 400 var(--readout-size)/20px var(--font-mono);
     }
     .prediction-readings > span {
-      gap: 2px; /* optical: align symbols and values within the fixed instrument strip. */
-      grid-template-columns: 16px minmax(0, 1fr);
       height: 20px;
     }
     .prediction-readings :global(math) {
@@ -773,12 +781,12 @@ import recording from '../../../data/research/l2o-training-snapshots.json';
     }
     .variable-visual {
       display: grid;
-      gap: 5px; /* optical: fit the heading, diagram and operation within the illustration panel. */
-      grid-template-columns: 1fr 1fr;
-      grid-template-rows: 12px 30px;
+      gap: 5px 12px; /* optical: separate the two operations while reserving room for the integer formula. */
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
+      grid-template-rows: 14px minmax(0, 1fr);
       border-top: 1px solid #647e985e;
       height: 60px;
-      padding: 6px; /* optical: fit the heading, diagram and operation within the illustration panel. */
+      padding: 6px 4px; /* optical: share the compact panel inset while preserving its fixed height. */
       background: linear-gradient(145deg, #23303d66, #10111300 80%);
       clip-path: none;
       color: #b8cadc;
@@ -786,25 +794,23 @@ import recording from '../../../data/research/l2o-training-snapshots.json';
     .variable-visual > h3 {
       grid-column: 1/-1;
       margin: 0;
-      font: 11px/1.3 var(--font-mono);
-      font-weight: 400;
+      font: 500 11px/14px var(--font-mono);
       letter-spacing: -0.035em;
       color: #a6bad0;
     }
     .operation {
-      align-items: center;
       display: block;
-      grid-template-columns: var(--update-label-width) minmax(0, 1fr);
-      height: 30px;
+      height: 28px;
       padding: 0;
     }
     .operation-heading {
       height: auto;
-      font-size: 9.5px;
-      line-height: 1.2;
+      font-size: 9px;
+      line-height: 10px;
       color: #8296ac;
     }
     .operation-body {
+      gap: 6px; /* optical: keep each icon visibly attached to its own formula. */
       height: 18px;
       margin-top: 0;
       padding: 0;
@@ -815,29 +821,29 @@ import recording from '../../../data/research/l2o-training-snapshots.json';
         serif;
     }
     .operation-body > svg {
-      right: 0;
-      top: 3px;
+      position: static;
       height: 18px;
-      width: 28px;
+      width: 24px;
     }
     .integer-output {
       gap: 1px; /* optical: fit the heading, diagram and operation within the illustration panel. */
       grid-template-rows: 11px 20px;
       height: 44px;
-      padding: 8px 5px; /* optical: fit the heading, diagram and operation within the illustration panel. */
+      padding: 4px; /* optical: keep the reading inset while clearing the longer downward arrow. */
       width: 100%;
     }
     .integer-output .eyeline {
       font-size: 9px;
-      text-align: center;
+      text-align: left;
     }
     .integer-output .prediction-readings {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 24px; /* optical: center both predictions as one compact pair. */
+      grid-template-columns: repeat(2, max-content);
+      justify-content: center;
       height: 20px;
     }
     .integer-output .prediction-readings > span {
-      gap: 6px; /* optical: align symbols and values within the fixed instrument strip. */
-      grid-template-columns: 16px 6ch;
+      grid-template-columns: 20px 6ch;
       justify-content: center;
       height: 20px;
     }
@@ -849,34 +855,37 @@ import recording from '../../../data/research/l2o-training-snapshots.json';
       bottom: 0;
       left: 0;
       top: calc(588px - var(--surface-top-trim));
-      gap: 16px; /* optical: align the loss expression with its three recorded values. */
-      grid-template-columns: 1fr 1fr;
-      grid-template-rows: 1fr;
+      gap: 4px; /* optical: separate the full-width equation from its three reading columns. */
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: 18px minmax(0, 1fr);
       border-top: 1px solid #687f955c;
       height: 60px;
-      padding: 10px 0 0; /* optical: align the loss expression with its three recorded values. */
+      padding: 8px 4px 0; /* optical: fit the equation and readings inside the existing strip height. */
       width: 100%;
       background: none;
       transform: none;
     }
     .loss-explanation {
-      display: flex;
-      gap: 3px; /* optical: align the loss expression with its three recorded values. */
-      grid-template-columns: 36px minmax(0, 1fr);
+      display: grid;
+      gap: 8px; /* optical: separate the Loss label from the centered equation. */
+      grid-template-columns: 40px minmax(0, 1fr);
       padding: 0;
       background: none;
     }
     .loss-explanation h3 {
+      justify-items: start;
       border: 0;
       min-width: 20px;
       font: 500 11px var(--font-mono);
     }
     .loss-terms {
       display: flex;
-      flex-direction: column;
-      gap: 0;
+      flex-direction: row;
+      gap: 6px; /* optical: retain clear separation around the plus sign and both icon groups. */
+      min-width: 0;
       font-size: 8px;
       line-height: 1.2;
+      text-align: center;
       color: #9cadbe;
     }
     .loss-terms > div {
@@ -884,9 +893,9 @@ import recording from '../../../data/research/l2o-training-snapshots.json';
       justify-content: center;
     }
     .loss-terms svg {
-      display: none;
-      height: 15px;
-      width: 19px;
+      display: block;
+      height: 14px;
+      width: 18px;
     }
     .loss-plus {
       padding-left: 0;
@@ -898,7 +907,7 @@ import recording from '../../../data/research/l2o-training-snapshots.json';
       grid-template-columns: repeat(3, minmax(0, 1fr));
       border-left: 0;
       border-color: #354352;
-      padding: 4px; /* optical: align the loss expression with its three recorded values. */
+      padding: 0;
     }
     .loss-readings > div {
       align-items: center;
@@ -910,11 +919,6 @@ import recording from '../../../data/research/l2o-training-snapshots.json';
     }
     .parameter-chip {
       height: 20px;
-      width: 18px;
-    }
-    .variable-visual h3 {
-      grid-column: 1/-1;
-      font: 500 11px/12px var(--font-mono);
     }
   }
   .training-connections :global(path:not(.signal)) {
@@ -934,12 +938,12 @@ import recording from '../../../data/research/l2o-training-snapshots.json';
   }
   @container (max-width: 560px) {
     .integer-operation::before {
-      bottom: auto;
-      left: var(--update-label-width);
-      right: var(--update-icon-lane);
-      top: -2px;
-      height: 1px;
-      width: auto;
+      bottom: 0;
+      left: -6px;
+      right: auto;
+      top: 0;
+      height: auto;
+      width: 1px;
       background: #8398ac30;
     }
   }

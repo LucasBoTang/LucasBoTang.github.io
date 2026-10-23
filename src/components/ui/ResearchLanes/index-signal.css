@@ -1,5 +1,5 @@
-/* The ink stays readable; unequal cycles give the plate, ink and tracking mark separate
-   registration. The existing lane activity state pauses every layer together. */
+/* The ink stays readable while it and the plate keep separate registration.
+   The existing lane activity state pauses both layers together. */
 @media (min-width: 721px) and (prefers-reduced-motion: no-preference) {
   nav[data-reading-index]
     .research-navigator--index[data-motion-ready]
@@ -13,11 +13,6 @@
   }
   nav[data-reading-index]
     .research-navigator--index[data-motion-ready]
-    a.research-link[aria-current='location']::after {
-    animation: index-tracking-mark 1.91s steps(1, end) infinite;
-  }
-  nav[data-reading-index]
-    .research-navigator--index[data-motion-ready]
     a.research-link[aria-current='location']
     .link-label::before {
     animation: index-fine-tear 9.75s steps(1, end) infinite;
@@ -28,9 +23,6 @@
   nav[data-reading-index]
     .research-navigator--index[data-motion-suspended]
     a.research-link[aria-current='location']::before,
-  nav[data-reading-index]
-    .research-navigator--index[data-motion-suspended]
-    a.research-link[aria-current='location']::after,
   nav[data-reading-index]
     .research-navigator--index[data-motion-suspended]
     a.research-link[aria-current='location']
@@ -98,49 +90,6 @@
     }
     88% {
       translate: 0.3px 0;
-    }
-  }
-  @keyframes index-tracking-mark {
-    0%,
-    100% {
-      opacity: 0.93;
-      translate: 0.25px -0.18px;
-    }
-    8% {
-      opacity: 0.83;
-      translate: -0.38px 0.1px;
-    }
-    19% {
-      opacity: 1;
-      translate: 0.16px 0.26px;
-    }
-    31% {
-      opacity: 0.91;
-      translate: 0.46px -0.08px;
-    }
-    39% {
-      opacity: 0.85;
-      translate: -0.2px 0.2px;
-    }
-    53% {
-      opacity: 0.98;
-      translate: -0.44px -0.24px;
-    }
-    64% {
-      opacity: 0.88;
-      translate: 0.31px 0.06px;
-    }
-    73% {
-      opacity: 0.95;
-      translate: -0.12px 0.28px;
-    }
-    87% {
-      opacity: 0.82;
-      translate: 0.42px -0.12px;
-    }
-    94% {
-      opacity: 0.97;
-      translate: -0.29px 0.04px;
     }
   }
   @keyframes index-fine-tear {

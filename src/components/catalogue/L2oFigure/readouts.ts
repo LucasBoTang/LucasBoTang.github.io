@@ -41,6 +41,16 @@ export function createReadoutWriter(
   isReduced: () => boolean,
 ) {
   const displayedValues = new WeakMap<HTMLElement, string>();
+  // One sign/units field and one fractional field keep the decimal position fixed.
+  // Integers keep an empty fractional field; recorded and accessible values stay unchanged.
+  const presentation = (slot: HTMLElement, value: string) => {
+    if (!slot.closest('.prediction-readings')) return value;
+    const [whole, fraction] = value.split('.');
+    return (whole.padStart(2, '\u00a0') + (fraction === undefined ? '' : `.${fraction}`)).padEnd(
+      6,
+      '\u00a0',
+    );
+  };
   function updateReading(slot: HTMLElement, value: string, refresh = false) {
     const previous = displayedValues.get(slot) ?? slot.textContent?.trim() ?? '—';
     if (previous === value && !refresh) return;
@@ -50,7 +60,7 @@ export function createReadoutWriter(
     slot.replaceChildren();
     slot.setAttribute('aria-label', value);
     if (isReduced()) {
-      slot.textContent = value;
+      slot.textContent = presentation(slot, value);
       return;
     }
     if (slot === stateSlot) {
@@ -87,9 +97,11 @@ export function createReadoutWriter(
     }
     // Preserve the Step counter's units column, including its waiting dash.
     const hudNumber = slot === stepSlot;
-    const length = Math.max(hudNumber ? 5 : 0, previous.length, value.length);
-    const oldValue = hudNumber ? previous.padStart(length) : previous.padEnd(length);
-    const newValue = hudNumber ? value.padStart(length) : value.padEnd(length);
+    const before = presentation(slot, previous),
+      after = presentation(slot, value);
+    const length = Math.max(hudNumber ? 5 : 0, before.length, after.length);
+    const oldValue = hudNumber ? before.padStart(length) : before.padEnd(length);
+    const newValue = hudNumber ? after.padStart(length) : after.padEnd(length);
     const strip = document.createElement('span');
     strip.className = 'readout-strip';
     strip.setAttribute('aria-hidden', 'true');
@@ -142,7 +154,7 @@ export function createReadoutWriter(
       for (const slot of slots) {
         const value = displayedValues.get(slot) ?? slot.textContent?.trim() ?? '—';
         slot.getAnimations({ subtree: true }).forEach((animation) => animation.cancel());
-        slot.textContent = value;
+        slot.textContent = presentation(slot, value);
         slot.setAttribute('aria-label', value);
       }
     },
