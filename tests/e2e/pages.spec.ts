@@ -16,7 +16,7 @@ const viewports = [
 for (const route of [...routes, missingPageRoute]) {
   for (const { width, reducedMotion } of viewports) {
     test(`${route} loads cleanly at ${width}px with ${reducedMotion} motion`, async ({ page }) => {
-      const errors = watchErrors(page);
+      const errors = watchErrors(page, route === missingPageRoute ? missingPageRoute : undefined);
       await page.emulateMedia({ reducedMotion });
       await page.setViewportSize({ width, height: 900 });
       await page.goto(route);

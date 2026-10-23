@@ -2,6 +2,7 @@ import { smoothstep as smooth } from '../../../lib/easing.ts';
 import { createFigureClock } from '../../../lib/figure-clock.ts';
 import { whenFigureReady } from '../../../lib/figure-ready';
 import { MATRIX, SCAN_BAND } from './gpu-layout.ts';
+import { matrixMotionAt, matrixPlaybackRate } from './matrix-motion.ts';
 
 type VectorKey = 'x' | 'a' | 'y' | 'at';
 interface MatrixProductRecording {
@@ -11,49 +12,18 @@ interface MatrixProductRecording {
 interface VectorLayout {
   key: VectorKey;
   phase: 0 | 1;
-  delay: number;
+  result: boolean;
   dimension: 'height' | 'width';
   edge?: 'x' | 'y';
   anchor?: number;
 }
 
-const PHRASE_DURATION_MS = 2700;
-const CYCLE_DURATION_MS = 2 * PHRASE_DURATION_MS;
-// Ease the complete breath together, retaining the relative scan and light choreography.
-const PLAYBACK_RATE = 0.85;
-// Envelope and hardware timings are in seconds within each phrase.
-// The result's rise meets its release: one breath, without a display plateau.
-const ENVELOPE = { fadeDuration: 0.5, fadeOutStart: 2, arrowsStart: 0.4 };
-const SCAN = {
-  start: 0.65,
-  duration: 0.8,
-  resultStart: 1.5,
-  arrowFadeDuration: 0.3,
-};
-const LIGHTS = {
-  start: 0.4,
-  riseDuration: 0.65,
-  fadeOutStart: 1.7,
-  fadeOutDuration: 0.7,
-  indicatorOpacity: 0.85,
-  chipOpacity: 0.9,
-};
-const BUS_PULSE = {
-  start: 0.65,
-  duration: 1.35,
-  fadeInFraction: 0.18,
-  fadeOutStart: 0.78,
-  fadeOutFraction: 0.22,
-  opacity: 0.85,
-  initialOffset: 18,
-  travelDistance: 136,
-};
 const BAR = { minimumSize: 3, sizeRange: 21, opacity: 0.85, logGain: 9 };
 const VECTOR_LAYOUT: VectorLayout[] = [
-  { key: 'x', phase: 0, delay: 0, dimension: 'height', edge: 'y', anchor: 135 },
-  { key: 'a', phase: 0, delay: SCAN.resultStart, dimension: 'width' },
-  { key: 'y', phase: 1, delay: 0, dimension: 'width', edge: 'x', anchor: 69 },
-  { key: 'at', phase: 1, delay: SCAN.resultStart, dimension: 'height' },
+  { key: 'x', phase: 0, result: false, dimension: 'height', edge: 'y', anchor: 135 },
+  { key: 'a', phase: 0, result: true, dimension: 'width' },
+  { key: 'y', phase: 1, result: false, dimension: 'width', edge: 'x', anchor: 69 },
+  { key: 'at', phase: 1, result: true, dimension: 'height' },
 ];
 
 /** Find a part of GpuFigure's own markup, failing loudly if it is missing. */
@@ -126,15 +96,11 @@ export function initializeGpuFigure(root: HTMLElement, products: MatrixProductRe
     }),
   );
   function render(elapsedMs: number, reducedMotion: boolean) {
-    const phase = Math.floor((elapsedMs % CYCLE_DURATION_MS) / PHRASE_DURATION_MS);
-    const phraseSeconds = (elapsedMs % PHRASE_DURATION_MS) / 1000;
-    // A brief clear interval separates the two multiplication directions.
-    const envelope = (start: number) =>
-      smooth((phraseSeconds - start) / ENVELOPE.fadeDuration) *
-      (1 - smooth((phraseSeconds - ENVELOPE.fadeOutStart) / ENVELOPE.fadeDuration));
+    const motion = matrixMotionAt(elapsedMs, reducedMotion);
 
     for (const vector of vectors) {
-      const alpha = reducedMotion ? 1 : vector.phase === phase ? envelope(vector.delay) : 0;
+      const opacity = vector.result ? motion.resultOpacity : motion.inputOpacity;
+      const alpha = reducedMotion ? 1 : vector.phase === motion.phase ? opacity : 0;
       const visible = alpha > 0;
       if (!visible && !vector.wasVisible) continue;
       vector.wasVisible = visible;
@@ -159,71 +125,35 @@ export function initializeGpuFigure(root: HTMLElement, products: MatrixProductRe
       });
     }
 
-    // Finish sweeping the density mask before revealing the products.
-    const scanProgress = smooth((phraseSeconds - SCAN.start) / SCAN.duration);
-    const scanning =
-      !reducedMotion && phraseSeconds >= SCAN.start && phraseSeconds < SCAN.start + SCAN.duration;
     setAttribute(
       scanDown,
       'y',
-      MATRIX.y - SCAN_BAND.height + (MATRIX.height + SCAN_BAND.height) * scanProgress,
+      MATRIX.y - SCAN_BAND.height + (MATRIX.height + SCAN_BAND.height) * motion.scanProgress,
     );
     setAttribute(
       scanRight,
       'x',
-      MATRIX.x - SCAN_BAND.width + (MATRIX.width + SCAN_BAND.width) * scanProgress,
+      MATRIX.x - SCAN_BAND.width + (MATRIX.width + SCAN_BAND.width) * motion.scanProgress,
     );
-    const scanAlpha =
-      smooth((phraseSeconds - SCAN.start) / 0.18) *
-      (1 - smooth((phraseSeconds - (SCAN.start + SCAN.duration - 0.18)) / 0.18));
-    setOpacity(scanDown, scanning && phase === 0 ? scanAlpha : 0);
-    setOpacity(scanRight, scanning && phase === 1 ? scanAlpha : 0);
-    for (const arrow of outputArrows) {
-      setOpacity(
-        arrow,
-        reducedMotion
-          ? 0
-          : smooth((phraseSeconds - SCAN.resultStart) / SCAN.arrowFadeDuration) *
-              (1 - smooth((phraseSeconds - ENVELOPE.fadeOutStart) / ENVELOPE.fadeDuration)),
-      );
-    }
+    setOpacity(scanDown, motion.downScanOpacity);
+    setOpacity(scanRight, motion.rightScanOpacity);
+    for (const arrow of outputArrows) setOpacity(arrow, motion.outputArrowOpacity);
 
-    // Reveal shaft then tip along the path; one restrained directional gesture.
     for (const { group, paths, output, down } of flows) {
-      const age = phraseSeconds - (output ? SCAN.resultStart : ENVELOPE.arrowsStart);
-      const reveal = reducedMotion ? 0 : smooth(age / 0.38);
-      const nudge =
-        age > 0.38 && age < 0.94 ? 1.5 * Math.sin((Math.PI * (age - 0.38)) / 0.56) ** 2 : 0;
-      const shift = Math.round(nudge * 1000) / 1000;
+      const { reveal, shift } = output ? motion.outputFlow : motion.inputFlow;
       setAttribute(group, 'transform', `translate(${down ? 0 : shift} ${down ? shift : 0})`);
       for (const path of paths) {
         setAttribute(path, 'stroke-dashoffset', 1 - reveal);
       }
     }
 
-    const breath = reducedMotion
-      ? 0
-      : smooth((phraseSeconds - LIGHTS.start) / LIGHTS.riseDuration) *
-        (1 - smooth((phraseSeconds - LIGHTS.fadeOutStart) / LIGHTS.fadeOutDuration));
-    setOpacity(indicators, LIGHTS.indicatorOpacity * breath);
-    setOpacity(chips, LIGHTS.chipOpacity * breath);
-    const travel = Math.max(0, Math.min(1, (phraseSeconds - BUS_PULSE.start) / BUS_PULSE.duration));
-    const busOpacity = reducedMotion
-      ? 0
-      : smooth(travel / BUS_PULSE.fadeInFraction) *
-        (1 - smooth((travel - BUS_PULSE.fadeOutStart) / BUS_PULSE.fadeOutFraction));
-    setOpacity(bus, BUS_PULSE.opacity * busOpacity);
-    for (const pulse of pulses) {
-      setAttribute(
-        pulse,
-        'stroke-dashoffset',
-        BUS_PULSE.initialOffset - BUS_PULSE.travelDistance * travel,
-      );
-    }
-    const arrows = envelope(ENVELOPE.arrowsStart);
-    setOpacity(productFlow, reducedMotion || phase === 1 ? 0 : arrows);
-    setOpacity(transposeProductFlow, reducedMotion || phase === 0 ? 0 : arrows);
+    setOpacity(indicators, motion.indicatorOpacity);
+    setOpacity(chips, motion.chipOpacity);
+    setOpacity(bus, motion.busOpacity);
+    for (const pulse of pulses) setAttribute(pulse, 'stroke-dashoffset', motion.busOffset);
+    setOpacity(productFlow, motion.productOpacity);
+    setOpacity(transposeProductFlow, motion.transposeProductOpacity);
   }
 
-  return createFigureClock(root, render, { rate: PLAYBACK_RATE, startWhen: whenFigureReady });
+  return createFigureClock(root, render, { rate: matrixPlaybackRate, startWhen: whenFigureReady });
 }

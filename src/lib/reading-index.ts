@@ -1,10 +1,7 @@
 import { enhance, onScrollFrame } from './lifecycle';
 
-// A reading index: the links inside an element marked `data-reading-index` point at sections of the
-// page, and the link to the section being read is marked `aria-current="location"`. A section is
-// being read once its top has passed the reading line, two fifths of the way down the window, until
-// the next one passes it. Above the first section, the first is being read; at the foot of the
-// page, the last is, however short.
+// Mark the section above the reading line with aria-current. Use the first before any
+// section reaches it, and the last at the page bottom even if that section is short.
 
 const READING_LINE = 0.4;
 

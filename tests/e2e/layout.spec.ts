@@ -8,10 +8,7 @@ import { firstBaseline, gridColumns, textExtent, textLeft } from './helpers';
 // Every page hangs on one grid: text starts on column 1 or column 6, and every link reads in one
 // label style. Measured with motion reduced, so nothing is mid-flight.
 
-test.beforeEach(async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.setViewportSize({ width: 1280, height: 900 });
-});
+test.use({ reducedMotion: 'reduce', viewport: { width: 1280, height: 900 } });
 
 const near = (actual: number, expected: number, tolerance = 1) =>
   expect(Math.abs(actual - expected)).toBeLessThanOrEqual(tolerance);
@@ -338,9 +335,7 @@ test('the about sign sits level with the middle of the two paragraphs', async ({
 });
 
 test.describe('on a phone', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.setViewportSize({ width: 375, height: 800 });
-  });
+  test.use({ viewport: { width: 375, height: 800 } });
 
   test('the Selected work wordmarks stay centred, as on a wide screen', async ({ page }) => {
     await page.goto(routes.home);

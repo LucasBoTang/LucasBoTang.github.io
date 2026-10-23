@@ -1,7 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import * as budget from '../../scripts/performance-budget.mjs';
-import { checkMarkup, scriptsOf } from '../../scripts/performance-budget.mjs';
+import {
+  budgetFiles,
+  checkMarkup,
+  checkSize,
+  scriptsOf,
+} from '../../scripts/performance-budget.mjs';
 import { figurePaths } from '../../src/data/research/figures.ts';
 
 const fonts = (count) =>
@@ -65,8 +69,8 @@ test('reads only the text a reader sees', () => {
 test('lazy figure documents have their own enforced delivery budgets', () => {
   for (const route of Object.values(figurePaths)) {
     const file = `${route.slice(1)}index.html`;
-    assert.ok(budget.budgetFiles?.includes(file), `Missing budget for ${file}`);
-    const problems = budget.checkSize(file, 256, 256);
+    assert.ok(budgetFiles.includes(file), `Missing budget for ${file}`);
+    const problems = checkSize(file, 256, 256);
     assert.match(problems.join(), /HTML.*over/);
     assert.match(problems.join(), /scripts.*over/);
   }
@@ -76,4 +80,11 @@ test('standalone figures check drawing precision without the site font-preload c
   const file = 'figures/gpu-optimization/index.html';
   assert.deepEqual(checkMarkup(file, '<path d="M0 1.25L3.5 4"/>'), []);
   assert.match(checkMarkup(file, '<path d="M0 1.23456"/>').join(), /too many decimals/);
+});
+
+test('reports a small budget overrun without rounding it down to the limit', () => {
+  assert.deepEqual(checkSize('index.html', 80, 69), []);
+  assert.deepEqual(checkSize('index.html', 80, 69 + 79 / 1024), [
+    'index.html: scripts are 69.08KB, over 69KB',
+  ]);
 });

@@ -1,3 +1,4 @@
+import type { SurfaceCamera } from './surface-camera.ts';
 import {
   paletteColor,
   terrainPalette,
@@ -7,15 +8,6 @@ import {
 } from './surface-model.ts';
 
 type SurfaceMesh = { buffer: WebGLBuffer; count: number; material: number };
-type SurfaceCamera = {
-  right: Vector3;
-  up: Vector3;
-  forward: Vector3;
-  center: Vector3;
-  scale: number;
-  width: number;
-  height: number;
-};
 
 interface SurfaceRenderer {
   createMesh(vertices: number[], material?: number): SurfaceMesh;

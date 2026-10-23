@@ -1,9 +1,7 @@
 import { enhance, onScrollFrame } from './lifecycle';
 
-// On screens without hover, a lit unit (`data-lit`, motion.css) is lit while it is the one being
-// read instead: the unit across the middle of the window, or failing that the nearest one within a
-// quarter of the window, is marked `data-focused`, and so is a unit as it is tapped. Scrolling on
-// passes the mark to the next unit, so the page answers the reader as pointing does on a desktop.
+// Without hover, light the unit nearest the viewport midpoint (within REACH), or the
+// unit just tapped. `data-focused` also coordinates its preview and wordmark.
 
 const hoverQuery = matchMedia('(hover: hover) and (pointer: fine)');
 const REACH = 0.25;
@@ -28,8 +26,9 @@ enhance('body', () => {
     let distance = innerHeight * REACH;
     for (const unit of units) {
       const { top, bottom } = unit.getBoundingClientRect();
-      const away = top > middle ? top - middle : bottom < middle ? middle - bottom : 0;
-      if (away < distance) [nearest, distance] = [unit, away];
+      const distanceToMidpoint =
+        top > middle ? top - middle : bottom < middle ? middle - bottom : 0;
+      if (distanceToMidpoint < distance) [nearest, distance] = [unit, distanceToMidpoint];
     }
     focus(nearest);
   };

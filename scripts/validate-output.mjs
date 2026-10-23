@@ -20,7 +20,8 @@ function sameRecords(actual, expected, message) {
   assert.deepEqual([...actual].sort(), [...expected].sort(), message);
 }
 
-export function validateOutput(directory, content) {
+/** Read a build once so its link, content and presentation checks share the same documents. */
+export function readOutput(directory) {
   const output = resolve(directory);
   assert.ok(existsSync(output), 'Build output is missing; run npm run build first');
   const files = filesUnder(output).map((file) => relative(output, file).split(sep).join('/'));
@@ -29,6 +30,10 @@ export function validateOutput(directory, content) {
       .filter((file) => file.endsWith('.html'))
       .map((file) => [file, parseHTML(readFileSync(join(output, file), 'utf8')).document]),
   );
+  return { directory: output, files, documents };
+}
+
+export function validateOutput({ directory: output, files, documents }, content) {
   for (const file of pageFiles) assert.ok(documents.has(file), `Missing page: ${file}`);
   let localDestinations = 0;
 

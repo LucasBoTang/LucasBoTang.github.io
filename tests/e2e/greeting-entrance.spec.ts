@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 import { routes } from '../../src/data/navigation';
 import { cssColors } from '../theme';
 import {
@@ -10,6 +10,22 @@ import {
   watchErrors,
 } from './helpers';
 
+// Freeze on the blank page, before application timers exist. Browser round trips then cannot
+// consume a short greeting phase or a resource deadline.
+async function pauseBeforeNavigation(page: Page) {
+  await page.clock.install({ time: new Date('2026-01-01T00:00:00Z') });
+  await page.clock.pauseAt(new Date('2026-01-02T00:00:00Z'));
+}
+
+/** Advance one frame at a time and leave the clock held at the first matching greeting state. */
+async function advanceToAttribute(page: Page, element: Locator, attribute: string, limit = 6000) {
+  for (let elapsed = 0; elapsed < limit; elapsed += 16) {
+    if ((await element.getAttribute(attribute)) === '') return;
+    await page.clock.runFor(Math.min(16, limit - elapsed));
+  }
+  expect(await element.getAttribute(attribute), `Missing ${attribute} after ${limit}ms`).toBe('');
+}
+
 test.beforeEach(async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
 });
@@ -17,14 +33,10 @@ test.beforeEach(async ({ page }) => {
 test('the whole greeting glitches after Bo Tang while typing continues, then settles cleanly', async ({
   page,
 }, testInfo) => {
-  await page.clock.install();
+  await pauseBeforeNavigation(page);
   await page.goto(routes.home);
   const layer = page.locator('.hero-intro .typed-overlay');
-  await page.waitForFunction(() =>
-    document.querySelector('.hero-intro .typed-overlay')?.hasAttribute('data-greeting-glitch'),
-  );
-  // Hold the burst's clock so its retained frame and correction can both be inspected.
-  await page.clock.pauseAt(new Date(await page.evaluate(() => Date.now() + 20)));
+  await advanceToAttribute(page, layer, 'data-greeting-glitch');
   const typedPrefix = () => layer.locator('.typed-letter:not([data-unseen])').allTextContents();
   const before = await typedPrefix();
   const frames: { x: number; y: number; middle: string; lower: string }[] = [];
@@ -358,6 +370,7 @@ test('a partly visible bio starts the portrait on landing without waiting for un
 test('a slower font and pending images cannot cancel the greeting preparation', async ({
   page,
 }) => {
+  await pauseBeforeNavigation(page);
   const releaseFonts = await holdFonts(page);
   let releaseImages!: () => void;
   const images = new Promise<void>((resolve) => (releaseImages = resolve));
@@ -367,11 +380,21 @@ test('a slower font and pending images cannot cancel the greeting preparation', 
   });
   try {
     await page.goto(routes.home, { waitUntil: 'domcontentloaded' });
-    await page.waitForTimeout(1500);
+    await page.clock.runFor(1500);
+    expect(await page.evaluate(() => document.fonts.status)).toBe('loading');
+    await expect(page.locator('.hero-intro')).not.toHaveAttribute('data-greeting-opening');
     releaseFonts();
-    await expect(page.locator('.hero-intro')).toHaveAttribute('data-greeting-opening', '', {
-      timeout: 1500,
-    });
+    await page.evaluate(() => document.fonts.ready.then(() => {}));
+    await advanceToAttribute(page, page.locator('.hero-intro'), 'data-greeting-opening', 1500);
+    expect(
+      await page.locator('.portrait').evaluate((image: HTMLImageElement) => image.complete),
+    ).toBe(false);
+    await advanceToAttribute(
+      page,
+      page.locator('.hero-intro [data-typed-text]'),
+      'data-typing-started',
+      1500,
+    );
     await expect(page.locator('.hero-intro [data-typed-text]')).toHaveAttribute(
       'data-typing-started',
       '',
@@ -379,12 +402,13 @@ test('a slower font and pending images cannot cancel the greeting preparation', 
   } finally {
     releaseFonts();
     releaseImages();
+    await page.clock.resume();
   }
   await expect(page.locator('html')).not.toHaveAttribute('data-greeting-locked', '');
 });
 
 test('the greeting holds page interactions until it has landed', async ({ page }) => {
-  await page.clock.install();
+  await pauseBeforeNavigation(page);
   // Catch the short fold as it begins, rather than polling near its last frame.
   // Hold the real animation so browser round trips cannot outlast the locked phase.
   await page.addInitScript(() => {
@@ -407,9 +431,8 @@ test('the greeting holds page interactions until it has landed', async ({ page }
   });
   await page.goto(routes.home);
   const greeting = page.locator('.hero-intro');
-  await expect(greeting).toHaveAttribute('data-greeting-folding', '', { timeout: 6000 });
-  // Also hold the bounded fallback while sending real keyboard, wheel and pointer input.
-  await page.clock.pauseAt(new Date(await page.evaluate(() => Date.now() + 50)));
+  await advanceToAttribute(page, greeting, 'data-greeting-folding');
+  // The clock remains held during real keyboard, wheel and pointer input.
   await expect(page.locator('html')).toHaveAttribute('data-greeting-locked', '');
   await page.keyboard.press('Tab');
   await page.keyboard.press('PageDown');

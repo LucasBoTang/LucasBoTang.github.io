@@ -9,6 +9,38 @@ test.beforeEach(async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
 });
 
+/** Measure steady motion only after the opening, typing and visible entrances have finished. */
+async function waitForOpening(page: Page) {
+  await expect(page.locator('html')).not.toHaveAttribute('data-opening-pending', '');
+  const hero = page.locator('[data-home-motion]');
+  if (await hero.count()) {
+    await expect(hero).toHaveAttribute('data-opening-started', /.+/, { timeout: 8000 });
+    await expect(hero).not.toHaveAttribute('data-opening', '', { timeout: 6000 });
+    await expect(page.locator('.research-topic[data-connecting]')).toHaveCount(0, {
+      timeout: 10000,
+    });
+    await expect(page.locator('.hero-actions')).toHaveCSS('opacity', '1');
+  } else {
+    await expect(page.locator('.software-entry').first()).toHaveCSS('opacity', '1');
+  }
+  const passages = page.locator(
+    '[data-home-motion] [data-typed-text], [data-page-intro] [data-typed-text]',
+  );
+  for (const passage of await passages.all())
+    await expect(passage).toHaveAttribute('data-typing-complete', '', { timeout: 12000 });
+  await page.waitForFunction(() =>
+    document.getAnimations().every((animation) => {
+      // Offscreen entrances remain paused; caret blinks and lane drift run indefinitely.
+      if (animation.playState !== 'running' && !animation.pending) return true;
+      if (!Number.isFinite(Number(animation.effect?.getComputedTiming().endTime))) return true;
+      const target = (animation.effect as KeyframeEffect | null)?.target;
+      if (!(target instanceof Element)) return true;
+      const box = target.getBoundingClientRect();
+      return box.bottom <= 0 || box.top >= innerHeight || box.right <= 0 || box.left >= innerWidth;
+    }),
+  );
+}
+
 /** The browser's running totals, such as `LayoutCount` or `ScriptDuration`. */
 async function metrics(page: Page) {
   const session = await page.context().newCDPSession(page);
@@ -34,7 +66,7 @@ test('at rest, the portrait replays its snow rather than drawing it', async ({ p
     };
   });
   await page.goto(routes.home);
-  await page.waitForTimeout(6000);
+  await waitForOpening(page);
   await page.evaluate(() => ((window as unknown as { specks: number }).specks = 0));
   await page.waitForTimeout(3000);
   expect(await page.evaluate(() => (window as unknown as { specks: number }).specks)).toBe(0);
@@ -43,7 +75,7 @@ test('at rest, the portrait replays its snow rather than drawing it', async ({ p
 test('a wordmark trembles without laying the page out again', async ({ page }) => {
   await page.goto(routes.software);
   // Past the entries' arrivals and the wordmarks' power-on, which place their beams once.
-  await page.waitForTimeout(8000);
+  await waitForOpening(page);
   const read = await metrics(page);
   const tremors = page.evaluate(
     () =>
@@ -94,10 +126,10 @@ test('the pixel picture is fetched from the start, not once the opening asks for
 test.describe('on a slowed CPU', () => {
   test.skip(!!process.env.CI, 'Shared CI machines time too unevenly');
 
-  test('scrolling the home page to its foot raises no long task', async ({ page }) => {
+  test('scrolling the home page to its foot keeps tasks within 150ms', async ({ page }) => {
     const session = await page.context().newCDPSession(page);
     await page.goto(routes.home);
-    await page.waitForTimeout(6000);
+    await waitForOpening(page);
     await session.send('Emulation.setCPUThrottlingRate', { rate: 4 });
     await page.evaluate(() => {
       const long: number[] = [];
@@ -118,7 +150,7 @@ test.describe('on a slowed CPU', () => {
   test('the home page at rest keeps its scripts light', async ({ page }) => {
     const session = await page.context().newCDPSession(page);
     await page.goto(routes.home);
-    await page.waitForTimeout(12000);
+    await waitForOpening(page);
     await session.send('Emulation.setCPUThrottlingRate', { rate: 4 });
     const read = await metrics(page);
     const before = await read();

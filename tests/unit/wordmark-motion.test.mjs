@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import test from 'node:test';
 import { parseHTML } from 'linkedom';
 import { frameQueue, installGlobals, mediaQuery } from '../helpers/browser.mjs';
@@ -36,8 +37,10 @@ async function wordmark(t, visible = false, withPreview = false) {
   Element.prototype.getAnimations = function () {
     return layers.get(this) ?? [];
   };
-  Element.prototype.animate = function () {
+  Element.prototype.animate = function (keyframes, options) {
     const animation = {
+      keyframes,
+      options,
       playState: 'running',
       plays: 0,
       effect: { updateTiming() {} },
@@ -97,6 +100,7 @@ async function wordmark(t, visible = false, withPreview = false) {
   return {
     animations,
     frames,
+    node,
     host: document.querySelector('article'),
     preview: document.querySelector('[data-figure-preview]'),
     point() {
@@ -184,4 +188,42 @@ test('wordmarks without previews still hold clean while pointed at', async (t) =
   assert.equal(w.frames.pending.size, 1);
   w.point();
   assert.equal(w.frames.pending.size, 0);
+});
+
+test('wordmark frames retain the entrance, random tears and clean breaths', async (t) => {
+  let seed = 173;
+  let samples = 0;
+  t.mock.method(Math, 'random', () => {
+    samples++;
+    seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+    return seed / 4294967296;
+  });
+  installGlobals(t, { performance: { now: () => 0 } });
+  const w = await wordmark(t, true);
+  w.arrive();
+  w.show();
+  const frames = [];
+  for (let time = 0; time <= 6000; time += 25) {
+    w.frames.flush(time);
+    frames.push({
+      glitching: w.node.hasAttribute('data-glitching'),
+      layers: [...w.node.querySelector('.project-glyphs').children].map((layer) => ({
+        style: layer.getAttribute('style'),
+        torn: layer.hasAttribute('data-torn'),
+      })),
+    });
+  }
+  const trace = {
+    samples,
+    entrance: w.animations.map(({ keyframes, options }) => ({ keyframes, options })),
+    frames,
+  };
+  // Captured from the original combined controller before separating its renderer.
+  const digest = createHash('sha256').update(JSON.stringify(trace)).digest('hex');
+  assert.equal(digest, 'f732066f1eb19a84cbb579f29fb2d4f2e2404588e4646ddf3d832627cd0ebc35');
+  w.reduce();
+  assert.equal(w.node.hasAttribute('data-glitching'), false);
+  assert.ok(
+    [...w.node.querySelectorAll('.project-band')].every((band) => !band.hasAttribute('data-torn')),
+  );
 });

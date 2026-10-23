@@ -103,9 +103,9 @@ export function checkSize(file, htmlSize, scriptSize) {
   const budget = BUDGET[file] ?? BUDGET.default;
   const problems = [];
   if (htmlSize > budget.html)
-    problems.push(`${file}: HTML is ${htmlSize.toFixed(0)}KB, over ${budget.html}KB`);
+    problems.push(`${file}: HTML is ${htmlSize.toFixed(2)}KB, over ${budget.html}KB`);
   if (scriptSize > budget.scripts)
-    problems.push(`${file}: scripts are ${scriptSize.toFixed(0)}KB, over ${budget.scripts}KB`);
+    problems.push(`${file}: scripts are ${scriptSize.toFixed(2)}KB, over ${budget.scripts}KB`);
   return problems;
 }
 

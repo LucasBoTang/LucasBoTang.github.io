@@ -1,6 +1,4 @@
-// A frame loop for animations that pause and resume. Its clock counts only the time the loop runs
-// and is not held, so an animation picks up where it stopped, and a stalled frame advances it by
-// no more than `MAX_STEP`.
+// A resumable active-time clock. Held frames and pauses do not advance elapsed time.
 
 const MAX_STEP = 80;
 
@@ -22,19 +20,19 @@ export function createLoop(
   maxStep = MAX_STEP,
 ): Loop {
   let elapsed = 0;
-  let previous = 0;
-  let request = 0;
+  let previousTime = 0;
+  let frameId = 0;
   let running = false;
 
   const step = (now: number) => {
     // Ask for the next frame first, so `onFrame` can stop the loop.
-    request = requestAnimationFrame(step);
+    frameId = requestAnimationFrame(step);
     if (held?.()) {
-      previous = 0;
+      previousTime = 0;
       return;
     }
-    elapsed += previous ? Math.min(now - previous, maxStep) : 0;
-    previous = now;
+    elapsed += previousTime ? Math.min(now - previousTime, maxStep) : 0;
+    previousTime = now;
     onFrame(elapsed);
   };
 
@@ -42,13 +40,13 @@ export function createLoop(
     start() {
       if (running) return;
       running = true;
-      previous = 0;
-      request = requestAnimationFrame(step);
+      previousTime = 0;
+      frameId = requestAnimationFrame(step);
     },
     stop() {
       if (!running) return;
       running = false;
-      cancelAnimationFrame(request);
+      cancelAnimationFrame(frameId);
     },
     get running() {
       return running;

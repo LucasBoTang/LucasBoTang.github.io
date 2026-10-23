@@ -14,14 +14,14 @@ export function waitForPageReady({ waitForImages = true } = {}): Promise<void> {
   if (cached) return cached;
   const ready = new Promise<void>((resolve) => {
     const reducedMotion = reducedMotionQuery();
-    let timeout = 0;
-    let settle = 0;
+    let resourceTimerId = 0;
+    let settleTimerId = 0;
     let finished = false;
     const finish = (skip = false) => {
       if (finished) return;
       finished = true;
-      window.clearTimeout(timeout);
-      window.clearTimeout(settle);
+      window.clearTimeout(resourceTimerId);
+      window.clearTimeout(settleTimerId);
       stopKeyboardFocus();
       reducedMotion.removeEventListener('change', onPreferenceChange);
       // A font-only opening owns its gate when images prepare independently. An unrelated
@@ -42,11 +42,11 @@ export function waitForPageReady({ waitForImages = true } = {}): Promise<void> {
       .filter((image) => waitForImages && image.loading !== 'lazy')
       .map((image) => image.decode());
     const resources = Promise.allSettled([document.fonts.ready, ...images]);
-    timeout = window.setTimeout(() => finish(true), RESOURCE_TIMEOUT);
+    resourceTimerId = window.setTimeout(() => finish(true), RESOURCE_TIMEOUT);
     void resources.then(() => {
       if (finished) return;
-      window.clearTimeout(timeout);
-      settle = window.setTimeout(() => finish(), SETTLE_TIME);
+      window.clearTimeout(resourceTimerId);
+      settleTimerId = window.setTimeout(() => finish(), SETTLE_TIME);
     });
   });
   readiness.set(waitForImages, ready);

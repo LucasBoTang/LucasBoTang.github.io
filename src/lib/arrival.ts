@@ -1,16 +1,7 @@
 import { isPhone } from './breakpoints';
 
-// How reading units arrive, on every page. A unit fades in and comes into focus as it moves a
-// little into place, then slows to a long, soft stop, so the page settles rather than switches
-// on. Units arrive one at a time: a page sends every arrival through one queue
-// (`createArrivalQueue`), which starts each unit at least a beat after the one before, whether it
-// was on screen at first or scrolled into view, so no two ever crowd together.
-//
-// A unit's `data-arrival` says how it moves:
-// - `rise` (the default): up from just below, for prose and anything read as a block.
-// - `cascade`: in from just to the right, for peer items in a list, so a run of them falls into
-//   place one after another. On phones, a single column, it rises instead.
-// - `wipe`: drawn out from its left edge, for a section heading beside an index on its left.
+// One queue spaces reading units as they arrive. `rise` enters from below; `cascade` enters
+// from the right (below on phones); `wipe` reveals a heading from its left edge.
 
 export const arrival = {
   /** How long a unit takes to arrive, in milliseconds. */
@@ -36,15 +27,21 @@ export const arrival = {
  * is at least `firstAt` from now.
  */
 export function createArrivalQueue(firstAt = 0) {
-  let last = performance.now() + firstAt - arrival.beat;
-  let heldUntil = 0;
+  let lastStartAt = performance.now() + firstAt - arrival.beat;
+  let reservedUntil = 0;
   return (patient: boolean, hold = 0) => {
     const now = performance.now();
-    const behind = !patient && last - now > arrival.backlog;
-    const at = Math.max(now, heldUntil, last + (behind ? arrival.catchUp : arrival.beat));
-    last = patient ? at : Math.max(heldUntil, Math.min(at, now + arrival.maxWait));
-    heldUntil = last + hold;
-    return last - now;
+    const hasBacklog = !patient && lastStartAt - now > arrival.backlog;
+    const nextStartAt = Math.max(
+      now,
+      reservedUntil,
+      lastStartAt + (hasBacklog ? arrival.catchUp : arrival.beat),
+    );
+    lastStartAt = patient
+      ? nextStartAt
+      : Math.max(reservedUntil, Math.min(nextStartAt, now + arrival.maxWait));
+    reservedUntil = lastStartAt + hold;
+    return lastStartAt - now;
   };
 }
 

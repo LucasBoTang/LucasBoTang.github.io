@@ -10,13 +10,17 @@ declare global {
   }
 }
 
-/** Collects page errors and console errors, ignoring the expected 404 of the missing-page route. */
-export function watchErrors(page: Page) {
+/** Collects page and console errors, except a 404 from the explicitly expected missing route. */
+export function watchErrors(page: Page, expectedMissingRoute?: string) {
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   page.on('console', (message) => {
-    if (message.type() === 'error' && !message.text().includes('status of 404'))
-      errors.push(message.text());
+    if (message.type() !== 'error') return;
+    const expected404 =
+      expectedMissingRoute &&
+      message.text().includes('status of 404') &&
+      message.location().url === new URL(expectedMissingRoute, page.url()).href;
+    if (!expected404) errors.push(message.text());
   });
   return errors;
 }

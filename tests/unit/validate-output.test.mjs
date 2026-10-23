@@ -2,12 +2,12 @@ import assert from 'node:assert/strict';
 import { readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import test from 'node:test';
-import { pageOutputFile, validateOutput } from '../../scripts/validate-output.mjs';
+import { pageOutputFile, readOutput, validateOutput } from '../../scripts/validate-output.mjs';
 import { outputFixture } from './fixtures.mjs';
 
 test('accepts valid static pages and their local asset graph', (t) => {
   const { root, content } = outputFixture(t);
-  assert.doesNotThrow(() => validateOutput(root, content));
+  assert.doesNotThrow(() => validateOutput(readOutput(root), content));
 });
 
 test('validates the About route and its current-page navigation', (t) => {
@@ -15,15 +15,15 @@ test('validates the About route and its current-page navigation', (t) => {
   const file = join(root, 'about/index.html');
   const html = readFileSync(file, 'utf8');
   writeFileSync(file, html.replace('aria-current="page"', 'data-inactive="page"'));
-  assert.throws(() => validateOutput(root, content), /current-page link/i);
+  assert.throws(() => validateOutput(readOutput(root), content), /current-page link/i);
   unlinkSync(file);
-  assert.throws(() => validateOutput(root, content), /Missing page: about/i);
+  assert.throws(() => validateOutput(readOutput(root), content), /Missing page: about/i);
 });
 
 test('requires the home topics to match the featured research areas', (t) => {
   const { root, content } = outputFixture(t);
   content.researchAreas[0].featured = false;
-  assert.throws(() => validateOutput(root, content), /featured research area/i);
+  assert.throws(() => validateOutput(readOutput(root), content), /featured research area/i);
 });
 
 test('rejects a canonical URL that points to another route', (t) => {
@@ -36,7 +36,7 @@ test('rejects a canonical URL that points to another route', (t) => {
       '<link rel="canonical" href="https://example.invalid/software/"></head>',
     ),
   );
-  assert.throws(() => validateOutput(root, content), /canonical url must match/i);
+  assert.throws(() => validateOutput(readOutput(root), content), /canonical url must match/i);
 });
 
 test('detects missing responsive images, favicons, and CSS font resources', async (t) => {
@@ -44,7 +44,10 @@ test('detects missing responsive images, favicons, and CSS font resources', asyn
     await t.test(missing, (t) => {
       const { root, content } = outputFixture(t);
       unlinkSync(join(root, missing));
-      assert.throws(() => validateOutput(root, content), /missing.*(asset|resource|file)/i);
+      assert.throws(
+        () => validateOutput(readOutput(root), content),
+        /missing.*(asset|resource|file)/i,
+      );
     });
   }
 });

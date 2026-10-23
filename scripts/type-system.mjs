@@ -40,8 +40,8 @@ function withoutVars(value) {
   return result;
 }
 
-/** Why one declaration breaks the system, or nothing when it follows it. */
-function problem(path, property, value, comment) {
+/** Whether one declaration follows the system, including the named artwork exceptions. */
+function followsTypeSystem(path, property, value, comment) {
   const artwork = ARTWORK.has(path);
   if (property === 'font-size') return artwork || value === 'inherit' || SIZE.test(value);
   if (property === 'line-height') return artwork || value === 'inherit' || LEADING.test(value);
@@ -77,7 +77,8 @@ export function checkTypeSystem(path, text) {
     const [, property, rawValue, rest] = match;
     const value = rawValue.replace(/\/\*[\s\S]*?\*\//g, '').trim();
     const comment = `${rawValue} ${rest}`;
-    if (!problem(path, property, value, comment)) found.push(`${number}: ${property}: ${value}`);
+    if (!followsTypeSystem(path, property, value, comment))
+      found.push(`${number}: ${property}: ${value}`);
   }
   return found;
 }
