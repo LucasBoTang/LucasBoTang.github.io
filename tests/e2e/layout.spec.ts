@@ -190,7 +190,8 @@ test('the index fits columns 1 to 4 on one line each, at the navigation size', a
     .first()
     .evaluate((link) => getComputedStyle(link).fontSize);
   expect(size).toBe('16px');
-  for (const { lines, right } of await textExtent(page, '.research-index nav a')) {
+  // Measure the label's text, not the lane's block wrapper and its inline text together.
+  for (const { lines, right } of await textExtent(page, '.research-index nav .link-label')) {
     expect(lines).toBe(1);
     expect(right).toBeLessThanOrEqual(cols[3].right);
   }
@@ -349,23 +350,50 @@ test.describe('on a phone', () => {
     }
   });
 
-  test('the Research index is a plain list, with no mark on the theme being read', async ({
+  test('the Research index drifts in light lanes, with no desktop tag on the theme being read', async ({
     page,
   }) => {
     await page.emulateMedia({ reducedMotion: 'no-preference' });
     await page.goto('/research/');
+    const lanes = page.locator('.research-index [data-research-lanes]');
+    await expect(lanes).toHaveAttribute('data-motion-ready', '');
     const current = page.locator('.research-index nav a[aria-current="location"]');
     await expect(current).toHaveCount(1);
     const state = await current.evaluate((link) => ({
-      animations: link.getAnimations({ subtree: true }).length,
+      animations: link
+        .getAnimations({ subtree: true })
+        .filter((animation): animation is CSSAnimation => animation instanceof CSSAnimation)
+        .map((animation) => ({ name: animation.animationName, state: animation.playState })),
+      plate: getComputedStyle(link, '::before').display,
+      marker: getComputedStyle(link, '::after').display,
       tear: getComputedStyle(link.querySelector('.link-label')!, '::before').display,
-      color: getComputedStyle(link).color,
+      light: getComputedStyle(link.querySelector('.lane-foreground')!).color,
     }));
-    const other = await page
-      .locator('.research-index nav a:not([aria-current])')
-      .first()
-      .evaluate((link) => getComputedStyle(link).color);
-    expect(state).toEqual({ animations: 0, tear: 'none', color: other });
+    expect(state).toEqual({
+      animations: [
+        { name: 'lane-drift', state: 'running' },
+        { name: 'lane-drift', state: 'running' },
+      ],
+      plate: 'none',
+      marker: 'none',
+      tear: 'none',
+      light: 'rgb(142, 175, 217)',
+    });
+    await expect(current.locator('.lane-static')).toBeHidden();
+    await expect(current.locator('.lane-visual')).toBeVisible();
+  });
+
+  test('the Research index shows static labels when motion is reduced', async ({ page }) => {
+    await page.goto('/research/');
+    const links = page.getByRole('navigation', { name: 'Research themes' }).getByRole('link');
+    await expect(links).toHaveCount(4);
+    for (const link of await links.all()) {
+      await expect(link.locator('.lane-static')).toBeVisible();
+      await expect(link.locator('.lane-visual')).toBeHidden();
+      expect(
+        await link.evaluate((element) => element.getAnimations({ subtree: true }).length),
+      ).toBe(0);
+    }
   });
 
   test('labels that can wrap get room between their lines', async ({ page }) => {
@@ -666,7 +694,7 @@ test.describe('hover and wrapping rules', () => {
 
   test('the Research index turns blue without an underline', async ({ page }) => {
     await page.goto('/research/');
-    const look = await hoverLook(page, '.research-index nav a:nth-child(2)', '.link-label');
+    const look = await hoverLook(page, '.research-index nav a:not([aria-current])', '.link-label');
     expect(look.color).toBe(blue);
     expect(look.underline.startsWith('0px')).toBe(true);
   });
