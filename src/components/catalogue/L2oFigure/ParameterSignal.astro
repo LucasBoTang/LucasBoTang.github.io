@@ -4,12 +4,18 @@ interface Props {
   quiet?: boolean;
 }
 const { name, quiet = false } = Astro.props;
+const numeric = name.endsWith('-value');
 ---
 
 <span class:list={['parameter-signal', { 'is-formula': quiet }]} data-parameter={name}>
   <span class="signal-body">
     <slot />
   </span>
+  {numeric && (
+    <span class="signal-trail" aria-hidden="true">
+      <slot />
+    </span>
+  )}
   <span class="signal-echo" aria-hidden="true">
     <slot />
   </span>
@@ -46,6 +52,9 @@ const { name, quiet = false } = Astro.props;
     --jitter-echo: var(--input-a-value-echo, 0);
     --jitter-opacity: var(--input-a-value-opacity, 1);
     --jitter-tear-x: var(--input-a-value-tear-x, 0px);
+    --jitter-trail-opacity: var(--input-a-value-trail-opacity, 0);
+    --jitter-trail-x: var(--input-a-value-trail-x, 0px);
+    --jitter-trail-y: var(--input-a-value-trail-y, 0px);
     --jitter-x: var(--input-a-value-x, 0px);
     --jitter-y: var(--input-a-value-y, 0px);
   }
@@ -54,6 +63,9 @@ const { name, quiet = false } = Astro.props;
     --jitter-echo: var(--input-b-value-echo, 0);
     --jitter-opacity: var(--input-b-value-opacity, 1);
     --jitter-tear-x: var(--input-b-value-tear-x, 0px);
+    --jitter-trail-opacity: var(--input-b-value-trail-opacity, 0);
+    --jitter-trail-x: var(--input-b-value-trail-x, 0px);
+    --jitter-trail-y: var(--input-b-value-trail-y, 0px);
     --jitter-x: var(--input-b-value-x, 0px);
     --jitter-y: var(--input-b-value-y, 0px);
   }
@@ -65,14 +77,22 @@ const { name, quiet = false } = Astro.props;
     display: block;
     opacity: var(--jitter-opacity);
   }
+  .signal-trail,
   .signal-echo {
     inset: 0;
     position: absolute;
     display: block;
-    clip-path: var(--jitter-cut);
     color: var(--blue);
+    pointer-events: none;
+  }
+  .signal-trail {
+    z-index: -1;
+    opacity: var(--jitter-trail-opacity, 0);
+    transform: translate(var(--jitter-trail-x, 0px), var(--jitter-trail-y, 0px));
+  }
+  .signal-echo {
+    clip-path: var(--jitter-cut);
     opacity: calc(var(--jitter-echo) * var(--signal-echo-strength));
     transform: translateX(var(--jitter-tear-x));
-    pointer-events: none;
   }
 </style>
