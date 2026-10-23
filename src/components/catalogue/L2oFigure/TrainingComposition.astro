@@ -684,13 +684,14 @@ const { presentation = false } = Astro.props;
       font-size: 8px;
     }
     .correction-operations {
-      left: 0;
+      left: 50%;
       right: auto;
       top: calc(350px + 83.3333cqw);
       display: grid;
       grid-template-rows: 96px 48px;
       padding: 0;
-      width: 100%;
+      width: clamp(min(100%, 288px), calc(100% - 24px), 360px);
+      transform: translateX(-50%);
     }
     .variable-visual {
       display: grid;
@@ -745,14 +746,15 @@ const { presentation = false } = Astro.props;
 
     .training-loss {
       bottom: auto;
-      left: 0;
+      left: 50%;
       top: calc(515px + 83.3333cqw);
       gap: 0;
       grid-template-columns: minmax(0, 1fr);
       grid-template-rows: 68px 52px;
       height: 120px;
       padding: 0;
-      width: 100%;
+      width: clamp(min(100%, 288px), calc(100% - 24px), 360px);
+      transform: translateX(-50%);
     }
     .loss-explanation {
       display: grid;

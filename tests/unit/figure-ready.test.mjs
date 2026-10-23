@@ -62,3 +62,17 @@ test('standalone figures do not wait for a parent entrance', (t) => {
   whenFigureReady(() => starts++);
   assert.equal(starts, 1);
 });
+
+test('home previews keep the first frame still until the wordmark handover finishes', async (t) => {
+  const { page, screen } = host(t);
+  page.removeAttribute('data-opening-pending');
+  screen.className = '';
+  screen.setAttribute('data-figure-preview', '');
+  screen.setAttribute('data-preview-pending', '');
+  let starts = 0;
+  whenFigureReady(() => starts++);
+  assert.equal(starts, 0);
+  screen.removeAttribute('data-preview-pending');
+  await flush();
+  assert.equal(starts, 1);
+});

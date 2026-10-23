@@ -1,0 +1,96 @@
+---
+import { workPreviews } from '../../data/research/figures';
+
+interface Props {
+  project: string;
+  name: string;
+}
+const { project, name } = Astro.props;
+const preview = workPreviews[project as keyof typeof workPreviews];
+---
+
+<a
+  class="work-preview"
+  href={preview.href}
+  aria-label={`Explore ${name} on Research`}
+  data-figure-preview
+  data-preview-src={preview.src}
+  data-preview-width={preview.width}
+  data-preview-height={preview.height}
+  data-preview-bleed={preview.bleed}
+>
+  <slot />
+  <span class="work-preview-picture" aria-hidden="true"></span>
+</a>
+
+<script>
+  import './work-preview';
+</script>
+
+<style>
+  .work-preview {
+    --project-hover-scale: 1;
+    position: relative;
+    display: grid;
+    min-width: 0;
+    text-decoration: none;
+    color: inherit;
+  }
+  /* Brightness and focus settle after the silhouettes have crossed. CSS transitions keep
+     that overlap continuous when a pointer reverses direction halfway through. */
+  .work-preview :global(.project-wordmark) {
+    align-self: center;
+    filter: blur(0px) brightness(1);
+    opacity: 1;
+    transition:
+      opacity 950ms 140ms cubic-bezier(0.22, 0.61, 0.36, 1),
+      filter 1100ms 100ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+  .work-preview-picture {
+    inset: -48px 0;
+    position: absolute;
+    overflow: hidden;
+    filter: blur(2px) brightness(0.5);
+    opacity: 0;
+    transition:
+      opacity 1000ms cubic-bezier(0.4, 0, 0.25, 1),
+      filter 900ms cubic-bezier(0.4, 0, 0.25, 1);
+    pointer-events: none;
+  }
+  .work-preview-picture :global(iframe) {
+    left: 50%;
+    position: absolute;
+    top: 50%;
+    border: 0;
+    color-scheme: normal;
+    transform: translate(-50%, -50%) scale(var(--preview-scale, 0));
+  }
+  .work-preview[data-preview-visible] :global(.project-wordmark) {
+    filter: blur(3px) brightness(0.65);
+    opacity: 0;
+    transition:
+      opacity 900ms cubic-bezier(0.4, 0, 0.25, 1),
+      filter 1000ms cubic-bezier(0.4, 0, 0.25, 1);
+  }
+  .work-preview[data-preview-visible] .work-preview-picture {
+    filter: blur(0px) brightness(1);
+    opacity: 1;
+    transition:
+      opacity 1200ms 140ms cubic-bezier(0.4, 0, 0.2, 1),
+      filter 1200ms 140ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+  @media (max-width: 720px) {
+    .work-preview {
+      height: 160px;
+    }
+    .work-preview-picture {
+      inset: 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .work-preview :global(.project-wordmark),
+    .work-preview-picture {
+      transition: none;
+    }
+  }
+</style>

@@ -75,7 +75,16 @@ export function initializeGpuFigure(
   products: MatrixProducts,
   browser: Window & typeof globalThis,
 ) {
+  const frame = products.frames[0];
+  const atMinimum = Math.min(...frame.at);
+  const atRange = Math.max(1e-12, Math.max(...frame.at) - atMinimum);
   const vectors = VECTOR_LAYOUT.map((layout) => ({
+    magnitudes: frame[layout.key].map((value) =>
+      layout.key === 'at'
+        ? 0.25 + (0.75 * (value - atMinimum)) / atRange
+        : Math.log1p((BAR.logGain * value) / products.maxRms[layout.key]) / Math.log1p(BAR.logGain),
+    ),
+    wasVisible: true,
     ...layout,
     bars: root.querySelectorAll(`[data-${layout.key}]`),
     label: requireElement(root, `[data-vector="${layout.key}"] [data-math-label]`),
@@ -90,7 +99,6 @@ export function initializeGpuFigure(
   const bus = requireElement(root, '[data-gpu-bus]');
   const pulses = bus.querySelectorAll('[data-bus-pulse]');
   function render(elapsed: number, reducedMotion: boolean) {
-    const frame = products.frames[0];
     const phase = Math.floor((elapsed % CYCLE_DURATION) / PHRASE_DURATION);
     const seconds = (elapsed % PHRASE_DURATION) / 1000;
     // Each phrase ends with a fade, then 0.35 seconds of empty space.
@@ -101,18 +109,12 @@ export function initializeGpuFigure(
     for (const vector of vectors) {
       const alpha = reducedMotion ? 1 : vector.phase === phase ? envelope(vector.delay) : 0;
       const visible = alpha > 0;
+      if (!visible && !vector.wasVisible) continue;
+      vector.wasVisible = visible;
       setOpacity(vector.label, alpha);
       vector.label.setAttribute('visibility', visible ? 'visible' : 'hidden');
       vector.bars.forEach((bar, index) => {
-        const value = frame[vector.key][index];
-        let magnitude =
-          Math.log1p((BAR.logGain * value) / products.maxRms[vector.key]) / Math.log1p(BAR.logGain);
-        // Expand the narrow Aᵀy range with one fixed affine display scale.
-        if (vector.key === 'at') {
-          const minimum = Math.min(...frame.at);
-          const maximum = Math.max(...frame.at);
-          magnitude = 0.25 + (0.75 * (value - minimum)) / Math.max(1e-12, maximum - minimum);
-        }
+        const magnitude = vector.magnitudes[index];
         // Smooth deterministic irregular motion, with a different clock per bar.
         const seed = (index + 1) * 73 + vector.key.charCodeAt(0) * 19;
         const noise = (step: number) => (((seed * (step * 37 + 17)) % 997) / 996) * 2 - 1;

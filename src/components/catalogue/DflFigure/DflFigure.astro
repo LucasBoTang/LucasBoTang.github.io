@@ -1,15 +1,11 @@
 ---
+import FigureEmbed from '../FigureEmbed.astro';
 import { figurePaths } from '../../../data/research/figures';
 ---
 
 <div class="figure-viewport">
   <div class="figure-frame">
-    <iframe
-      src={figurePaths.dfl}
-      title="Learning for better decisions"
-      loading="lazy"
-      tabindex="-1"
-    ></iframe>
+    <FigureEmbed src={figurePaths.dfl} title="Learning for better decisions" />
   </div>
 </div>
 
@@ -24,7 +20,7 @@ import { figurePaths } from '../../../data/research/figures';
     width: 100%;
     container-type: inline-size;
   }
-  iframe {
+  .figure-frame :global(iframe) {
     display: block;
     border: 0;
     height: 539px;
@@ -33,7 +29,7 @@ import { figurePaths } from '../../../data/research/figures';
     pointer-events: none;
   }
   @container (max-width:420px) {
-    iframe {
+    .figure-frame :global(iframe) {
       height: 704px;
     }
   }

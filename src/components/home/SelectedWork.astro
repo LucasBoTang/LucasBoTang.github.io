@@ -1,5 +1,6 @@
 ---
 import ProjectWordmark from '../catalogue/ProjectWordmark/ProjectWordmark.astro';
+import WorkPreview from './WorkPreview.astro';
 import ResourceLinks from '../ui/ResourceLinks.astro';
 import { selectedWork } from '../../data/selected-work';
 ---
@@ -18,11 +19,13 @@ import { selectedWork } from '../../data/selected-work';
         data-project-host
         data-lit
       >
-        <ProjectWordmark
-          name={work.project.name}
-          id={`selected-${work.project.id}`}
-          wordmark={work.project.wordmark}
-        />
+        <WorkPreview project={work.project.id} name={work.project.name}>
+          <ProjectWordmark
+            name={work.project.name}
+            id={`selected-${work.project.id}`}
+            wordmark={work.project.wordmark}
+          />
+        </WorkPreview>
         <div class="work-details">
           <p class="work-title heading-text">
             <a class="work-title-link" href={work.href}>
@@ -63,8 +66,8 @@ import { selectedWork } from '../../data/selected-work';
   .work-entry + .work-entry {
     background: var(--item-rule);
   }
-  .work-entry :global(.project-wordmark) {
-    align-self: center;
+  .work-entry :global(.work-preview) {
+    align-self: stretch;
     grid-column: var(--zone-side);
   }
   .work-details {

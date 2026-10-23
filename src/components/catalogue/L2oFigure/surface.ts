@@ -10,7 +10,9 @@ import { trajectoryLengths, trajectoryPoint, trajectoryProgress } from './trajec
 type V = [number, number, number];
 type P = [number, number];
 enhanceNear<HTMLElement>('[data-l2o-surface]', init);
-function init(root: HTMLElement) {
+async function init(root: HTMLElement) {
+  // Yield between construction stages so scrolling can continue during setup.
+  const yieldToBrowser = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
   const canvas = root.querySelector<HTMLCanvasElement>('.surface-gl')!;
   const overlay = root.querySelector<HTMLCanvasElement>('.surface-annotations')!;
   const ctx = overlay.getContext('2d')!;
@@ -250,6 +252,7 @@ function init(root: HTMLElement) {
       }
     }
   }
+  await yieldToBrowser();
   const xs = [
     ...Array.from({ length: 101 }, (_, i) => -3 + (3.5 * i) / 100),
     -Math.sqrt(b),
@@ -258,31 +261,46 @@ function init(root: HTMLElement) {
   const ys = [...Array.from({ length: 141 }, (_, i) => -1.3 + (7 * i) / 140), b / 2].sort(
     (a, b) => a - b,
   );
+  // Adjacent triangles share vertices; compute each sample and palette entry once.
+  const palettes = [neutral, terrain].map((stops) =>
+    Array.from({ length: 16 }, (_, i) => color(stops, i / 16)),
+  );
+  const gridSamples = ys.map((py) =>
+    xs.map((px) => {
+      const eps = 0.001;
+      const dzx = (z(px + eps, py) - z(px - eps, py)) / (2 * eps * 1.3);
+      const dzy = (z(px, py + eps) - z(px, py - eps)) / (2 * eps * 0.65);
+      return {
+        position: world(px, py),
+        normal: norm([-dzx, -dzy, 1]),
+        band: Math.min(15, Math.floor(tone(f(px, py)) * 16)),
+      };
+    }),
+  );
+  await yieldToBrowser();
   const terrainData: number[] = [],
     fitPoints: V[] = [];
-  for (let iy = 0; iy < ys.length - 1; iy++)
+  for (let iy = 0; iy < ys.length - 1; iy++) {
+    if (iy > 0 && iy % 24 === 0) await yieldToBrowser();
     for (let ix = 0; ix < xs.length - 1; ix++) {
       const x = (xs[ix] + xs[ix + 1]) / 2,
-        y = (ys[iy] + ys[iy + 1]) / 2,
-        inside = feasible(x, y);
-      const corners: P[] = [
-        [xs[ix], ys[iy]],
-        [xs[ix + 1], ys[iy]],
-        [xs[ix + 1], ys[iy + 1]],
-        [xs[ix], ys[iy + 1]],
+        y = (ys[iy] + ys[iy + 1]) / 2;
+      const palette = palettes[feasible(x, y) ? 1 : 0];
+      const corners = [
+        gridSamples[iy][ix],
+        gridSamples[iy][ix + 1],
+        gridSamples[iy + 1][ix + 1],
+        gridSamples[iy + 1][ix],
       ];
       for (const k of [0, 1, 2, 0, 2, 3]) {
-        const [px, py] = corners[k],
-          p = world(px, py),
-          eps = 0.001;
-        const dzx = (z(px + eps, py) - z(px - eps, py)) / (2 * eps * 1.3),
-          dzy = (z(px, py + eps) - z(px, py - eps)) / (2 * eps * 0.65);
-        const band = Math.min(15, Math.floor(tone(f(px, py)) * 16)) / 16;
-        vertex(terrainData, p, norm([-dzx, -dzy, 1]), color(inside ? terrain : neutral, band));
+        const sample = corners[k];
+        vertex(terrainData, sample.position, sample.normal, palette[sample.band]);
       }
       if (ix % 4 === 0 && iy % 4 === 0) fitPoints.push(world(x, y));
     }
+  }
   const surface = mesh(terrainData);
+  await yieldToBrowser();
   const guides: number[] = [],
     boundaries: number[] = [];
   for (const y of [-1, 0, 1, 2, 3, 4, 5]) {
@@ -294,6 +312,7 @@ function init(root: HTMLElement) {
       cs.push(color(feasible(x, y) ? integer : neutralLine, tone(f(x, y))));
     }
     tube(guides, pts, cs, 0.0075);
+    await yieldToBrowser();
   }
   for (const x of [-Math.sqrt(b), 0]) {
     const pts = Array.from({ length: 221 }, (_, i) => world(x, -1.3 + (7 * i) / 220, 0.02));
@@ -348,6 +367,7 @@ function init(root: HTMLElement) {
     return { ...segment, from, to };
   });
   const trace = mesh(traceData, 1);
+  await yieldToBrowser();
   function sphere(p: V, r: number, c: V) {
     const data: number[] = [];
     for (let a = 0; a < 10; a++)

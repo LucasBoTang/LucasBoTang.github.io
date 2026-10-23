@@ -7,7 +7,10 @@ import { pageFiles } from './validate-output.mjs';
 
 /** Kilobytes a page may weigh: its HTML, and the scripts it loads with everything they import. */
 const BUDGET = {
-  'index.html': { html: 80, scripts: 60 },
+  // Includes the small home-preview controller; figure documents load only on intent.
+  'index.html': { html: 80, scripts: 64 },
+  // Near-viewport embeds include three no-JavaScript fallbacks (under 1KB total).
+  'research/index.html': { html: 49, scripts: 24 },
   default: { html: 48, scripts: 24 },
 };
 /** Fonts every page fetches early: the serif, the mono and the sans of its first screen. */

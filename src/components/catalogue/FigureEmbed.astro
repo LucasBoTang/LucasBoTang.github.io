@@ -1,0 +1,25 @@
+---
+interface Props {
+  src: string;
+  title: string;
+  class?: string;
+}
+const { src, title, class: className } = Astro.props;
+---
+
+<iframe class={className} data-figure-src={src} title={title} tabindex="-1"></iframe>
+<noscript>
+  <style is:inline>
+    iframe[data-figure-src] {
+      display: none !important;
+    }
+  </style>
+  <iframe class={className} src={src} title={title} loading="lazy" tabindex="-1"></iframe>
+</noscript>
+<script>
+  import { loadFigureEmbeds } from '../../lib/figure-loading';
+  loadFigureEmbeds(
+    document.querySelectorAll<HTMLIFrameElement>('iframe[data-figure-src]'),
+    window.IntersectionObserver,
+  );
+</script>

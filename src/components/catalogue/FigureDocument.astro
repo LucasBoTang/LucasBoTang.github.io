@@ -36,6 +36,14 @@ const { title, description, bleed = 0 } = Astro.props;
     overflow: hidden;
     background: var(--ink);
   }
+  /* Home thumbnails inherit the lit page beneath them instead of covering it with a rectangle. */
+  html[data-home-preview],
+  html[data-home-preview] body {
+    background: transparent;
+  }
+  html[data-home-preview] {
+    color-scheme: normal;
+  }
   main {
     padding-inline: var(--figure-bleed);
   }

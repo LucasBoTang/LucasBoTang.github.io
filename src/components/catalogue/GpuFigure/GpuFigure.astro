@@ -1,15 +1,11 @@
 ---
+import FigureEmbed from '../FigureEmbed.astro';
 import { figurePaths } from '../../../data/research/figures';
 ---
 
 <div class="figure-viewport">
   <div class="figure-frame">
-    <iframe
-      src={figurePaths.gpu}
-      title="Large-scale optimization with GPUs"
-      loading="lazy"
-      tabindex="-1"
-    ></iframe>
+    <FigureEmbed src={figurePaths.gpu} title="Large-scale optimization with GPUs" />
   </div>
 </div>
 
@@ -24,7 +20,7 @@ import { figurePaths } from '../../../data/research/figures';
     width: 100%;
     container-type: inline-size;
   }
-  iframe {
+  .figure-frame :global(iframe) {
     display: block;
     border: 0;
     height: 66.6667cqw;
@@ -33,12 +29,12 @@ import { figurePaths } from '../../../data/research/figures';
     pointer-events: none;
   }
   @container (max-width:480px) {
-    iframe {
+    .figure-frame :global(iframe) {
       height: 113cqw;
     }
   }
   @container (max-width:320px) {
-    iframe {
+    .figure-frame :global(iframe) {
       height: 129cqw;
     }
   }
