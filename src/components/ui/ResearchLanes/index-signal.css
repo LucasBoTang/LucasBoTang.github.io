@@ -1,0 +1,193 @@
+/* The ink stays readable; unequal cycles give the plate, ink and tracking mark separate
+   registration. The existing lane activity state pauses every layer together. */
+@media (min-width: 721px) and (prefers-reduced-motion: no-preference) {
+  nav[data-reading-index]
+    .research-navigator--index[data-motion-ready]
+    a.research-link[aria-current='location'] {
+    animation: index-ink-registration 2.33s steps(1, end) infinite;
+  }
+  nav[data-reading-index]
+    .research-navigator--index[data-motion-ready]
+    a.research-link[aria-current='location']::before {
+    animation: index-plate-registration 1.37s steps(1, end) infinite;
+  }
+  nav[data-reading-index]
+    .research-navigator--index[data-motion-ready]
+    a.research-link[aria-current='location']::after {
+    animation: index-tracking-mark 1.91s steps(1, end) infinite;
+  }
+  nav[data-reading-index]
+    .research-navigator--index[data-motion-ready]
+    a.research-link[aria-current='location']
+    .link-label::before {
+    animation: index-fine-tear 9.75s steps(1, end) infinite;
+  }
+  nav[data-reading-index]
+    .research-navigator--index[data-motion-suspended]
+    a.research-link[aria-current='location'],
+  nav[data-reading-index]
+    .research-navigator--index[data-motion-suspended]
+    a.research-link[aria-current='location']::before,
+  nav[data-reading-index]
+    .research-navigator--index[data-motion-suspended]
+    a.research-link[aria-current='location']::after,
+  nav[data-reading-index]
+    .research-navigator--index[data-motion-suspended]
+    a.research-link[aria-current='location']
+    .link-label::before {
+    animation-play-state: paused;
+  }
+  @keyframes index-ink-registration {
+    0%,
+    100% {
+      translate: 0.08px -0.04px;
+    }
+    12% {
+      translate: -0.14px 0.06px;
+    }
+    21% {
+      translate: 0.12px 0;
+    }
+    33% {
+      translate: -0.06px -0.06px;
+    }
+    49% {
+      translate: 0.16px 0.04px;
+    }
+    63% {
+      translate: -0.11px 0.02px;
+    }
+    74% {
+      translate: 0.05px -0.05px;
+    }
+    83% {
+      translate: -0.15px 0.05px;
+    }
+    92% {
+      translate: 0.09px 0;
+    }
+  }
+  @keyframes index-plate-registration {
+    0%,
+    100% {
+      translate: -0.2px 0.05px;
+    }
+    9% {
+      translate: 0.28px -0.1px;
+    }
+    17% {
+      translate: -0.12px 0.09px;
+    }
+    28% {
+      translate: 0.34px 0.02px;
+    }
+    36% {
+      translate: -0.27px -0.08px;
+    }
+    44% {
+      translate: 0.11px 0.12px;
+    }
+    58% {
+      translate: -0.32px 0.04px;
+    }
+    67% {
+      translate: 0.21px -0.11px;
+    }
+    76% {
+      translate: -0.14px 0.06px;
+    }
+    88% {
+      translate: 0.3px 0;
+    }
+  }
+  @keyframes index-tracking-mark {
+    0%,
+    100% {
+      opacity: 0.93;
+      translate: 0.25px -0.18px;
+    }
+    8% {
+      opacity: 0.83;
+      translate: -0.38px 0.1px;
+    }
+    19% {
+      opacity: 1;
+      translate: 0.16px 0.26px;
+    }
+    31% {
+      opacity: 0.91;
+      translate: 0.46px -0.08px;
+    }
+    39% {
+      opacity: 0.85;
+      translate: -0.2px 0.2px;
+    }
+    53% {
+      opacity: 0.98;
+      translate: -0.44px -0.24px;
+    }
+    64% {
+      opacity: 0.88;
+      translate: 0.31px 0.06px;
+    }
+    73% {
+      opacity: 0.95;
+      translate: -0.12px 0.28px;
+    }
+    87% {
+      opacity: 0.82;
+      translate: 0.42px -0.12px;
+    }
+    94% {
+      opacity: 0.97;
+      translate: -0.29px 0.04px;
+    }
+  }
+  @keyframes index-fine-tear {
+    0%,
+    8.5%,
+    28.1%,
+    47.6%,
+    75.7%,
+    91.3%,
+    100% {
+      opacity: 0;
+      transform: none;
+    }
+    8% {
+      clip-path: inset(32% 0 56%);
+      opacity: 0.7;
+      transform: translateX(1.4px);
+    }
+    27.4% {
+      clip-path: inset(58% 0 30%);
+      opacity: 0.65;
+      transform: translateX(-1.1px);
+    }
+    46.7% {
+      clip-path: inset(22% 0 66%);
+      opacity: 0.75;
+      transform: translateX(1.6px);
+    }
+    47.1% {
+      clip-path: inset(60% 0 28%);
+      opacity: 0.4;
+      transform: translateX(-0.7px);
+    }
+    75.1% {
+      clip-path: inset(38% 0 50%);
+      opacity: 0.7;
+      transform: translateX(-1.3px);
+    }
+    90.4% {
+      clip-path: inset(44% 0 44%);
+      opacity: 0.75;
+      transform: translateX(1.5px);
+    }
+    90.9% {
+      clip-path: inset(68% 0 20%);
+      opacity: 0.35;
+      transform: translateX(-0.6px);
+    }
+  }
+}

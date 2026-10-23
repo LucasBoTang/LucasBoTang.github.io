@@ -1,4 +1,5 @@
 ---
+import '../components/ui/ResearchLanes/index-signal.css';
 import SiteLayout from '../layouts/SiteLayout.astro';
 import PageHeader from '../components/site/PageHeader/PageHeader.astro';
 import ResearchSection from '../components/catalogue/ResearchSection.astro';
@@ -150,68 +151,6 @@ import { figureWarmups } from '../data/research/figures';
     }
     .research-index nav :global(a)::before {
       transition: transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .research-index nav :global(a[aria-current='location']) {
-      animation: index-line-jump 3.6s steps(1, end) 1.2s infinite;
-    }
-    .research-index nav :global(a[aria-current='location']) :global(.link-label)::before {
-      animation: index-band-tear 3.6s steps(1, end) 1.2s infinite;
-    }
-    /* The square never rests, as the marks beside the home name do. */
-    .research-index nav :global(a[aria-current='location'])::after {
-      animation: signal-marks-hop 2.7s steps(1, end) infinite;
-    }
-    /* Small tears of about 50ms come at uneven moments through each 3.6s cycle (14%, 33%, 52%),
-       and a fuller one ends it (85% to 88%). */
-    @keyframes index-line-jump {
-      0%,
-      34.5%,
-      86%,
-      89%,
-      100% {
-        transform: none;
-      }
-      33% {
-        transform: translateX(2px);
-      }
-      87% {
-        transform: translateX(-3px);
-      }
-    }
-    @keyframes index-band-tear {
-      0%,
-      15.5%,
-      53.5%,
-      88%,
-      100% {
-        opacity: 0;
-        transform: none;
-      }
-      14% {
-        clip-path: inset(44% 0 38%);
-        opacity: 1;
-        transform: translateX(5px);
-      }
-      52% {
-        clip-path: inset(18% 0 64%);
-        opacity: 1;
-        transform: translateX(-4px);
-      }
-      85% {
-        clip-path: inset(30% 0 42%);
-        opacity: 1;
-        transform: translateX(10px);
-      }
-      86% {
-        clip-path: inset(58% 0 16%);
-        opacity: 1;
-        transform: translateX(-7px);
-      }
-      87% {
-        clip-path: inset(36% 0 46%);
-        opacity: 1;
-        transform: translateX(4px);
-      }
     }
   }
   @media (max-width: 720px) {
