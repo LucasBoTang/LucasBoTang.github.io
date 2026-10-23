@@ -1,8 +1,9 @@
 import { ambientSwing } from './ambient';
+import type { ModuleDrawing } from './drawing';
 
 // The approved balance artwork, rendered in the training loop's shared clock.
 import { paper } from './ink';
-import { neon } from './material';
+import { neon, neonMetrics } from './material';
 const bag = [
     'M-6 38L-10 29Q-6 31-2 28Q3 32 9 29L6 38C8 44 17 49 19 59C21 68 15 73 3 74C-9 75-19 72-19 63C-20 53-10 45-6 38Z',
     'M-7 38Q0 40 7 38M-7 41Q0 43 7 40M-3 31L-1 36M4 32L3 36',
@@ -20,13 +21,12 @@ function cachedPath(d: string) {
   return path;
 }
 
-export function drawDecisionBalance(
-  ctx: CanvasRenderingContext2D,
-  ambient: number,
-  sweep: number | null,
-  stroke: number,
-) {
-  const angle = ((0.5 + 2.2 * ambientSwing(ambient, 0.66)) * Math.PI) / 180;
+export function drawDecisionBalance(drawing: ModuleDrawing, ambient: number, sweep: number | null) {
+  const { ctx, screenStroke, pixelRatio } = drawing;
+  const stroke = screenStroke(neonMetrics.structure);
+  const jointRadius = screenStroke(neonMetrics.nodeRadius);
+  const halo = neonMetrics.halo * pixelRatio;
+  const angle = ((0.35 + 7.5 * ambientSwing(ambient, 0.66)) * Math.PI) / 180;
   function draw(glow = false) {
     ctx.save();
     ctx.translate(-150, -102);
@@ -44,11 +44,11 @@ export function drawDecisionBalance(
       ctx.save();
       ctx.lineWidth = stroke * (a < 0.6 ? 0.45 : a < 0.8 ? 0.7 : 1);
       ctx.shadowColor = neon.halo;
-      ctx.shadowBlur = a > 0.6 ? 5 : 0;
+      ctx.shadowBlur = a > 0.6 ? halo : 0;
       ctx.stroke(p);
       ctx.shadowBlur = 0;
       if (a > 0.6) {
-        ctx.lineWidth *= 0.36;
+        ctx.lineWidth *= neonMetrics.coreRatio;
         ctx.strokeStyle = neon.core;
         ctx.stroke(p);
       }
@@ -69,8 +69,8 @@ export function drawDecisionBalance(
     circle(69, 43, 2);
     circle(231, 43, 2);
     ctx.restore();
-    circle(150, 43, 5);
-    circle(150, 43, 1.6);
+    circle(150, 43, jointRadius);
+    circle(150, 43, jointRadius * 0.32);
     [-81, 81].forEach((dx) => {
       ctx.save();
       ctx.translate(150 + dx * Math.cos(angle), 43 + dx * Math.sin(angle));

@@ -1,12 +1,11 @@
 ---
 import '@fontsource-variable/geist/wght-italic.css';
-import { neon } from './material';
+import { neon, neonMetrics } from './material';
 ---
 
 <div
   class="dfl-composition"
-
-  style={`--neon-body:${neon.body};--neon-core:${neon.core};--neon-halo:${neon.halo}`}
+  style={`--neon-body:${neon.body};--neon-core:${neon.core};--neon-halo:${neon.halo};--neon-line-width:${neonMetrics.structure}px;--neon-core-width:${neonMetrics.structure * neonMetrics.coreRatio}px`}
 >
   <svg class="photo-clip-defs" width="0" height="0" aria-hidden="true">
     <defs>
@@ -66,7 +65,6 @@ import { neon } from './material';
     <div class="stage predict">
       <canvas
         data-module="predict"
-
         aria-label="Neural predictor, with forward and reverse signals"
         role="img"
       ></canvas>
@@ -83,16 +81,11 @@ import { neon } from './material';
     <div class="stage optimize">
       <canvas
         data-module="optimize-0"
-
         aria-label="A four-edge walk on a feasible polytope illustrates optimization"
         role="img"
       ></canvas>
       <p class="module-label">Differentiable optimization</p>
-      <div
-        class="opt-formula math-expr"
-        role="img"
-        aria-label="minimize c hat transpose w over w in Omega"
-      >
+      <div class="opt-formula" role="img" aria-label="minimize c hat transpose w over w in Omega">
         <math xmlns="http://www.w3.org/1998/Math/MathML"><munder><mo>min</mo><mrow><mi>w</mi><mo>∈</mo><mi>Ω</mi></mrow></munder><mspace width=".4em"/><msup><mover accent="true"><mi>c</mi><mo>^</mo></mover><mo>⊤</mo></msup><mi>w</mi></math>
       </div>
     </div>
@@ -107,7 +100,6 @@ import { neon } from './material';
     <div class="stage evaluate">
       <canvas
         data-module="evaluate"
-
         aria-label="A balance weighing the costs of two decisions"
         role="img"
       ></canvas>
@@ -125,6 +117,11 @@ import { neon } from './material';
             <stop stop-color={neon.body} stop-opacity=".10" />
             <stop offset="1" stop-color={neon.dim} stop-opacity=".025" />
           </linearGradient>
+          <radialGradient id="data-node" cx="35%" cy="30%" r="70%">
+            <stop stop-color={neon.core} />
+            <stop offset=".35" stop-color={neon.body} />
+            <stop offset="1" stop-color={neon.dim} />
+          </radialGradient>
           <filter
             id="data-neon"
             x="-20%"
@@ -133,35 +130,35 @@ import { neon } from './material';
             height="160%"
             color-interpolation-filters="sRGB"
           >
-            <feMorphology in="SourceAlpha" operator="dilate" radius=".65" result="tube" />
-            <feFlood flood-color={neon.body} />
-            <feComposite in2="tube" operator="in" result="body" />
-            <feGaussianBlur in="body" stdDeviation="1.5" />
+            <feGaussianBlur in="SourceGraphic" stdDeviation={neonMetrics.halo / 2} />
             <feComponentTransfer result="halo">
               <feFuncA type="linear" slope=".55" />
             </feComponentTransfer>
             <feMerge>
               <feMergeNode in="halo" />
-              <feMergeNode in="body" />
               <feMergeNode in="SourceGraphic" />
             </feMerge>
           </filter>
-        </defs>
-        <path class="data-back data-sheet-back" d="M36 10H124V58" />
-        <path class="data-back data-sheet-middle" d="M28 18H116V66" />
-        <g class="data-sheet-front">
-          <rect x="20" y="26" width="88" height="48" rx="2" />
-          <path class="data-rules" d="M20 38H108 M52 38V74 M80 38V74" />
-          <path
-            class="data-records"
-            d="M29 32H43 M59 32H71 M88 32H99 M29 46H43 M29 56H39 M29 66H45 M60 46H71 M60 56H73 M60 66H69"
-          />
-          <g class="data-points">
-            <circle cx="94" cy="46" r="1.8" />
-            <circle cx="94" cy="56" r="1.8" />
-            <circle cx="94" cy="66" r="1.8" />
+          <g id="data-tube-geometry">
+            <path class="data-sheet-back" opacity=".48" d="M36 10H124V58" />
+            <path class="data-sheet-middle" opacity=".48" d="M28 18H116V66" />
+            <g class="data-sheet-front">
+              <rect fill="var(--dataset-fill, none)" x="20" y="26" width="88" height="48" rx="2" />
+              <path opacity=".3" d="M20 38H108 M52 38V74 M80 38V74" />
+              <path
+                opacity=".9"
+                d="M29 32H43 M59 32H71 M88 32H99 M29 46H43 M29 56H39 M29 66H45 M60 46H71 M60 56H73 M60 66H69"
+              />
+              <g fill="url(#data-node)" stroke={neon.core} stroke-width={neonMetrics.nodeOutline}>
+                <circle cx="94" cy="46" r={neonMetrics.nodeRadius} />
+                <circle cx="94" cy="56" r={neonMetrics.nodeRadius} />
+                <circle cx="94" cy="66" r={neonMetrics.nodeRadius} />
+              </g>
+            </g>
           </g>
-        </g>
+        </defs>
+        <use class="data-tube-body" href="#data-tube-geometry" aria-hidden="true" />
+        <use class="data-tube-core" href="#data-tube-geometry" aria-hidden="true" />
       </svg>
       <p class="dataset-caption">Dataset</p>
     </div>
@@ -216,21 +213,20 @@ import { neon } from './material';
     width: 100%;
     filter: saturate(0.7) brightness(0.86) contrast(0.96);
   }
-  /* The live lettering occupies the former sign's ink area, without a raster matte. */
+  /* Keep the live sign in the open space between the network and dataset. */
   .dfl-sign {
     --sign-light: 0.2;
-    left: 10.25%;
+    left: 12%;
     position: absolute;
-    top: 107px;
+    top: 138px;
     align-items: center;
     display: flex;
     flex-direction: column;
     gap: 0.08em; /* optical: match the two-line sign's original visible line spacing. */
     justify-content: center;
-    aspect-ratio: 3 / 2;
     margin: 0;
-    width: 28.5%;
-    font: italic 200 clamp(20px, 4.2cqw, 28px)/1.1 var(--font);
+    width: 26%;
+    font: italic 200 clamp(19px, 3.7cqw, 24px)/1.14 var(--font);
     letter-spacing: -0.02em;
     pointer-events: none;
   }
@@ -240,8 +236,8 @@ import { neon } from './material';
     display: block;
     text-shadow:
       0 0 0.5px var(--neon-body),
-      0 0 2px color-mix(in srgb, var(--neon-halo) 55%, transparent),
-      0 0 5px color-mix(in srgb, var(--neon-halo) 22%, transparent);
+      0 0 3px color-mix(in srgb, var(--neon-halo) calc(28% + var(--sign-light) * 60%), transparent),
+      0 0 7px color-mix(in srgb, var(--neon-halo) calc(8% + var(--sign-light) * 40%), transparent);
     -webkit-text-stroke: 0.2px var(--neon-body);
     white-space: nowrap;
     color: color-mix(in srgb, var(--neon-core) 68%, var(--neon-body));
@@ -271,6 +267,9 @@ import { neon } from './material';
     height: 140px;
     width: 100%;
   }
+  .predict canvas {
+    transform: translateY(12px);
+  }
   .predict {
     left: 0;
     top: -24px;
@@ -289,12 +288,6 @@ import { neon } from './material';
   .optimize canvas {
     height: 160px;
   }
-  .math-expr {
-    font-family: Georgia, 'Times New Roman', serif;
-    font-size: 16px;
-    font-weight: 400;
-    line-height: 1.1;
-  }
   .opt-formula {
     left: calc(50% + 7px);
     position: absolute;
@@ -304,15 +297,13 @@ import { neon } from './material';
     gap: 7px; /* optical: spacing within the illustration */
     justify-content: center;
     width: 98px;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.1;
     color: var(--neon-core);
     filter: drop-shadow(0 0 0.5px var(--neon-core)) drop-shadow(0 0 3px var(--neon-halo));
     transform: translateX(-50%);
-  }
-  .math-expr i {
-    font-family: inherit;
-    font-size: inherit;
-    font-style: italic;
-    font-weight: 400;
   }
   .flow-wires {
     inset: 0;
@@ -324,15 +315,17 @@ import { neon } from './material';
   }
   .flow-wires :global(path) {
     fill: none;
+  }
+  .flow-wires :global(path:not(.signal)) {
+    filter: drop-shadow(0 0 0.6px color-mix(in srgb, var(--muted) 35%, transparent))
+      drop-shadow(0 0 1.5px color-mix(in srgb, var(--muted) 18%, transparent));
     opacity: 0.6;
     stroke: var(--muted);
-    stroke-width: 0.9;
+    stroke-width: 1.05px;
   }
   .flow-wires marker path {
-    opacity: 0.6;
     stroke-linecap: round;
     stroke-linejoin: round;
-    stroke-width: 1.05px;
   }
   .flow-wires :global(.signal) {
     filter: drop-shadow(0 0 3px color-mix(in srgb, var(--muted) 60%, transparent));
@@ -341,40 +334,32 @@ import { neon } from './material';
     stroke-linecap: round;
     stroke-width: 2.2;
   }
-  .input-label,
-  .prediction-label,
-  .decision-label,
-  .loss-node {
+  .flow-label {
     position: absolute;
+    z-index: 2;
     margin: 0;
-    font: var(--module-size)/var(--label-leading) var(--font-mono);
-    font-weight: 400;
+    padding: 3px 6px; /* optical: backing around labels on the wires. */
+    font: var(--flow-size)/18px var(--font-mono);
+    text-shadow:
+      0 0 0.6px color-mix(in srgb, var(--muted) 28%, transparent),
+      0 0 2px color-mix(in srgb, var(--muted) 12%, transparent);
     white-space: nowrap;
-    color: var(--muted);
-  }
-  .input-label,
-  .prediction-label,
-  .decision-label {
-    font-size: var(--flow-size);
-    line-height: 18px;
+    background: transparent;
     color: var(--muted);
   }
   .input-label {
     left: 8px;
     top: 60px;
   }
-  .prediction-label,
-  .decision-label {
-    padding: 3px 6px; /* optical: spacing within the illustration */
-    background: var(--ink);
-  }
-
   .loss-node {
+    position: absolute;
     right: 0;
     top: 331px;
+    margin: 0;
     padding: 0;
     width: 34%;
     text-align: center;
+    white-space: nowrap;
   }
   .dataset-module {
     left: 14%;
@@ -391,31 +376,16 @@ import { neon } from './material';
     fill: none;
     stroke-linecap: round;
     stroke-linejoin: round;
-    stroke-width: 1;
+  }
+  .data-tube-body {
+    --dataset-fill: url(#data-glass);
     filter: url(#data-neon);
-    opacity: 1;
+    stroke: var(--neon-body);
+    stroke-width: var(--neon-line-width);
+  }
+  .data-tube-core {
     stroke: var(--neon-core);
-  }
-  .dataset-art :is(path, rect) {
-    stroke-width: 1.05px;
-    vector-effect: non-scaling-stroke;
-  }
-
-  .dataset-art .data-back {
-    opacity: 0.48;
-    stroke-width: 1px;
-  }
-  .dataset-art .data-rules {
-    opacity: 0.3;
-    stroke-width: 0.65px;
-  }
-  .dataset-art .data-records {
-    opacity: 0.9;
-    stroke-width: 0.95px;
-  }
-  .dataset-art .data-points {
-    fill: var(--neon-core);
-    stroke: none;
+    stroke-width: var(--neon-core-width);
   }
   .dataset-caption {
     left: 0;
@@ -423,70 +393,7 @@ import { neon } from './material';
     top: -25px;
     margin: 0;
     width: 100%;
-    font: var(--module-size)/var(--label-leading) var(--font-mono);
     text-align: center;
-    color: var(--muted);
-  }
-  .truth-label {
-    position: absolute;
-    margin: 0;
-    padding: 3px 6px; /* optical: spacing within the illustration */
-    font: var(--flow-size)/18px var(--font-mono);
-    white-space: nowrap;
-    background: var(--ink);
-    color: var(--muted);
-  }
-  @container (max-width:420px) {
-    .dfl-photo {
-      height: 162px;
-      clip-path: url(#dfl-photo-curve-mobile);
-    }
-    .dfl-photo img {
-      height: 176px;
-      object-position: 50% 40%;
-    }
-    .dfl-sign {
-      left: 12%;
-      top: 118px;
-      width: 54%;
-      font-size: clamp(22px, 7cqw, 27px);
-    }
-    .training-flow {
-      height: 568px;
-      margin-top: -26px; /* optical: spacing within the illustration */
-    }
-    .stage canvas {
-      height: 144px;
-    }
-    .predict {
-      left: 0;
-      top: -24px;
-      width: 54%;
-    }
-    .optimize {
-      left: 36%;
-      top: 190px;
-      width: 64%;
-    }
-    .optimize canvas {
-      height: 160px;
-    }
-    .opt-formula {
-      top: 30px;
-    }
-    .evaluate {
-      left: auto;
-      right: 0;
-      top: 412px;
-      width: 50%;
-    }
-    .evaluate canvas {
-      height: 160px;
-    }
-    .dataset-module {
-      left: 0;
-      width: 118px;
-    }
   }
   .module-label {
     left: 0;
@@ -494,10 +401,8 @@ import { neon } from './material';
     top: 140px;
     margin: 0;
     width: 100%;
-    font: var(--module-size)/var(--label-leading) var(--font-mono);
     text-align: center;
     white-space: nowrap;
-    color: var(--muted);
   }
   .predict .module-label {
     top: 130px;
@@ -507,59 +412,40 @@ import { neon } from './material';
     white-space: normal;
   }
   .dfl-label-content {
-    align-items: baseline;
+    align-items: center;
     display: inline-flex;
-    gap: 7px; /* optical: spacing within the illustration */
+    flex-direction: column;
+    gap: 1px; /* optical: labels sit just above the mathematical symbol. */
     font-family: var(--font-mono);
     font-size: var(--flow-size);
     font-weight: 400;
     letter-spacing: normal;
     white-space: nowrap;
   }
-  .dfl-label-content i {
+  .dfl-label-content > span {
+    padding: 0;
+    line-height: 15px;
+    background: var(--ink);
+  }
+  .dfl-label-content > i {
+    display: block;
+    padding: 0;
     font-family: Georgia, 'Times New Roman', serif;
     font-size: var(--math-size);
     font-style: italic;
     font-weight: 400;
     line-height: 18px;
-  }
-  .truth-label,
-  .prediction-label,
-  .decision-label {
-    padding: 3px 6px; /* optical: spacing within the illustration */
-    background: transparent;
-  }
-  :is(.truth-label, .prediction-label, .decision-label) .dfl-label-content {
-    align-items: center;
-    flex-direction: column;
-    gap: 12px; /* optical: spacing within the illustration */
-  }
-  :is(.truth-label, .prediction-label, .decision-label) .dfl-label-content > span,
-  :is(.truth-label, .prediction-label, .decision-label) .dfl-label-content > i {
-    padding: 0 4px; /* optical: spacing within the illustration */
     background: var(--ink);
-  }
-  .truth-label .dfl-label-content {
-    gap: 3px; /* optical: spacing within the illustration */
-  }
-  .truth-label {
-    background: var(--ink);
+    box-shadow: 0 0 0 4px var(--ink);
   }
   .decision-label .dfl-label-content {
     align-items: baseline;
     flex-direction: row;
-    gap: 14px; /* optical: spacing within the illustration */
+    gap: 5px; /* optical: name and symbol read as one phrase. */
   }
-  .decision-label .dfl-label-content > span,
-  .decision-label .dfl-label-content > i {
-    padding: 0;
-  }
-  .flow-label {
-    z-index: 2;
-    text-shadow:
-      0 0 0.6px color-mix(in srgb, var(--muted) 28%, transparent),
-      0 0 2px color-mix(in srgb, var(--muted) 12%, transparent);
-    color: var(--muted);
+  .prediction-label .dfl-label-content > span,
+  .truth-label .dfl-label-content > span {
+    background: transparent;
   }
   .flow-label :global(.label-glow) {
     inset: 3px 6px auto;
@@ -574,127 +460,10 @@ import { neon } from './material';
     opacity: 0;
     pointer-events: none;
   }
-  .input-label {
-    padding: 3px 6px; /* optical: spacing within the illustration */
-    background: transparent;
-  }
-  .input-label .dfl-label-content {
-    gap: 12px; /* optical: spacing within the illustration */
-  }
-  .input-label .dfl-label-content > span,
-  .input-label .dfl-label-content > i {
-    background: var(--ink);
-  }
-  @container (max-width:420px) {
-    .input-label {
-      background: transparent;
-    }
-    .input-label .dfl-label-content {
-      gap: 12px; /* optical: spacing within the illustration */
-    }
-  }
-  .input-label :global(.label-glow) {
-    inset: 3px 6px auto;
-  }
-  @container (max-width:420px) {
-    .predict .module-label {
-      top: 132px;
-    }
-    .optimize .module-label {
-      top: 150px;
-    }
-  }
-  @container (max-width:290px) {
-    .module-label {
-      font-size: 13px;
-    }
-    .opt-formula {
-      width: 88px;
-    }
-    .dfl-label-content {
-      gap: 5px; /* optical: spacing within the illustration */
-    }
-    .dfl-label-content i {
-      font-size: 18px;
-    }
-  }
-  @container (max-width:420px) {
-    .flow-label {
-      padding: 3px 6px; /* optical: spacing within the illustration */
-      background: transparent;
-    }
-    .flow-label .dfl-label-content {
-      gap: 1px; /* optical: spacing within the illustration */
-    }
-    .flow-label .dfl-label-content > span {
-      padding: 0;
-      line-height: 15px;
-      background: var(--ink);
-    }
-    .flow-label .dfl-label-content > i {
-      display: block;
-      padding: 0;
-      line-height: 18px;
-      background: var(--ink);
-      box-shadow: 0 0 0 4px var(--ink);
-    }
-    .input-label .dfl-label-content,
-    .decision-label .dfl-label-content {
-      align-items: baseline;
-      flex-direction: row;
-      gap: 5px; /* optical: spacing within the illustration */
-    }
-  }
-  @container (min-width:421px) {
-    .flow-label {
-      padding: 3px 6px; /* optical: spacing within the illustration */
-      background: transparent;
-    }
-    .flow-label .dfl-label-content {
-      align-items: center;
-      flex-direction: column;
-      gap: 1px; /* optical: spacing within the illustration */
-    }
-    .flow-label .dfl-label-content > span {
-      padding: 0;
-      line-height: 15px;
-      background: var(--ink);
-    }
-    .flow-label .dfl-label-content > i {
-      display: block;
-      padding: 0;
-      line-height: 18px;
-      background: var(--ink);
-      box-shadow: 0 0 0 4px var(--ink);
-    }
-    .input-label .dfl-label-content,
-    .decision-label .dfl-label-content {
-      align-items: baseline;
-      flex-direction: row;
-      gap: 5px; /* optical: spacing within the illustration */
-    }
-  }
-  .prediction-label .dfl-label-content > span,
-  .truth-label .dfl-label-content > span {
-    background: transparent;
-  }
-  @container (max-width:420px) {
-    .prediction-label .dfl-label-content > span {
-      transform: translate(14px, -10px);
-    }
-    .input-label .dfl-label-content,
-    .truth-label .dfl-label-content {
-      align-items: center;
-      flex-direction: column;
-      gap: 2px; /* optical: keep the words clear of the narrow vertical wire. */
-    }
-    .truth-label .dfl-label-content > span {
-      transform: none;
-    }
-  }
   .module-label,
   .dataset-caption,
   .loss-node {
+    font: var(--module-size)/var(--label-leading) var(--font-mono);
     text-shadow:
       0 0 0.5px #a4b6ce55,
       0 0 3px #7d9fc950;
@@ -720,20 +489,80 @@ import { neon } from './material';
     color: inherit;
     math-style: compact;
   }
-  .flow-wires :global(path:not(.signal)) {
-    filter: drop-shadow(0 0 0.6px color-mix(in srgb, var(--muted) 35%, transparent))
-      drop-shadow(0 0 1.5px color-mix(in srgb, var(--muted) 18%, transparent));
-    opacity: 0.6;
-    stroke: var(--muted);
-    stroke-width: 1.05px;
+  @container (max-width:420px) {
+    .dfl-photo {
+      height: 162px;
+      clip-path: url(#dfl-photo-curve-mobile);
+    }
+    .dfl-photo img {
+      height: 176px;
+    }
+    .dfl-sign {
+      left: 5%;
+      top: 167px;
+      width: 50%;
+      font-size: clamp(16px, 5.5cqw, 21px);
+    }
+    .training-flow {
+      height: 568px;
+      margin-top: -26px; /* optical: spacing within the illustration */
+    }
+    .stage canvas {
+      height: 144px;
+    }
+    .predict {
+      width: 54%;
+    }
+    .optimize {
+      left: 36%;
+      top: 160px;
+      width: 64%;
+    }
+    .optimize canvas {
+      height: 160px;
+    }
+    .evaluate {
+      left: auto;
+      right: 0;
+      top: 412px;
+      width: 50%;
+    }
+    .evaluate canvas {
+      height: 160px;
+    }
+    .dataset-module {
+      left: 0;
+    }
+    .input-label .dfl-label-content {
+      gap: 2px; /* optical: separate the words from the narrow vertical wire. */
+    }
+    .prediction-label .dfl-label-content > span {
+      transform: translate(14px, -10px);
+    }
+    .truth-label .dfl-label-content {
+      align-items: baseline;
+      flex-direction: row;
+      gap: 5px; /* optical: keep Ground truth to the left of c on phones only. */
+    }
+    .truth-label .dfl-label-content > span {
+      background: var(--ink);
+    }
+    .predict .module-label {
+      top: 132px;
+    }
+    .optimize .module-label {
+      top: 150px;
+    }
   }
-  .predict canvas {
-    transform: translateY(12px);
-  }
-  .data-sheet-front > rect {
-    fill: url(#data-glass);
-    stroke: var(--neon-core);
-    stroke-width: 1.25px;
+  @container (max-width:290px) {
+    .module-label,
+    .dataset-caption,
+    .loss-node {
+      font-size: 13px;
+    }
+    .opt-formula {
+      width: 88px;
+    }
   }
 </style>
 <script>

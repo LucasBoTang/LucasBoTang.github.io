@@ -11,8 +11,7 @@ import { flowPhase, timing } from './timeline';
 function renderModule(surface: ModuleSurface, time: number, ambient: number) {
   const drawing = prepareModuleFrame(surface);
   if (!drawing) return;
-  const { canvas, ctx } = surface;
-  const { screenStroke } = drawing;
+  const { canvas } = surface;
   const flow = flowPhase(time);
   if (canvas.dataset.module === 'predict') {
     drawNeuralNetwork(drawing, flow, ambient);
@@ -24,7 +23,7 @@ function renderModule(surface: ModuleSurface, time: number, ambient: number) {
       sweep = (flow - timing.evaluation) / 0.6;
     if (flow >= timing.backward[0] - 0.6 && flow < timing.backward[0])
       sweep = 1 - (flow - (timing.backward[0] - 0.6)) / 0.6;
-    drawDecisionBalance(ctx, ambient, sweep, screenStroke(2.4));
+    drawDecisionBalance(drawing, ambient, sweep);
   }
 }
 
@@ -55,8 +54,8 @@ if (root) {
   const draw = (elapsed: number, reduced: boolean) => {
     const time = reduced ? 0 : elapsed / 1000;
     surfaces.forEach((surface) => renderModule(surface, time, time));
-    // The two lines share a smooth light cycle, about 75–93% opacity, without going dark.
-    const light = 0.2 + 0.08 * ambientSwing(time) + 0.015 * ambientSwing(time * 1.7, 0.9);
+    // Local light varies gently at two continuous rates; the lettering never switches off.
+    const light = 0.2 + 0.12 * ambientSwing(time * 1.4) + 0.02 * ambientSwing(time * 1.9, 0.9);
     sign?.style.setProperty('--sign-light', light.toFixed(4));
     updateDatasetAmbient(root, time);
     updateDflFlow(time, reduced);

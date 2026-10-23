@@ -2,7 +2,9 @@ import shapes from '../../../data/research/dfl-polytopes.json';
 import { smoothstep as smooth } from '../../../lib/easing.ts';
 import { ambientSwing } from './ambient';
 import type { ModuleDrawing, ModuleSurface, Point2D } from './drawing';
+import { polytopeScale } from './geometry';
 import { paperRGB, signalRGB } from './ink';
+import { neon, neonMetrics, strokeTube } from './material';
 import { flowSpeed, simplexDurations, simplexVertexPause, timing } from './timeline';
 
 /** Render the shared camera, polytope, and timed edge walk as one geometric scene. */
@@ -16,7 +18,7 @@ export function drawOptimization(
   const { scale, screenStroke, refreshStrokeScale, line, dot } = drawing;
   const shape = shapes[Number(canvas.dataset.module!.split('-')[1])],
     vertices = shape.vertices;
-  const polyScale = 0.46;
+  const polyScale = polytopeScale;
   ctx.translate(7 / scale, 10 / scale);
   ctx.scale(polyScale, polyScale);
   refreshStrokeScale();
@@ -51,14 +53,14 @@ export function drawOptimization(
     ];
     ends.forEach((p) => {
       const end = project(p).slice(0, 2) as Point2D;
-      line(origin, end, 0.31, 1.05);
+      line(origin, end, 0.31, 'axis');
       const angle = Math.atan2(end[1] - origin[1], end[0] - origin[0]);
       for (const side of [-1, 1])
         line(
           end,
           [end[0] - 7 * Math.cos(angle + side * 0.4), end[1] - 7 * Math.sin(angle + side * 0.4)],
           0.4,
-          1.05,
+          'axis',
         );
     });
   }
@@ -114,16 +116,10 @@ export function drawOptimization(
   }
   const { durations, starts } = surface.walkTiming;
 
-  const vertexPause = 0;
-  const travelEase = (u: number) => {
-    const v = Math.max(0, Math.min(1, u));
-    return v;
-  };
   const position = Math.max(0, flow - timing.optimization);
   const step = Math.min(4, durations.filter((_, k) => position >= starts[k + 1]).length);
   const local = position - starts[step],
-    raw = Math.max(0, Math.min(1, (local - vertexPause) / (durations[step] || 1))),
-    ease = travelEase(raw);
+    headProgress = Math.max(0, Math.min(1, local / (durations[step] || 1)));
   const visibility =
     smooth((flow - timing.optimization) / 0.12) * (1 - smooth((flow - timing.decision[0]) / 0.24));
   edges.forEach(([i, j]) => {
@@ -132,10 +128,12 @@ export function drawOptimization(
       projected[i].slice(0, 2) as Point2D,
       projected[j].slice(0, 2) as Point2D,
       0.34 - depth * 0.28,
-      1.35,
+      'structure',
     );
   });
-  projected.forEach((p) => dot(p.slice(0, 2) as Point2D, 1.35, p[2] < 0 ? 0.62 : 0.22));
+  projected.forEach((p) =>
+    dot(p.slice(0, 2) as Point2D, neonMetrics.nodeRadius, p[2] < 0 ? 0.62 : 0.22),
+  );
   // One screen-space sweep across the whole solid on the return pass.
   // Reuse the caption's complete interval; rotation continues on ambient time.
   if (flow >= timing.reverseOptimization[0] && flow <= timing.reverseOptimization[1]) {
@@ -153,7 +151,7 @@ export function drawOptimization(
     ctx.save();
     ctx.strokeStyle = light;
     ctx.fillStyle = light;
-    ctx.lineWidth = screenStroke(1.15);
+    ctx.lineWidth = screenStroke(neonMetrics.signal);
     ctx.beginPath();
     edges.forEach(([i, j]) => {
       ctx.moveTo(projected[i][0], projected[i][1]);
@@ -162,7 +160,7 @@ export function drawOptimization(
     ctx.stroke();
     projected.forEach((p) => {
       ctx.beginPath();
-      ctx.arc(p[0], p[1], 1.65, 0, Math.PI * 2);
+      ctx.arc(p[0], p[1], screenStroke(neonMetrics.nodeRadius), 0, Math.PI * 2);
       ctx.fill();
     });
     ctx.restore();
@@ -173,34 +171,53 @@ export function drawOptimization(
     const a = projected[walk[k]],
       b = projected[walk[k + 1]];
     const segmentDuration = durations[k];
-    const elapsed = position - starts[k] - vertexPause;
+    const elapsed = position - starts[k];
     if (visibility < 0.001 || elapsed < 0 || elapsed > segmentDuration + tailSeconds) continue;
-    const progress = travelEase(elapsed / segmentDuration);
-    for (let j = 0; j < 36; j++) {
-      const u0 = j / 36,
-        u1 = (j + 1) / 36;
-      if (u0 >= progress) break;
-      const end = Math.min(u1, progress);
-      // Invert the easing curve to recover when this piece was traversed.
-      const age = elapsed - ((u0 + end) / 2) * segmentDuration;
-      const alpha = 0.8 * (1 - smooth(age / tailSeconds)) * visibility;
-      if (alpha > 0)
-        line(
-          [a[0] + (b[0] - a[0]) * u0, a[1] + (b[1] - a[1]) * u0],
-          [a[0] + (b[0] - a[0]) * end, a[1] + (b[1] - a[1]) * end],
-          alpha,
-          1.15,
-        );
+    const progress = Math.max(0, Math.min(1, elapsed / segmentDuration));
+    const tail = Math.max(0, (elapsed - tailSeconds) / segmentDuration);
+    if (progress <= tail) continue;
+    const start: Point2D = [a[0] + (b[0] - a[0]) * tail, a[1] + (b[1] - a[1]) * tail];
+    const end: Point2D = [a[0] + (b[0] - a[0]) * progress, a[1] + (b[1] - a[1]) * progress];
+    const body = ctx.createLinearGradient(...start, ...end);
+    const core = ctx.createLinearGradient(...start, ...end);
+    // One continuous tube avoids bright joins between separately stroked pieces.
+    for (let sample = 0; sample <= 8; sample++) {
+      const offset = sample / 8;
+      const traversed = tail + (progress - tail) * offset;
+      const age = elapsed - traversed * segmentDuration;
+      const alpha = Math.min(1, 1.68 * (1 - smooth(age / tailSeconds)) * visibility);
+      const opacity = Math.round(alpha * 255)
+        .toString(16)
+        .padStart(2, '0');
+      body.addColorStop(offset, `${neon.body}${opacity}`);
+      core.addColorStop(offset, `${neon.core}${opacity}`);
     }
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(...start);
+    ctx.lineTo(...end);
+    ctx.lineCap = 'round';
+    strokeTube(
+      ctx,
+      screenStroke(neonMetrics.signal),
+      1,
+      neonMetrics.halo * drawing.pixelRatio,
+      body,
+      core,
+    );
+    ctx.restore();
   }
   const from = projected[walk[step]],
     to = projected[walk[Math.min(step + 1, walk.length - 1)]];
-  const head: Point2D = [from[0] + (to[0] - from[0]) * ease, from[1] + (to[1] - from[1]) * ease];
+  const head: Point2D = [
+    from[0] + (to[0] - from[0]) * headProgress,
+    from[1] + (to[1] - from[1]) * headProgress,
+  ];
   const vertexFlash =
     step < 3
       ? Math.sin(Math.PI * Math.max(0, Math.min(1, (local - durations[step]) / simplexVertexPause)))
       : 0;
-  dot(head, 2.7 + vertexFlash * 1.6, visibility, visibility * (9 + vertexFlash * 10));
+  dot(head, neonMetrics.activeNodeRadius, visibility, visibility * (9 + vertexFlash * 10));
   if (step === walk.length - 1) {
     const flash = Math.sin(Math.PI * Math.min(1, Math.max(0, (position - starts[4]) / 0.48)));
     ctx.beginPath();

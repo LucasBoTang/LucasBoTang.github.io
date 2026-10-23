@@ -1,4 +1,5 @@
-import { neon, strokeTube } from './material';
+import { moduleScale } from './geometry';
+import { neon, neonMetrics, strokeTube } from './material';
 
 export type Point2D = [number, number];
 export interface ModuleSurface {
@@ -26,7 +27,8 @@ export function prepareModuleFrame(surface: ModuleSurface) {
   }
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, box.width, box.height);
-  const scale = Math.min(box.width / 280, 0.85);
+  const scale = moduleScale(box.width);
+  const network = canvas.dataset.module === 'predict';
   ctx.translate(box.width / 2, box.height / 2);
   ctx.scale(scale, scale);
   // Each module uses one scale; reading the matrix for every neon stroke is redundant.
@@ -36,13 +38,24 @@ export function prepareModuleFrame(surface: ModuleSurface) {
     strokeScale = Math.hypot(transform.a, transform.b) / dpr;
   };
   refreshStrokeScale();
-  const screenStroke = (pixels = 1.05) => pixels / strokeScale;
+  const screenStroke = (pixels = neonMetrics.axis) => pixels / strokeScale;
   // Layer a crisp pale core inside a blue body; bloom stays close to the object.
-  function line(from: Point2D, to: Point2D, alpha = 0.25, width = 0.7) {
-    const network = canvas.dataset.module === 'predict';
-    const structure = network && width === 0.6;
+  function line(
+    from: Point2D,
+    to: Point2D,
+    alpha = 0.25,
+    role: 'structure' | 'signal' | 'axis' = 'axis',
+  ) {
+    const dense = network && role === 'structure';
     const strength = Math.max(0, Math.min(1, alpha));
-    const pixels = network ? (structure ? 1.5 : 2.3) : width >= 1.3 ? 2.2 + strength * 1.2 : 1.1;
+    const pixels =
+      role === 'structure'
+        ? dense
+          ? neonMetrics.denseStructure
+          : neonMetrics.structure
+        : role === 'signal'
+          ? neonMetrics.signal
+          : neonMetrics.axis;
     ctx.save();
     ctx.beginPath();
     ctx.moveTo(...from);
@@ -52,17 +65,14 @@ export function prepareModuleFrame(surface: ModuleSurface) {
     strokeTube(
       ctx,
       screenStroke(pixels),
-      structure ? 0.48 : Math.min(1, strength * 2.1),
-      !structure && width >= 1.3,
+      dense ? 0.42 : Math.min(1, strength * 2.1),
+      !network && role !== 'axis' ? neonMetrics.halo * dpr : 0,
     );
     ctx.restore();
   }
-  function dot(point: Point2D, baseRadius = 2, alpha = 0.6, glow = 0) {
+  function dot(point: Point2D, radiusPixels = neonMetrics.nodeRadius, alpha = 0.6, glow = 0) {
     if (alpha <= 0.001) return;
-    const network = canvas.dataset.module === 'predict';
-    const radius = network
-      ? screenStroke(3.2) + (baseRadius - 2.2) * 0.7
-      : Math.max(baseRadius * 1.12, screenStroke(glow > 1 ? 2.4 : 1.6));
+    const radius = screenStroke(radiusPixels);
     ctx.save();
     ctx.globalAlpha = Math.min(1, alpha * 1.8);
     ctx.beginPath();
@@ -80,14 +90,14 @@ export function prepareModuleFrame(surface: ModuleSurface) {
     gradient.addColorStop(1, neon.dim);
     ctx.fillStyle = gradient;
     ctx.shadowColor = neon.halo;
-    ctx.shadowBlur = 5 + glow * 0.5;
+    ctx.shadowBlur = (neonMetrics.halo + glow * 0.5) * dpr;
     ctx.fill();
     ctx.shadowBlur = 0;
-    ctx.lineWidth = screenStroke(0.9);
+    ctx.lineWidth = screenStroke(neonMetrics.nodeOutline);
     ctx.strokeStyle = neon.core;
     ctx.stroke();
     ctx.restore();
   }
 
-  return { scale, screenStroke, refreshStrokeScale, line, dot };
+  return { ctx, scale, pixelRatio: dpr, screenStroke, refreshStrokeScale, line, dot };
 }

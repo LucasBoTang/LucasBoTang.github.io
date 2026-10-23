@@ -1,4 +1,5 @@
 import { updateFlow, type CaptionSweep, type FlowFigure } from './flow-motion';
+import { moduleScale, networkGeometry, polytopeScale } from './geometry';
 import { timing, flowPhase, flowSpeed, configureFlow, captionSweepDuration } from './timeline';
 
 const ns = 'http://www.w3.org/2000/svg';
@@ -8,6 +9,13 @@ const sweep = (start: number, end: number, reverse = false): CaptionSweep => ({
   reverse,
 });
 const figures: FlowFigure[] = [];
+// Order matches the four paths: features, predictions, decisions, observed costs.
+const wireLabels = [
+  { selector: '.input-label', mobile: 0.49, desktop: 0.48 },
+  { selector: '.prediction-label', mobile: 0.55, desktop: 0.48 },
+  { selector: '.decision-label', mobile: 0.5, desktop: 0.78 },
+  { selector: '.truth-label', mobile: 0.7, desktop: 0.5 },
+];
 
 document.querySelectorAll<HTMLElement>('.training-flow').forEach((root) => {
   const svg = root.querySelector<SVGSVGElement>('.flow-wires')!,
@@ -39,7 +47,7 @@ document.querySelectorAll<HTMLElement>('.training-flow').forEach((root) => {
     };
     const node = (selector: string, half: number, height: number) => {
       const b = bounds(selector),
-        s = Math.min(b.w / 280, 0.85) * (selector.includes('optimize') ? 0.46 : 1);
+        s = moduleScale(b.w) * (selector.includes('optimize') ? polytopeScale : 1);
       return {
         x: b.x + b.w / 2,
         y: b.y + b.h / 2,
@@ -49,24 +57,24 @@ document.querySelectorAll<HTMLElement>('.training-flow').forEach((root) => {
         bottom: b.y + b.h / 2 + height * s,
       };
     };
-    const network = node('.predict canvas', 108, 84),
+    const network = node('.predict canvas', networkGeometry.halfWidth, networkGeometry.halfHeight),
       optimizer = node('.optimize canvas', 91, 68),
       balance = node('.evaluate canvas', 111, 69);
     const polyBounds = bounds('.optimize canvas'),
-      polyScale = Math.min(polyBounds.w / 280, 0.85) * 0.46;
+      polyScale = moduleScale(polyBounds.w) * polytopeScale;
     optimizer.x += 7;
     optimizer.y += 10;
-    optimizer.left = optimizer.x - 64 * Math.min(polyBounds.w / 280, 0.85);
+    optimizer.left = optimizer.x - 139 * polyScale;
     optimizer.right = optimizer.x + 103 * polyScale;
     optimizer.top = optimizer.y - 79 * polyScale;
     optimizer.bottom = optimizer.y + 92 * polyScale;
-    const gridScale = Math.min(bounds('.evaluate canvas').w / 280, 0.85);
+    const gridScale = moduleScale(bounds('.evaluate canvas').w);
     // Captions share one optical gap from the visible drawing envelope, not canvas edges.
     const captionGap = 12;
     const neuralBox = bounds('.predict canvas'),
-      neuralS = Math.min(neuralBox.w / 280, 0.85);
+      neuralS = moduleScale(neuralBox.w);
     const neuralCaption = root.querySelector<HTMLElement>('.predict .module-label')!;
-    neuralCaption.style.top = `${neuralBox.h / 2 + 12 - 80.4 * neuralS - 5.2 - captionGap - 16}px`;
+    neuralCaption.style.top = `${neuralBox.h / 2 + 12 - networkGeometry.halfHeight * neuralS - 5.2 - captionGap - 16}px`;
     const polyCaption = root.querySelector<HTMLElement>('.optimize .module-label')!;
     polyCaption.style.top = `${polyBounds.h / 2 + 10 + 134 * polyScale + 3 + captionGap - 4}px`;
     polyCaption.style.left = '7px';
@@ -78,9 +86,6 @@ document.querySelectorAll<HTMLElement>('.training-flow').forEach((root) => {
     const quality = bounds('.loss-node');
     root.querySelector<HTMLElement>('.dataset-module')!.style.top =
       `${quality.y - (mobile ? 214 : 92)}px`;
-    const featureLabel = root.querySelector<HTMLElement>('.input-label')!;
-    featureLabel.style.left = '0px';
-    featureLabel.style.top = `${mobile ? 230 : 208}px`;
     const data = bounds('.dataset-module');
     const datasetCaption = root.querySelector<HTMLElement>('.dataset-caption')!;
     const sheetScale = data.w / 140,
@@ -88,9 +93,9 @@ document.querySelectorAll<HTMLElement>('.training-flow').forEach((root) => {
     datasetCaption.style.top = `${sheetInset + 6.5 * sheetScale - 2 - captionGap - 16}px`;
     datasetCaption.style.left = `${2 * sheetScale}px`;
     const gap = 12,
-      neuralScale = Math.min(bounds('.predict canvas').w / 280, 0.85);
-    const featureX = network.x - 108 * Math.cos(0.24) * neuralScale,
-      featureY = network.y + 38.4 * neuralScale + gap;
+      neuralScale = moduleScale(bounds('.predict canvas').w);
+    const featureX = network.x - networkGeometry.halfWidth * Math.cos(0.24) * neuralScale,
+      featureY = network.y + networkGeometry.rowStep * neuralScale + gap;
     const gridInX = balance.x + 81 * gridScale,
       gridInY = balance.y - 69 * gridScale - gap,
       truthInY = balance.y + 15 * gridScale;
@@ -110,13 +115,13 @@ document.querySelectorAll<HTMLElement>('.training-flow').forEach((root) => {
     const decisionStartY = Math.max(optimizer.bottom + 32, modelCaption.y + modelCaption.h + 12);
     const paths = mobile
       ? [
-          `M${data.x + 24} ${data.y + 18} C${featureX} ${data.y - 16} ${featureX} ${featureY + 42} ${featureX} ${featureY}`,
-          `M${network.right + gap} ${portY} C${predictionEnd.x - 8} ${portY} ${predictionEnd.x} ${predictionEnd.y - 40} ${predictionEnd.x} ${predictionEnd.y}`,
+          `M${data.x + 24} ${data.y + 18} C${featureX - 38} ${data.y - 38} ${featureX - 26} ${featureY + 68} ${featureX} ${featureY}`,
+          `M${network.right + gap} ${portY} C${(network.right + gap + predictionEnd.x) / 2} ${portY + 10} ${predictionEnd.x - 18} ${predictionEnd.y - 24} ${predictionEnd.x} ${predictionEnd.y}`,
           `M${optimizer.x + 18} ${decisionStartY} C${optimizer.x + 18} ${decisionStartY + 24} ${gridInX} ${gridInY - 28} ${gridInX} ${gridInY}`,
           `M${data.x + data.w * 0.55} ${data.y + data.h + gap} C${data.x + data.w * 0.55} ${balance.y + 8} ${balance.left - gap - 32} ${balance.y + 8} ${balance.left - gap} ${balance.y + 8}`,
         ]
       : [
-          `M${featureStart.x} ${featureStart.y} C${featureX} ${featureStart.y} ${featureX} ${featureY + 48} ${featureX} ${featureY}`,
+          `M${featureStart.x} ${featureStart.y} C${featureX - 42} ${featureStart.y - 40} ${featureX - 30} ${featureY + 68} ${featureX} ${featureY}`,
           `M${network.right + gap} ${portY} C${network.right + gap + 38} ${portY} ${optimizer.left - gap - 38} ${optimizer.y} ${optimizer.left - gap} ${optimizer.y}`,
           `M${optimizer.right + gap} ${optimizer.y} C${optimizer.right + gap + 42} ${optimizer.y + 22} ${gridInX + 12} ${gridInY - 36} ${gridInX} ${gridInY}`,
           `M${data.x + (data.w * 124) / 140 + gap} ${data.y + data.h * 0.52} C${data.x + data.w + 30} ${data.y + data.h * 0.52 - 4} ${balance.left - gap - 30} ${truthInY - 4} ${balance.left - gap} ${truthInY}`,
@@ -128,7 +133,7 @@ document.querySelectorAll<HTMLElement>('.training-flow').forEach((root) => {
     });
     const reverseWindows = configureFlow(
       [...lengths.slice(0, 3), 0],
-      216 * Math.cos(0.24) * neuralScale,
+      networkGeometry.halfWidth * 2 * Math.cos(0.24) * neuralScale,
       polyScale,
     );
     const windows: [number, number][] = [
@@ -207,24 +212,9 @@ document.querySelectorAll<HTMLElement>('.training-flow').forEach((root) => {
       band.setAttribute('class', 'signal');
       band.style.stroke = `url(#${id})`;
       group.append(band);
-      const selector = ['.input-label', '.prediction-label', '.decision-label', '.truth-label'][i];
-      const label = selector ? root.querySelector<HTMLElement>(selector) : null;
-      let labelAt =
-        i === 0
-          ? mobile
-            ? 0.18
-            : 0.22
-          : i === 1
-            ? mobile
-              ? 0.55
-              : 0.48
-            : i === 3
-              ? mobile
-                ? 0.55
-                : 0.5
-              : mobile
-                ? 0.65
-                : 0.48;
+      const labelConfig = wireLabels[i];
+      const label = root.querySelector<HTMLElement>(labelConfig.selector);
+      let labelAt = mobile ? labelConfig.mobile : labelConfig.desktop;
       if (i === 1 && !mobile) {
         const target = predictionAnchor;
         let nearest = Infinity;
@@ -238,7 +228,6 @@ document.querySelectorAll<HTMLElement>('.training-flow').forEach((root) => {
           }
         }
       }
-      if (i === 2) labelAt = mobile ? 0.5 : 0.78;
       if (label) {
         // Anchor the mathematical symbol itself on the wire; its ink backing opens the gap.
         const anchor = base.getPointAtLength(length * labelAt);
