@@ -1,11 +1,36 @@
 import { enhance } from '../../lib/lifecycle.ts';
 import { reducedMotionQuery, watchActivity } from '../../lib/motion.ts';
+import { openingPending } from '../../lib/opening-gate.ts';
 
 // Ignore passing pointers; a deliberate pause crossfades the word into the complete figure.
 const INTENT_DELAY = 240;
+// Give a newly arrived wordmark a readable moment before it can become a preview.
+const WORDMARK_REST = 400;
 // Match WorkPreview.astro: 140ms delay + 1200ms rise; retain the full 1000ms exit tail.
 const HANDOVER = 1340;
 const RELEASE = 1000;
+
+// The page gate lifts at the first visible frame, before the portrait's boot has finished.
+// Retain pointer/touch intent, but wait for both stages before loading any thumbnail.
+const openingHero = document.querySelector<HTMLElement>('[data-home-motion]');
+const bootPending = () => openingPending() || openingHero?.hasAttribute('data-opening') === true;
+let bootComplete = !bootPending();
+const afterBoot = new Set<() => void>();
+if (!bootComplete) {
+  const observer = new MutationObserver(() => {
+    if (bootPending()) return;
+    observer.disconnect();
+    bootComplete = true;
+    afterBoot.forEach((update) => update());
+    afterBoot.clear();
+  });
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['data-opening-pending'],
+  });
+  if (openingHero)
+    observer.observe(openingHero, { attributes: true, attributeFilter: ['data-opening'] });
+}
 
 const plates = [...document.querySelectorAll<HTMLElement>('[data-figure-preview]')];
 // One display width for all three artworks. The tallest composition sets the limit;
@@ -48,6 +73,7 @@ enhance<HTMLAnchorElement>('[data-figure-preview]', (link) => {
   let onScreen = false;
   let active = false;
   let ready = false;
+  let wordmark: 'waiting' | 'arriving' | 'ready' = bootComplete ? 'ready' : 'waiting';
   let frame: HTMLIFrameElement | undefined;
   let intentTimer = 0;
   let handover = 0;
@@ -94,9 +120,25 @@ enhance<HTMLAnchorElement>('[data-figure-preview]', (link) => {
       picture.append(child);
     }
   };
+  const prepareWordmark = () => {
+    if (wordmark !== 'waiting' || !bootComplete || !onScreen || document.hidden) return;
+    wordmark = 'arriving';
+    // These are the row's own arrival animations. A cancellation also settles the row,
+    // as the site's keyboard and reduced-motion skips restore its natural appearance.
+    const arrivals = host.getAnimations?.() ?? [];
+    void Promise.allSettled(arrivals.map((animation) => animation.finished)).then(() => {
+      const settle = () => {
+        wordmark = 'ready';
+        update();
+      };
+      if (reduced.matches) settle();
+      else window.setTimeout(settle, WORDMARK_REST);
+    });
+  };
   const update = () => {
+    prepareWordmark();
     const focused = host.hasAttribute('data-focused') || host.matches(':has(:focus-visible)');
-    const next = onScreen && !document.hidden && (pointed || focused);
+    const next = wordmark === 'ready' && onScreen && !document.hidden && (pointed || focused);
     if (next === active) return;
     active = next;
     clearTimeout(intentTimer);
@@ -114,6 +156,7 @@ enhance<HTMLAnchorElement>('[data-figure-preview]', (link) => {
     }
     intentTimer = window.setTimeout(load, reduced.matches ? 0 : INTENT_DELAY);
   };
+  if (!bootComplete) afterBoot.add(update);
   host.addEventListener('pointerenter', (event) => {
     if (event.pointerType === 'touch') return;
     pointed = true;
