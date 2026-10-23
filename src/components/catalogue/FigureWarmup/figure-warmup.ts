@@ -5,7 +5,7 @@ import {
   openingPending,
   waitForOpeningVisible,
 } from '../../../lib/opening-gate';
-import { waitForPageReady } from '../../../lib/page-ready';
+import { pageResources } from '../../../lib/page-ready';
 
 // The GPU compiles a shader program the first time it draws each kind of thing a figure draws,
 // and on a cold cache each takes about ten milliseconds, one after another: a figure's first frame
@@ -15,7 +15,7 @@ import { waitForPageReady } from '../../../lib/page-ready';
 //
 // A figure's warm-up shares the page's main thread and GPU, so it runs only where a stall cannot
 // show, and never competes with the opening's own fonts and images. On a first visit the figures
-// are drawn together once the page is ready, while the opening holds its first typing back behind
+// are drawn together as soon as those are in, while the opening holds its first typing back behind
 // a blinking caret (opening-gate.ts `holdOpening`): nothing moves but the caret, which a missed
 // frame or two does not disturb, and the typing that follows keeps its rhythm. The hold is bound
 // (`OPENING_HOLD_UNTIL`); a page ready too late leaves the figures to quiet moments after the
@@ -79,7 +79,7 @@ function figureFrame(source: FigureSource) {
   frame.height = String(size.height);
   frame.title = '';
   frame.tabIndex = -1;
-  frame.style.cssText = 'position:absolute;left:0;top:0;border:0';
+  Object.assign(frame.style, { position: 'absolute', left: '0', top: '0', border: '0' });
   const drawn = new Promise<void>((resolve) => {
     frame.addEventListener(
       'load',
@@ -100,8 +100,15 @@ function filterBox(sequence: FilterSequence) {
   const box = document.createElement('span');
   box.setAttribute('data-warm-filter', sequence.join(' / '));
   box.textContent = 'Aa';
-  box.style.cssText =
-    'position:absolute;left:0;top:0;width:24px;height:24px;background:var(--blue);color:var(--paper)';
+  Object.assign(box.style, {
+    position: 'absolute',
+    left: '0',
+    top: '0',
+    width: '24px',
+    height: '24px',
+    background: 'var(--blue)',
+    color: 'var(--paper)',
+  });
   box.animate?.(
     sequence.map((filter) => ({ filter })),
     { duration: FRAMES * 16, fill: 'both' },
@@ -123,7 +130,16 @@ export function warmFigures(
   const slot = document.createElement('div');
   slot.setAttribute('data-figure-warmup', '');
   slot.setAttribute('aria-hidden', 'true');
-  slot.style.cssText = `position:fixed;left:0;top:0;width:1px;height:1px;opacity:${OPACITY};overflow:visible;pointer-events:none`;
+  Object.assign(slot.style, {
+    position: 'fixed',
+    left: '0',
+    top: '0',
+    width: '1px',
+    height: '1px',
+    opacity: OPACITY,
+    overflow: 'visible',
+    pointerEvents: 'none',
+  });
   const figures = sources.map(figureFrame);
   slot.append(...figures.map(({ frame }) => frame), ...filters.map(filterBox));
   document.body.append(slot);
@@ -239,7 +255,9 @@ export async function warmBeforeOpening(
   const key = (source: FigureSource) => `${source.src}#${version}`;
   const pending = sources.filter((source) => !remembered().has(key(source)));
   if (!pending.length) return;
-  await waitForPageReady();
+  // Only once the page's own fonts and images are in, so as not to compete with them; the
+  // opening's settling interval need not pass, and on a slow host every round trip counts.
+  await pageResources();
   const left = OPENING_HOLD_UNTIL - performance.now();
   const complete =
     openingPending() && left > SHORTEST_HOLD && (await warmFigures(pending, filters, left));

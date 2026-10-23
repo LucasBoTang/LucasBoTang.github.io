@@ -1,6 +1,6 @@
 // SiteLayout's opening gate. A page with an opening starts with `data-opening-pending` on the root
 // element, which keeps its content hidden (src/styles/motion.css) until the page's opening script
-// lifts it, or until 2.5 seconds have passed.
+// lifts it, or until 3.5 seconds have passed.
 
 const PENDING = 'data-opening-pending';
 
@@ -27,8 +27,9 @@ export function waitForOpeningVisible(): Promise<void> {
 }
 
 /** An opening waits for held work no later than this long after navigation, which leaves time
- * before SiteLayout's 2.5s fallback to prepare its motion (home-opening.ts, reveal.ts). */
-export const OPENING_HOLD_UNTIL = 2000;
+ * before SiteLayout's 3.5s fallback to prepare its motion (home-opening.ts, reveal.ts). On a host
+ * 300ms away, a first visit's figure documents take most of it to arrive and be drawn. */
+export const OPENING_HOLD_UNTIL = 3000;
 const openingHolds = new Set<Promise<unknown>>();
 let releasedAt = 0;
 
