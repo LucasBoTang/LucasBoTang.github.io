@@ -2,6 +2,52 @@ import { onScrollFrame } from '../../../lib/lifecycle';
 import { openingTiming as time } from '../opening/opening';
 import { lockGreeting } from './greeting-lock';
 
+/**
+ * Poses the greeting for its opening: the one-line typing layer at the heading scale around its
+ * final reading anchor inside the copy field, its first letter fixed. Returns that scale.
+ * `previous` keeps the first letter's current size when the viewport changes mid-entrance.
+ */
+export function poseGreeting(hero: HTMLElement, host: HTMLElement, previous?: DOMRect): number {
+  const paragraph = host.closest<HTMLElement>('.hero-intro')!;
+  const target = host.querySelector<HTMLElement>('[data-typed-run]')!;
+  const layer = target.parentElement!;
+  const first = target.querySelector<HTMLElement>('.typed-letter')!;
+  // The pose's own layout (HomeHero.astro) must be in place before the anchor is measured.
+  paragraph.dataset.greetingPosed = '';
+  layer.style.transform = 'none';
+  layer.style.removeProperty('width');
+  const origin = layer.getBoundingClientRect();
+  const text = target.getBoundingClientRect();
+  const letter = first.getBoundingClientRect();
+  const bounds = hero.querySelector('.hero-copy')!.getBoundingClientRect();
+  // Fit the shared heading tier within the copy field, keeping the first letter anchored.
+  const headingScale =
+    parseFloat(getComputedStyle(paragraph, '::before').fontSize) /
+    parseFloat(getComputedStyle(host).fontSize);
+  const availableScale = Math.min(
+    (bounds.right - letter.left) / text.width,
+    (window.innerHeight - letter.top) / text.height,
+  );
+  const scale = Math.min(previous ? previous.width / letter.width : headingScale, availableScale);
+  // Round outwards: a fractional shrink must not wrap the final word during the fold.
+  layer.style.width = `${Math.ceil(text.width * 100) / 100}px`;
+  layer.style.transformOrigin = `${letter.left - origin.left}px ${letter.top - origin.top}px`;
+  layer.style.transform = `scale(${scale})`;
+  paragraph.style.setProperty('--greeting-scale', String(scale));
+  return scale;
+}
+
+/** Returns the greeting from its opening pose to its natural layout. */
+export function clearGreetingPose(host: HTMLElement) {
+  const paragraph = host.closest<HTMLElement>('.hero-intro')!;
+  host.querySelector('[data-typed-run]')!.parentElement!.removeAttribute('style');
+  delete paragraph.dataset.greetingPosed;
+  delete paragraph.dataset.greetingOpening;
+  delete paragraph.dataset.greetingFolding;
+  paragraph.style.removeProperty('--greeting-scale');
+  if (!paragraph.getAttribute('style')) paragraph.removeAttribute('style');
+}
+
 /** Scale the one-line typing layer around its final reading anchor inside the copy field.
  * The accessible paragraph and the bio retain their normal layout throughout. */
 export function createGreetingEntrance(
@@ -24,27 +70,7 @@ export function createGreetingEntrance(
   let foldStartedAt = 0;
 
   const layout = (previous?: DOMRect) => {
-    layer.style.transform = 'none';
-    layer.style.removeProperty('width');
-    const origin = layer.getBoundingClientRect();
-    const text = target.getBoundingClientRect();
-    const letter = first.getBoundingClientRect();
-    const bounds = hero.querySelector('.hero-copy')!.getBoundingClientRect();
-    // Fit the shared heading tier within the copy field, keeping the first letter anchored.
-    const headingScale =
-      parseFloat(getComputedStyle(paragraph, '::before').fontSize) /
-      parseFloat(getComputedStyle(host).fontSize);
-    const availableScale = Math.min(
-      (bounds.right - letter.left) / text.width,
-      (window.innerHeight - letter.top) / text.height,
-    );
-    const scale = Math.min(previous ? previous.width / letter.width : headingScale, availableScale);
-    start = `scale(${scale})`;
-    // Round outwards: a fractional shrink must not wrap the final word during the fold.
-    layer.style.width = `${Math.ceil(text.width * 100) / 100}px`;
-    layer.style.transformOrigin = `${letter.left - origin.left}px ${letter.top - origin.top}px`;
-    layer.style.transform = start;
-    paragraph.style.setProperty('--greeting-scale', String(scale));
+    start = `scale(${poseGreeting(hero, host, previous)})`;
     remeasureCursor();
   };
   const fold = (duration: number) => {
@@ -62,11 +88,7 @@ export function createGreetingEntrance(
     timers.forEach((timer) => clearTimeout(timer));
     animation?.cancel();
     viewportWatch.stop();
-    layer.removeAttribute('style');
-    delete paragraph.dataset.greetingOpening;
-    delete paragraph.dataset.greetingFolding;
-    paragraph.style.removeProperty('--greeting-scale');
-    if (!paragraph.getAttribute('style')) paragraph.removeAttribute('style');
+    clearGreetingPose(host);
     unlock();
     remeasureCursor();
     frame();

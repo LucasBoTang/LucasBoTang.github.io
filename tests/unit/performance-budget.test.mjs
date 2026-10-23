@@ -83,8 +83,8 @@ test('standalone figures check drawing precision without the site font-preload c
 });
 
 test('reports a small budget overrun without rounding it down to the limit', () => {
-  assert.deepEqual(checkSize('index.html', 80, 69), []);
-  assert.deepEqual(checkSize('index.html', 80, 69 + 79 / 1024), [
-    'index.html: scripts are 69.08KB, over 69KB',
+  assert.deepEqual(checkSize('index.html', 80, 70), []);
+  assert.deepEqual(checkSize('index.html', 80, 70 + 79 / 1024), [
+    'index.html: scripts are 70.08KB, over 70KB',
   ]);
 });

@@ -1,7 +1,8 @@
 import { isPhone } from '../../../lib/breakpoints';
+import { openingPending } from '../../../lib/opening-gate';
 import { createTyping } from '../../ui/TypedText/typed-text';
 import { isHomeReturn, openingEvents, openingTiming as time } from '../opening/opening';
-import { createGreetingEntrance } from './greeting-entrance';
+import { clearGreetingPose, createGreetingEntrance, poseGreeting } from './greeting-entrance';
 import { createGreetingGlitch } from './greeting-glitch';
 
 /** The bio joins the greeting's fold; the portrait follows when the greeting lands. */
@@ -73,31 +74,49 @@ export function createIntroTyping(hero: HTMLElement) {
       }
     },
   });
+  /** How the greeting opens: at the heading scale (`large`), whole, in its natural wrapped copy,
+   * or not at all. */
+  const greetingOpening = (): 'none' | 'whole' | 'natural' | 'large' => {
+    if (
+      returning ||
+      isPhone() ||
+      hero.hasAttribute('data-intro-skipped') ||
+      greeting.hasAttribute('data-typing-complete')
+    )
+      return 'none';
+    const box = greeting.getBoundingClientRect();
+    if (box.bottom <= 0) return 'none';
+    // A fixed anchor below a shallow window cannot serve as a visible opening. Show the
+    // greeting whole and let the portrait lead, with no interaction lock.
+    if (box.top >= window.innerHeight - lineHeight) return 'whole';
+    // Narrow desktop columns retain their natural wrapped copy and ordinary typing cadence.
+    return box.height > lineHeight + 1 ? 'natural' : 'large';
+  };
+  // In the dark, a greeting that will open large already waits in its opening pose, so its caret
+  // blinks at the size and place it types from.
+  const poseInDark = () => {
+    if (!openingPending() || greetingOpening() !== 'large') return;
+    poseGreeting(hero, greeting);
+    hello.remeasure();
+  };
   // A site return shows both passages whole; their parents arrive with the other reading units.
   // Keep the completed typing layer so the final blue caret still blinks and follows resizes.
   if (returning) {
     hello.finish();
     body.finish();
+  } else {
+    poseInDark();
+    // Measured again against the final face once it has loaded.
+    void document.fonts.ready.then(poseInDark);
   }
   return {
     start() {
-      if (
-        returning ||
-        isPhone() ||
-        hero.hasAttribute('data-intro-skipped') ||
-        greeting.hasAttribute('data-typing-complete')
-      )
-        return;
-      const box = greeting.getBoundingClientRect();
-      if (box.bottom <= 0) return;
-      // A fixed anchor below a shallow window cannot serve as a visible opening. Show the
-      // greeting whole and let the portrait lead, with no interaction lock.
-      if (box.top >= window.innerHeight - lineHeight) {
-        hello.finish();
+      const opening = greetingOpening();
+      if (opening !== 'large') {
+        clearGreetingPose(greeting);
+        if (opening === 'whole') hello.finish();
         return;
       }
-      // Narrow desktop columns retain their natural wrapped copy and ordinary typing cadence.
-      if (box.height > lineHeight + 1) return;
       entrance = createGreetingEntrance(
         hero,
         greeting,
@@ -128,7 +147,8 @@ export function createIntroTyping(hero: HTMLElement) {
     },
     finish() {
       glitch.stop();
-      entrance?.finish();
+      if (entrance) entrance.finish();
+      else clearGreetingPose(greeting);
       hello.finish();
       body.finish();
     },

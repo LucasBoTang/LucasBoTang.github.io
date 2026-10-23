@@ -311,10 +311,21 @@ const [inkRed, inkGreen, inkBlue] = blueInk.dark.map((dark, i) => `${dark} ${blu
     background: var(--blue);
     visibility: visible;
   }
+  /* A desktop greeting opens at the heading scale (greeting-entrance.ts), and so does its caret. */
+  @media (min-width: 721px) {
+    :global(html[data-opening-pending]:not([data-header-persistent]))
+      .hero-intro
+      :global([data-typed-text]:not([data-typing-ready]))::after {
+      top: 0.05em;
+      margin-left: 0.1875em; /* 3px at the body size, scaled with the caret */
+      font-size: var(--type-heading);
+    }
+  }
   @media (prefers-reduced-motion: no-preference) {
     :global(html[data-opening-pending]:not([data-header-persistent]))
       .hero-intro
       :global([data-typed-text]:not([data-typing-ready]))::after {
+      will-change: opacity;
       animation: greeting-caret-wait 1.1s step-end infinite;
     }
   }
@@ -334,7 +345,7 @@ const [inkRed, inkGreen, inkBlue] = blueInk.dark.map((dark, i) => `${dark} ${blu
   }
   /* One intact line scales around its reading anchor. The accessible copy keeps
      reserving the final paragraph geometry; token spans retain their natural word spacing. */
-  .hero-intro[data-greeting-opening] :global([data-typed-run]) {
+  .hero-intro[data-greeting-posed] :global([data-typed-run]) {
     display: inline-block;
     clip-path: inset(0);
   }
@@ -361,7 +372,7 @@ const [inkRed, inkGreen, inkBlue] = blueInk.dark.map((dark, i) => `${dark} ${blu
   .hero-intro :global(.typed-overlay)::after {
     clip-path: inset(64% 0 0);
   }
-  .hero-intro[data-greeting-opening] :global(.typed-cursor) {
+  .hero-intro[data-greeting-posed] :global(.typed-cursor) {
     width: calc(2px / var(--greeting-scale));
   }
   .hero-intro[data-greeting-opening]:not([data-greeting-folding])
