@@ -72,14 +72,20 @@ export function trainingReset(cycle: number) {
 }
 
 const surfaceBreaths = 3;
-const surfaceMinOpacity = 0.78;
+const surfaceMinOpacity = { full: 0.78, compact: 0.64 };
 const exhaleAngle = Math.PI * 2 * 0.58;
 const breathSkew = (exhaleAngle - Math.PI) / (1 - Math.cos(exhaleAngle));
 
 /** A smooth periodic phase keeps the longer exhale without splicing two different easings. */
-export function surfaceOpacityAt(phase: number, trainingCycle: number, reducedMotion = false) {
+export function surfaceOpacityAt(
+  phase: number,
+  trainingCycle: number,
+  reducedMotion = false,
+  compact = false,
+) {
   if (reducedMotion) return 1;
+  const minimum = compact ? surfaceMinOpacity.compact : surfaceMinOpacity.full;
   const angle = (phase / trainingCycle) * Math.PI * 2 * surfaceBreaths;
   const breath = angle - breathSkew * (1 - Math.cos(angle));
-  return surfaceMinOpacity + ((1 - surfaceMinOpacity) * (1 + Math.cos(breath))) / 2;
+  return minimum + ((1 - minimum) * (1 + Math.cos(breath))) / 2;
 }

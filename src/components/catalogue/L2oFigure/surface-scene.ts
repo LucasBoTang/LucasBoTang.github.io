@@ -200,7 +200,8 @@ export async function createSurfaceScene(
   );
   let width = 600,
     height = 500,
-    ratio = 1;
+    ratio = 1,
+    compact = false;
   const movingHead = createPointMesh(origin, trajectory.integerRadius * 0.9, ivory);
   let center: Vector3 = [0, 0, 1],
     scale = 80;
@@ -232,6 +233,7 @@ export async function createSurfaceScene(
     return [width / 2 + dot(d, right) * scale, height / 2 - dot(d, up) * scale];
   }
   function resize() {
+    compact = canvas.closest('.l2o-material')!.clientWidth <= 560;
     const r = canvas.getBoundingClientRect();
     width = r.width;
     height = r.height;
@@ -264,7 +266,6 @@ export async function createSurfaceScene(
   }
   function drawAnnotations() {
     labelContext.setTransform(ratio, 0, 0, ratio, 0, 0);
-    const compact = canvas.closest('.l2o-material')!.clientWidth <= 560;
     const labels: [string, Vector3, number, number][] = [
       ['x² ≤ b', worldPoint(-Math.sqrt(b), 5.7), -13, -13],
       ['x ≤ 0', worldPoint(0, 5.7), 16, -9],
@@ -279,7 +280,7 @@ export async function createSurfaceScene(
   }
   function render({ phase, opacity: fade, arrivedPoint, reducedMotion }: SurfaceFrame) {
     renderer.beginFrame();
-    drawMesh(surface, phase, surfaceOpacityAt(phase, timeline.cycle, reducedMotion));
+    drawMesh(surface, phase, surfaceOpacityAt(phase, timeline.cycle, reducedMotion, compact));
     drawMesh(slices, phase);
     drawMesh(constraints, phase);
     drawMesh(trace, phase, fade);
