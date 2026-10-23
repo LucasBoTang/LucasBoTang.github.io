@@ -17,8 +17,8 @@ const BUDGET = {
   'index.html': { html: 80, scripts: 70 },
   // Includes four accessible theme lanes; their repeated visual lettering adds about 8KB.
   // Includes the phone lanes' shared entrance choreography and reading-index controller, plus
-  // bounded figure preparation before the body arrives (about 29.5KB of scripts in total).
-  'research/index.html': { html: 59, scripts: 30 },
+  // bounded figure preparation before the body arrives (about 30.1KB of scripts in total).
+  'research/index.html': { html: 59, scripts: 31 },
   // Shared arrival queue reservations also ship with the software reading units, as does the
   // opening hold its introduction's typing observes (opening-gate.ts).
   'software/index.html': { html: 48, scripts: 26 },
