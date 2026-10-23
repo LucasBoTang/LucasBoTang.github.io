@@ -1,4 +1,3 @@
-import { smoothstep as smoothStep } from '../../../lib/easing.ts';
 import {
   add,
   appendTube,
@@ -30,7 +29,6 @@ type SurfaceRecording = {
   parameters: SurfaceParameters;
   relaxed: number[][];
   corrected: number[][];
-  optimum: { x: number; y: number };
 };
 type SurfaceFrame = {
   phase: number;
@@ -64,7 +62,7 @@ export async function createSurfaceScene(
   if (!gl) return null;
   const { a, b } = recorded.parameters;
   const { objective, heightAt, worldPoint, isFeasible } = createSurfaceModel({ a, b });
-  const integerPointColor = hexColor('#d3ad87'),
+  const integerPointColor = hexColor('#d9c7ab'),
     ivory = hexColor('#edf4f7');
   const renderer = createSurfaceRenderer(gl, { a, b });
   const { createMesh, drawMesh } = renderer;
@@ -135,18 +133,18 @@ export async function createSurfaceScene(
         ),
       );
     }
-    appendTube(guides, pts, cs, 0.0075);
+    appendTube(guides, pts, cs, 0.01);
     await yieldToBrowser();
   }
   for (const x of [-Math.sqrt(b), 0]) {
     const pts = Array.from({ length: 221 }, (_, i) => worldPoint(x, -1.3 + (7 * i) / 220, 0.02));
-    appendTube(boundaries, pts, hexColor('#a3a7ad'), 0.009);
+    appendTube(boundaries, pts, hexColor('#647c91'), 0.005);
   }
   appendTube(
     boundaries,
     Array.from({ length: 221 }, (_, i) => worldPoint(-3 + (3.5 * i) / 220, b / 2, 0.02)),
-    hexColor('#a3a7ad'),
-    0.009,
+    hexColor('#647c91'),
+    0.005,
   );
   const slices = createMesh(guides, 1),
     constraints = createMesh(boundaries, 1);
@@ -155,12 +153,12 @@ export async function createSurfaceScene(
     recorded.corrected[i] as Point2,
   ]);
   const trajectory = {
-    pathRadius: 0.013,
-    relaxedRadius: 0.04,
-    integerRadius: 0.046,
+    pathRadius: 0.018,
+    relaxedRadius: 0.07,
+    integerRadius: 0.08,
   };
-  const azimuth = -0.96,
-    elevation = 0.9;
+  const azimuth = -0.76,
+    elevation = 0.64;
   const forward: Vector3 = [
     Math.cos(azimuth) * Math.cos(elevation),
     Math.sin(azimuth) * Math.cos(elevation),
@@ -196,7 +194,7 @@ export async function createSurfaceScene(
   await yieldToBrowser();
   const pointMeshes = samples.map((p, i) =>
     createPointMesh(
-      worldPoint(...p, 0.045),
+      worldPoint(...p, 0.075),
       i % 2 ? trajectory.integerRadius : trajectory.relaxedRadius,
       i % 2 ? integerPointColor : ivory,
     ),
@@ -221,9 +219,9 @@ export async function createSurfaceScene(
       minY = Math.min(...uy),
       maxY = Math.max(...uy);
     center = add(multiply(right, (minX + maxX) / 2), multiply(up, (minY + maxY) / 2));
-    scale = Math.min((width - 30) / (maxX - minX), (height - 80) / (maxY - minY));
+    scale = Math.min((width - 30) / (maxX - minX), (height - 38) / (maxY - minY));
     // Use the lower-right negative space; keep the surface large on a phone.
-    const targetY = 24 + ((maxY - minY) * scale) / 2;
+    const targetY = 16 + ((maxY - minY) * scale) / 2;
     center = add(
       add(center, multiply(right, 8 / scale)),
       multiply(up, (targetY - height / 2) / scale),
@@ -257,7 +255,8 @@ export async function createSurfaceScene(
     align: CanvasTextAlign = 'center',
     size = 11,
   ) {
-    labelContext.font = `${size}px "Geist Mono Variable",monospace`;
+    // Match the problem's mathematical typeface, including its plain numeral zero.
+    labelContext.font = `${size}px Georgia,serif`;
     labelContext.textAlign = align;
     labelContext.textBaseline = 'middle';
     labelContext.lineWidth = 2;
@@ -268,28 +267,18 @@ export async function createSurfaceScene(
   }
   function drawAnnotations() {
     labelContext.setTransform(ratio, 0, 0, ratio, 0, 0);
+    const compact = canvas.closest('.l2o-material')!.clientWidth <= 560;
     const labels: [string, Vector3, number, number][] = [
       ['x² ≤ b', worldPoint(-Math.sqrt(b), 5.7), -13, -13],
       ['x ≤ 0', worldPoint(0, 5.7), 16, -9],
-      ['y ≥ b/2', worldPoint(-3, b / 2), -4, width < 430 ? 24 : 8],
+      // Desktop label sits immediately below the blue/graphite boundary y=b/2.
+      // Keep the compact anchor and offsets unchanged.
+      ['y ≥ b/2', worldPoint(compact ? -3 : -0.5, b / 2), compact ? -4 : 0, compact ? 24 : 14],
     ];
     labels.forEach(([s, v, dx, dy]) => {
       const p = project(v);
       drawLabel(s, [p[0] + dx, p[1] + dy], '#a3a7ad', 'center', width < 430 ? 10 : 11);
     });
-    const optimal = project(worldPoint(recorded.optimum.x, recorded.optimum.y, 0.055));
-    labelContext.beginPath();
-    for (let j = 0; j < 10; j++) {
-      const angle = -Math.PI / 2 + (j * Math.PI) / 5,
-        r = j % 2 ? 3.3 : 7.5;
-      const x = optimal[0] + Math.cos(angle) * r,
-        y = optimal[1] + Math.sin(angle) * r;
-      j ? labelContext.lineTo(x, y) : labelContext.moveTo(x, y);
-    }
-    labelContext.closePath();
-    labelContext.fillStyle = '#ee6677';
-    labelContext.fill();
-    drawLabel('Optimal', [optimal[0], optimal[1] + 20], '#ee6677', 'center', 11);
   }
   function render({ phase, opacity: fade, arrivedPoint, reducedMotion }: SurfaceFrame) {
     renderer.beginFrame();
@@ -317,25 +306,6 @@ export async function createSurfaceScene(
     ctx.clearRect(0, 0, overlay.width, overlay.height);
     // An embedded canvas can briefly have no dimensions while its host is being fitted.
     if (annotations.width && annotations.height) ctx.drawImage(annotations, 0, 0);
-    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-    for (let i = 0; i < samples.length; i++) {
-      const age = phase - arrivals[i];
-      if (age < 0 || age > trainingCadence.reading || reducedMotion) continue;
-      const attack = trainingCadence.reading * 0.12;
-      const alpha =
-        easeOut(age / attack) *
-        (1 - smoothStep((age - attack) / (trainingCadence.reading - attack))) *
-        fade *
-        0.72;
-      const p = project(worldPoint(...samples[i], 0.045)),
-        r = (i % 2 ? trajectory.integerRadius : trajectory.relaxedRadius) * scale * 2.2;
-      const light = ctx.createRadialGradient(p[0], p[1], 0, p[0], p[1], r);
-      light.addColorStop(0, `rgba(237,244,247,${alpha * 0.7})`);
-      light.addColorStop(0.45, `rgba(237,244,247,${alpha * 0.25})`);
-      light.addColorStop(1, 'rgba(237,244,247,0)');
-      ctx.fillStyle = light;
-      ctx.fillRect(p[0] - r, p[1] - r, r * 2, r * 2);
-    }
   }
   return { timeline, resize, render };
 }

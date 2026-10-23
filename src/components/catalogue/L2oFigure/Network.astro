@@ -35,23 +35,29 @@ const layers = [3, 4, 3].map((count, i) =>
   }
   .network-edge {
     fill: none;
-    opacity: 0.32;
-    stroke: currentColor;
-    stroke-width: 2;
+    opacity: 0.44;
+    stroke: #7896b4;
+    stroke-width: 0.8;
   }
   .network-node {
-    fill: currentColor;
-    stroke: none;
+    fill: #1a2837;
+    stroke: #a3bbd2;
+    stroke-width: 1.1;
     transition: fill 0.14s;
+    r: 4.5px;
   }
   .network-edge.is-lit {
-    opacity: 0.72;
-    stroke: var(--signal-core);
+    opacity: 0.85;
+    stroke: #c3d7e8;
   }
   [data-layer].is-lit .network-node {
-    fill: var(--signal-core);
-    filter: none;
-    stroke: #334760;
     stroke-width: 0.65px;
+    fill: #c3d7e8;
+    stroke: #d5e4ef;
+    filter: none;
+  }
+  [data-layer='1'] .network-node {
+    fill: #5e7b97;
+    stroke: #b5cada;
   }
 </style>

@@ -53,7 +53,7 @@ export const researchFigures = {
     src: '/figures/learning-integers/',
     project: 'reins',
     canvas: { width: 588, height: 539, bleed: 0 },
-    fitting: { compactAt: 420, compactCanvas: { width: 330, height: 818, bleed: 0 } },
+    fitting: { compactAt: 420, compactCanvas: { width: 330, height: 632, bleed: 0 } },
     area: 'learning-to-optimize',
     anchor: 'bo-l2o-study',
     title: 'Learning to generate integer solutions: recorded relaxed and integer predictions',

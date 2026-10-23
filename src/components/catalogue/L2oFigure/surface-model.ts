@@ -42,13 +42,16 @@ export const hexColor = (s: string): Vector3 => [
   parseInt(s.slice(5, 7), 16) / 255,
 ];
 type ColorStop = [number, string];
+// Continuous cool objective-height gradient; warm accents belong only to integer sections.
 export const terrainPalette: ColorStop[] = [
-  [0, '#243952'],
-  [0.3, '#2f6477'],
-  [0.58, '#459486'],
-  [0.79, '#9ab99a'],
-  [1, '#d6cc8a'],
+  [0, '#263b64'],
+  [0.28, '#3c70a2'],
+  [0.48, '#3e9eb2'],
+  [0.65, '#78beb7'],
+  [0.8, '#8fbdc4'],
+  [1, '#a8cbd4'],
 ];
+// Restore the established, more chromatic integer-section palette.
 export const integerPalette: ColorStop[] = [
   [0, '#4c83c8'],
   [0.3, '#31a7c6'],
@@ -57,20 +60,20 @@ export const integerPalette: ColorStop[] = [
   [1, '#f0d657'],
 ];
 export const neutralPalette: ColorStop[] = [
-  [0, '#242c32'],
-  [0.3, '#343f45'],
-  [0.58, '#465156'],
-  [0.79, '#576260'],
-  [1, '#69726a'],
+  [0, '#1b2537'],
+  [0.3, '#304455'],
+  [0.58, '#455f69'],
+  [0.79, '#627a88'],
+  [1, '#889ca8'],
 ];
 export const constraintPalette: ColorStop[] = [
-  [0, '#49545c'],
-  [0.3, '#59656c'],
-  [0.58, '#6d797d'],
-  [0.79, '#84908d'],
-  [1, '#9aa29a'],
+  [0, '#303e4d'],
+  [0.3, '#3e5062'],
+  [0.58, '#526779'],
+  [0.79, '#6d8395'],
+  [1, '#94a7b5'],
 ];
-// Match the existing 2D field, including its perceptual interpolation and bands.
+// Interpolate perceptually so the hue changes remain continuous.
 function toOklab(c: Vector3): Vector3 {
   const l = c.map((v) => (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
   const L = Math.cbrt(0.4122214708 * l[0] + 0.5363325363 * l[1] + 0.0514459929 * l[2]),

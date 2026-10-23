@@ -40,16 +40,16 @@ export function createSurfaceRenderer(
   vec3 c=vColor;
   if(material<.1){
    float x=vPosition.x/1.3-1.25,y=vPosition.y/.65+2.2;
-   float t=clamp(vTone,0.,1.);
    float inside=step(problem.y,x)*step(x,0.)*step(problem.z,y);
-   float q=t*16.,band=min(15.,floor(q));
+   float q=clamp(vTone,0.,1.)*15.;float band=floor(q);
    vec2 uv=vec2((band+.5)/16.,mix(.25,.75,inside));
    vec2 next=vec2((min(15.,band+1.)+.5)/16.,uv.y);
-   // Quantize the continuous field per fragment, avoiding vertex-band zigzags.
-   c=mix(texture2D(palette,uv).rgb,texture2D(palette,next).rgb,smoothstep(.965,1.,fract(q)));
+   c=mix(texture2D(palette,uv).rgb,texture2D(palette,next).rgb,fract(q));
+   // Neutral shading preserves the height palette without adding colored highlights.
+   float diffuse=max(0.,dot(normalize(vNormal),normalize(vec3(-.5,.25,1.))));
+   c*=.55+.45*diffuse;
   }
-  float light=.90+.10*max(0.,dot(normalize(vNormal),normalize(vec3(-.3,-.5,1.))));
-  gl_FragColor=vec4(c*mix(light,1.,material),opacity);
+  gl_FragColor=vec4(c,opacity);
  }`;
 
   function compileShader(type: number, source: string) {

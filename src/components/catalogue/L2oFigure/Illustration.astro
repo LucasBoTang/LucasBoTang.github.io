@@ -9,7 +9,7 @@ import TrainingComposition from './TrainingComposition.astro';
         <canvas
           class="surface-gl"
           role="img"
-          aria-label="Three-dimensional objective surface. Gray denotes inequality-infeasible regions; blue-green-gold regions satisfy the continuous constraints. Highlighted integer slices and four recorded relaxed–integer prediction pairs lie on the surface."
+          aria-label="Three-dimensional objective surface. Graphite denotes inequality-infeasible regions; steel-blue regions satisfy the continuous constraints. Highlighted integer slices and four recorded relaxed–integer prediction pairs lie on the surface."
         ></canvas>
         <canvas class="surface-annotations" aria-hidden="true"></canvas>
         <div class="surface-hud" aria-label="Latest completed integer prediction">
@@ -63,7 +63,7 @@ import TrainingComposition from './TrainingComposition.astro';
   }
   .surface-stage {
     position: relative;
-    aspect-ratio: 600/500;
+    aspect-ratio: 600/390;
     width: 100%;
   }
   .surface-stage canvas {
@@ -83,25 +83,26 @@ import TrainingComposition from './TrainingComposition.astro';
   }
   .surface-hud {
     position: absolute;
-    right: 8%;
-    top: 52%;
+    right: 6px;
+    top: 59%;
     display: grid;
-    gap: 7px; /* optical: spacing within the illustration, independent of the page grid. */
-    width: 114px;
+    gap: 7px; /* optical: keep the surface status and its keys grouped in the side space. */
+    width: 108px;
     pointer-events: auto;
   }
   .surface-legend {
     align-items: flex-end;
     display: flex;
     flex-direction: column;
-    gap: 6px; /* optical: separate the two vertically stacked point keys. */
+    gap: 5px; /* optical: keep the surface status and its keys grouped in the side space. */
     font: 10px/1.2 var(--font-mono);
+    font-size: 9px;
     color: var(--muted);
   }
   .surface-legend [data-kind] {
     align-items: center;
     display: flex;
-    gap: 5px; /* optical: spacing within the illustration, independent of the page grid. */
+    gap: 5px; /* optical: keep the surface status and its keys grouped in the side space. */
     border: 0;
     padding: 0;
     font: inherit;
@@ -116,69 +117,73 @@ import TrainingComposition from './TrainingComposition.astro';
       color: var(--muted);
     }
     22% {
-      text-shadow: 0 0 3px rgba(237, 244, 247, 0.55);
+      text-shadow: none;
       color: #edf4f7;
     }
   }
   .surface-legend i {
     flex: none;
     border-radius: 50%;
-    height: 6px;
-    width: 6px;
+    height: 5px;
+    width: 5px;
   }
   .relaxed {
     background: #edf4f7;
   }
   .integer {
-    background: #d3ad87;
+    background: #d9c7ab;
   }
   .hud-readouts {
     position: relative;
     display: grid;
-    gap: 4px; /* optical: spacing within the illustration, independent of the page grid. */
-    padding-top: 10px; /* optical: spacing within the illustration, independent of the page grid. */
+    gap: 3px; /* optical: keep the surface status and its keys grouped in the side space. */
+    padding-top: 7px; /* optical: keep the surface status and its keys grouped in the side space. */
   }
   .hud-readouts::before {
     content: '';
     position: absolute;
     right: 0;
     top: 0;
+    border-color: #657a8d40;
     border-top: 1px solid rgba(163, 167, 173, 0.18);
-    width: 78px; /* optical: the divider follows the compact Step group. */
+    width: 78px;
   }
   .hud-row {
     position: relative;
     align-items: baseline;
     display: flex;
-    gap: 10px; /* optical: keep the Step label close to its fixed-width value. */
+    gap: 7px; /* optical: keep the surface status and its keys grouped in the side space. */
     justify-content: flex-end;
-    min-height: 20px;
+    min-height: 16px;
   }
   .hud-label {
     font: 8.5px/1.4 var(--font-mono);
+    font-size: 8px;
     white-space: nowrap;
     color: #8e949d;
   }
   .hud-value {
     position: relative;
     height: 1.3em;
-    min-width: 5ch;
+    min-width: 4ch;
     overflow: hidden;
     font: 400 var(--readout-size, 13px)/1.3 var(--font-mono);
+    font-size: 11px;
     font-variant-numeric: tabular-nums;
     font-weight: 400;
     letter-spacing: 0;
     text-align: right;
     color: var(--value-ink);
   }
-  .hud-value :global(.readout-current),
-  .hud-value :global(.readout-old) {
+  .hud-value :global(.readout-current) {
     display: block;
     white-space: nowrap;
   }
   .hud-value :global(.readout-old) {
     inset: 0;
     position: absolute;
+    display: block;
+    white-space: nowrap;
   }
   .hud-state {
     position: relative;
@@ -186,6 +191,7 @@ import TrainingComposition from './TrainingComposition.astro';
     min-height: 13px;
     overflow: hidden;
     font: 8px/1.4 var(--font-mono);
+    font-size: 8px;
     text-align: right;
     white-space: nowrap;
     color: #9ba0a7;
@@ -193,35 +199,43 @@ import TrainingComposition from './TrainingComposition.astro';
 
   @container (max-width:560px) {
     .surface-hud {
-      right: 4%;
-      top: 63%;
-      gap: 7px; /* optical: spacing within the illustration, independent of the page grid. */
-      width: 106px;
+      right: 22px;
+      top: 59%;
+      display: grid;
+      gap: 6px; /* optical: keep the surface status and its keys grouped in the side space. */
+      width: 90px;
     }
     .surface-legend {
-      gap: 5px; /* optical: keep the compact stacked legend clear of the input strip. */
-      font-size: 9px;
+      align-items: flex-end;
+      flex-direction: column;
+      gap: 5px; /* optical: keep the surface status and its keys grouped in the side space. */
+      font-size: 8px;
     }
     .hud-label {
       font-size: 8px;
     }
     .hud-state {
-      font-size: 8.5px;
+      height: 13px;
+      min-height: 13px;
+      font-size: 8px;
     }
     .hud-readouts::before {
       content: '';
       position: absolute;
       right: 0;
       top: 0;
+      border-color: #657a8d40;
       border-top: 1px solid rgba(163, 167, 173, 0.18);
-      width: 78px; /* optical: the divider follows the compact Step group. */
+      width: 78px;
     }
     .hud-row {
-      min-height: 18px;
+      gap: 7px; /* optical: keep the surface status and its keys grouped in the side space. */
+      min-height: 16px;
     }
     .hud-readouts {
-      gap: 3px; /* optical: spacing within the illustration, independent of the page grid. */
-      padding-top: 9px; /* optical: spacing within the illustration, independent of the page grid. */
+      display: grid;
+      gap: 3px; /* optical: keep the surface status and its keys grouped in the side space. */
+      padding-top: 7px; /* optical: keep the surface status and its keys grouped in the side space. */
     }
   }
   .hud-state :global(:is(.hud-status-old, .hud-status-current)) {

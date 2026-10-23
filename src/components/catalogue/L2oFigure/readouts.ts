@@ -122,7 +122,7 @@ export function createReadoutWriter(
           : [
               { opacity: 0, transform: 'translateY(100%)', textShadow: 'none' },
               { opacity: 0, offset: 0.16 },
-              { opacity: 1, offset: 0.43, textShadow: '0 0 1px #e2edf3' },
+              { opacity: 1, offset: 0.43, textShadow: 'none' },
               { opacity: 0.58, offset: 0.55 },
               { opacity: 1, transform: 'translateY(0)', textShadow: 'none' },
             ],

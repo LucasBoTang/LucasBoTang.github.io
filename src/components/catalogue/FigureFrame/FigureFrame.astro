@@ -9,7 +9,8 @@ interface Props {
 const { kind, title } = Astro.props;
 const { canvas, fitting, src } = researchFigures[kind];
 const { width, height, bleed } = canvas;
-const dimensions = `--figure-canvas-width:${width}px;--figure-canvas-height:${height}px;--figure-canvas-bleed:${bleed}px`;
+const compactHeight = fitting.compactCanvas?.height ?? height;
+const dimensions = `--figure-compact-canvas-height:${compactHeight}px;--figure-canvas-width:${width}px;--figure-canvas-height:${height}px;--figure-canvas-bleed:${bleed}px`;
 ---
 
 <div class:list={{ 'has-bleed': bleed > 0 }}>
@@ -43,12 +44,9 @@ const dimensions = `--figure-canvas-width:${width}px;--figure-canvas-height:${he
   }
   /* Native fallbacks remain readable without enhancement. A fitted canvas outranks these
      rules, preserving its chosen desktop or compact composition at smaller display widths. */
-  .figure-frame:where([data-scalable-figure='l2o']) :global(iframe) {
-    height: clamp(520px, 91.6667cqw, 539px);
-  }
   @container (max-width:560px) {
     .figure-frame:where([data-scalable-figure='l2o']) :global(iframe) {
-      height: calc(543px + 83.3333cqw);
+      height: var(--figure-compact-canvas-height);
     }
   }
   @container (max-width:420px) {
