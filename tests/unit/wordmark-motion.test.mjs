@@ -1,16 +1,17 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { parseHTML } from 'linkedom';
-import { installGlobals, mediaQuery } from '../helpers/browser.mjs';
+import { frameQueue, installGlobals, mediaQuery } from '../helpers/browser.mjs';
 import { registerTypeScriptImports } from '../helpers/typescript-imports.mjs';
 
 let instance = 0;
-async function wordmark(t, visible = false) {
+async function wordmark(t, visible = false, withPreview = false) {
   const { document, Element, CustomEvent, MutationObserver } = parseHTML(`<html><body>
-    <article data-project-host><span class="project-wordmark"><span class="project-glyphs">
+    <article data-project-host>${withPreview ? '<a data-figure-preview>' : ''}<span class="project-wordmark"><span class="project-glyphs">
       <span class="project-face">REINS</span><span class="project-echo"></span>
-    </span></span></article></body></html>`);
+    </span></span>${withPreview ? '</a>' : ''}</article></body></html>`);
   document.fonts = { ready: Promise.resolve() };
+  const frames = frameQueue();
   const observers = [];
   const queries = [];
   const animations = [];
@@ -80,8 +81,8 @@ async function wordmark(t, visible = false) {
       return query;
     },
     getComputedStyle: () => ({}),
-    requestAnimationFrame: () => 1,
-    cancelAnimationFrame() {},
+    requestAnimationFrame: frames.request,
+    cancelAnimationFrame: frames.cancel,
   };
   installGlobals(t, globals);
   const hooks = registerTypeScriptImports();
@@ -95,6 +96,12 @@ async function wordmark(t, visible = false) {
   const node = document.querySelector('.project-wordmark');
   return {
     animations,
+    frames,
+    host: document.querySelector('article'),
+    preview: document.querySelector('[data-figure-preview]'),
+    point() {
+      document.querySelector('article').dispatchEvent(new CustomEvent('pointerenter'));
+    },
     arrive() {
       document
         .querySelector('article')
@@ -149,4 +156,32 @@ test('normal wordmark power-on still waits for visibility and then plays once', 
   assert.ok(w.animations.every((animation) => animation.plays === 1));
   w.show();
   assert.ok(w.animations.every((animation) => animation.plays === 1));
+});
+
+test('home wordmarks keep trembling through selection and loading, until the preview connects', async (t) => {
+  const w = await wordmark(t, true, true);
+  w.show();
+  assert.equal(w.frames.pending.size, 1);
+  w.point();
+  assert.equal(w.frames.pending.size, 1, 'pointer intent must not freeze the waiting wordmark');
+  w.host.setAttribute('data-focused', '');
+  w.preview.setAttribute('data-preview-pending', '');
+  await Promise.resolve();
+  assert.equal(w.frames.pending.size, 1, 'selection and a pending document keep the signal alive');
+  w.preview.setAttribute('data-preview-visible', '');
+  await Promise.resolve();
+  assert.equal(w.frames.pending.size, 0, 'stop the old tremor when acquisition takes over');
+  w.preview.removeAttribute('data-preview-visible');
+  await Promise.resolve();
+  assert.equal(w.frames.pending.size, 1, 'resume when the wordmark returns, even while selected');
+  w.reduce();
+  assert.equal(w.frames.pending.size, 0, 'reduced motion still keeps the wordmark still');
+});
+
+test('wordmarks without previews still hold clean while pointed at', async (t) => {
+  const w = await wordmark(t, true);
+  w.show();
+  assert.equal(w.frames.pending.size, 1);
+  w.point();
+  assert.equal(w.frames.pending.size, 0);
 });

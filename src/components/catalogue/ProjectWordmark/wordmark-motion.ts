@@ -17,9 +17,9 @@ import {
 // pixels sideways, and now and then a faint light copy of the word splits off, as a colour
 // channel would; the phrase comes in quickly and fades, and after a breath of clean signal, never
 // long, the next one begins. Each wordmark keeps its own phrases and rhythm, so they never move
-// together. Pointing at the wordmark's entry (its nearest ancestor marked `data-project-host`), or
-// moving into it from the keyboard, tunes the signal in: the word holds clean until the pointer or
-// focus leaves. Off screen, in a background tab, or with reduced motion, wordmarks keep still.
+// together. A home wordmark keeps trembling until its preview connects. Other entries tune the
+// signal in while pointed at or focused from the keyboard. Off screen, in a background tab, or
+// with reduced motion, wordmarks keep still.
 //
 // As its entry arrives, the word switches on as an old television does: a dot of light blue snaps
 // on in the middle of its letters and shoots out into a line the word's width; the line is the
@@ -78,6 +78,7 @@ function setupWordmark(node: HTMLElement) {
   const echo = glyphs?.querySelector<HTMLElement>('.project-echo');
   if (!glyphs || !face || !echo) return;
   const host = node.closest<HTMLElement>('[data-project-host]') ?? node;
+  const preview = node.closest<HTMLElement>('[data-figure-preview]');
   const reducedMotion = reducedMotionQuery();
   // A layer for each band a redraw can tear.
   const bands = Array.from({ length: BANDS[1] }, () => {
@@ -197,13 +198,13 @@ function setupWordmark(node: HTMLElement) {
     if (!frame) frame = requestAnimationFrame(loop);
   };
 
-  // Pointing at the entry, keyboard focus inside it, or on a screen without hover the entry being
-  // read (`data-focused`, src/lib/lit-focus.ts) tunes the signal in. A link clicked inside keeps
-  // focus but is not keyboard focus, so it does not hold the word still; a touch is not pointing,
-  // as it leaves the moment it lands.
+  // Home selection starts loading, but the waiting word keeps its signal until acquisition
+  // takes over. Other entries still tune in on pointer, keyboard or reading focus (`data-focused`).
+  // Click focus and touch alone do not hold those entries still.
   const tune = () => {
-    const now =
-      pointed || host.hasAttribute('data-focused') || host.matches(':has(:focus-visible)');
+    const now = preview
+      ? preview.hasAttribute('data-preview-visible')
+      : pointed || host.hasAttribute('data-focused') || host.matches(':has(:focus-visible)');
     if (now === tuned) return;
     tuned = now;
     if (tuned) stop();
@@ -222,6 +223,13 @@ function setupWordmark(node: HTMLElement) {
   new MutationObserver(tune).observe(host, { attributes: true, attributeFilter: ['data-focused'] });
   host.addEventListener('focusin', tune);
   host.addEventListener('focusout', () => requestAnimationFrame(tune));
+  if (preview) {
+    new MutationObserver(tune).observe(preview, {
+      attributes: true,
+      attributeFilter: ['data-preview-visible'],
+    });
+    tune();
+  }
 
   /** The power-on waiting for the word to come into view: its animations, held dark, and the
    * earliest moment it may start. */
