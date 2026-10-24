@@ -25,6 +25,7 @@ async function page(t, { innerWidth = 1280, markup = '', stored = {} } = {}) {
     window: { setTimeout, clearTimeout, requestAnimationFrame: frames.request },
     innerWidth,
     requestAnimationFrame: frames.request,
+    cancelAnimationFrame: frames.cancel,
     matchMedia: () => mediaQuery(true),
     navigator: {},
     addEventListener: () => {},
@@ -45,6 +46,16 @@ async function page(t, { innerWidth = 1280, markup = '', stored = {} } = {}) {
     hooks.deregister();
   }
 }
+function loadFigure(frame, Event, drawn = true) {
+  const { document } = parseHTML(
+    `<html><body><div data-figure-drawn="${drawn ? '' : 'pending'}"></div></body></html>`,
+  );
+  Object.defineProperty(document, 'images', { value: [] });
+  Object.defineProperty(frame, 'contentDocument', { configurable: true, value: document });
+  frame.dispatchEvent(new Event('load'));
+  return document;
+}
+
 const flush = () => new Promise((resolve) => setImmediate(resolve));
 
 test('draws every figure in one unseen slot at the size its embed gives it', async (t) => {
@@ -63,7 +74,7 @@ test('draws every figure in one unseen slot at the size its embed gives it', asy
   );
   let settled = false;
   void done.then(() => (settled = true));
-  for (const frame of iframes) frame.dispatchEvent(new Event('load'));
+  for (const frame of iframes) loadFigure(frame, Event);
   await flush();
   for (let i = 0; i < 24; i++) {
     frames.flush(16 * i);
@@ -117,7 +128,7 @@ async function drawEach(document, frames, Event, drawn = []) {
       figures: [...slot.querySelectorAll('iframe')].map((frame) => frame.getAttribute('src')),
       filters: slot.querySelectorAll('[data-warm-filter]').length,
     });
-    for (const frame of slot.querySelectorAll('iframe')) frame.dispatchEvent(new Event('load'));
+    for (const frame of slot.querySelectorAll('iframe')) loadFigure(frame, Event);
     for (let i = 0; i < 25; i++) {
       await flush();
       frames.flush(16 * i);
@@ -148,6 +159,7 @@ test('skips figures remembered under this version, and remembers those the page 
   const stored = { 'figure-warmup': JSON.stringify(['/figures/a/#v2']) };
   const markup = '<iframe src="/figures/b/"></iframe>';
   const { document, frames, Event, warmInTurn } = await page(t, { stored, markup });
+  loadFigure(document.querySelector('iframe'), Event);
   const done = warmInTurn(sources, 'v2', [], now);
   const drawn = await drawEach(document, frames, Event);
   await done;
@@ -181,4 +193,49 @@ test('waits for a quiet moment before each figure', async (t) => {
   moments[1]();
   await drawEach(document, frames, Event);
   await done;
+});
+
+test('load and elapsed frames cannot complete warm-up before every renderer draws', async (t) => {
+  const { document, frames, Event, warmFigures } = await page(t);
+  const done = warmFigures([sources[0]], [], 5000);
+  const inner = loadFigure(document.querySelector('iframe'), Event, false);
+  let settled = false;
+  void done.then(() => (settled = true));
+  await flush();
+  for (let i = 0; i < 30; i++) {
+    frames.flush();
+    await flush();
+  }
+  assert.equal(settled, false, 'a loaded document is not a rendered figure');
+  inner.querySelector('[data-figure-drawn]').setAttribute('data-figure-drawn', '');
+  for (let i = 0; i < 23; i++) {
+    frames.flush();
+    await flush();
+  }
+  assert.equal(settled, false, 'the sweep starts after readiness');
+  frames.flush();
+  await flush();
+  assert.equal(await done, true);
+  assert.equal(frames.pending.size, 0);
+});
+
+test('a loaded figure that never draws times out and cancels its frame work', async (t) => {
+  const { document, frames, Event, warmFigures } = await page(t);
+  const done = warmFigures([sources[0]], [], 20);
+  loadFigure(document.querySelector('iframe'), Event, false);
+  assert.equal(await done, false);
+  assert.equal(document.querySelector('[data-figure-warmup]'), null);
+  assert.equal(frames.pending.size, 0);
+});
+
+test('a visible but undrawn figure is skipped without a false success record', async (t) => {
+  const stored = {};
+  const { document, Event, warmInTurn } = await page(t, {
+    stored,
+    markup: '<iframe src="/figures/a/"></iframe>',
+  });
+  loadFigure(document.querySelector('iframe'), Event, false);
+  await warmInTurn([sources[0]], 'v2', [], now);
+  assert.equal(stored['figure-warmup'], undefined);
+  assert.equal(document.querySelector('[data-figure-warmup]'), null);
 });

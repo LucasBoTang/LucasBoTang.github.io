@@ -1,7 +1,7 @@
 import recorded from '../../../data/research/l2o-training-snapshots.json';
 import { smoothstep as smoothStep } from '../../../lib/easing.ts';
 import { createFigureClock } from '../../../lib/figure-clock';
-import { whenFigureReady } from '../../../lib/figure-ready';
+import { createFigureDrawReporter, whenFigureReady } from '../../../lib/figure-ready';
 import { enhanceNear } from '../../../lib/lifecycle';
 import { reducedMotionQuery } from '../../../lib/motion';
 import { createPredictionHud, predictionHudAt } from './hud';
@@ -22,6 +22,7 @@ async function initializeTrainingFigure(root: HTMLElement) {
     return;
   }
   const scene = createdScene;
+  const reportDraw = createFigureDrawReporter(root);
   const { arrivals, beats, cycle } = scene.timeline;
   const reset = trainingReset(cycle);
   const hudSnapshots = createPredictionHud(recorded);
@@ -87,6 +88,7 @@ async function initializeTrainingFigure(root: HTMLElement) {
       arrivedPoint,
       reducedMotion,
     });
+    reportDraw();
     if (phase < previousPhase) {
       Object.keys(revealedStages).forEach((key) => (revealedStages[key] = -1));
       for (const slot of liveSlots) updateReading(slot, '—');

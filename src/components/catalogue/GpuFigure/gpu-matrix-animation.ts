@@ -1,6 +1,6 @@
 import { smoothstep as smooth } from '../../../lib/easing.ts';
 import { createFigureClock } from '../../../lib/figure-clock.ts';
-import { whenFigureReady } from '../../../lib/figure-ready';
+import { createFigureDrawReporter, whenFigureReady } from '../../../lib/figure-ready';
 import { MATRIX, SCAN_BAND } from './gpu-layout.ts';
 import { matrixMotionAt, matrixPlaybackRate } from './matrix-motion.ts';
 
@@ -51,6 +51,7 @@ function setOpacity(element: Element, value: number) {
  * Call once per GPU composition; its component owns the required SVG markup.
  */
 export function initializeGpuFigure(root: HTMLElement, products: MatrixProductRecording) {
+  const reportDraw = createFigureDrawReporter(root);
   const initialFrame = products.frames[0];
   const transposeMinimum = Math.min(...initialFrame.at);
   const transposeRange = Math.max(1e-12, Math.max(...initialFrame.at) - transposeMinimum);
@@ -153,6 +154,7 @@ export function initializeGpuFigure(root: HTMLElement, products: MatrixProductRe
     for (const pulse of pulses) setAttribute(pulse, 'stroke-dashoffset', motion.busOffset);
     setOpacity(productFlow, motion.productOpacity);
     setOpacity(transposeProductFlow, motion.transposeProductOpacity);
+    reportDraw();
   }
 
   return createFigureClock(root, render, { rate: matrixPlaybackRate, startWhen: whenFigureReady });

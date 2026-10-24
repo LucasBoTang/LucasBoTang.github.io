@@ -34,3 +34,21 @@ export function whenFigureReady(start: () => void): void {
     attributeFilter: ['data-screen-pending', 'data-preview-pending'],
   });
 }
+
+/** Report a renderer's first completed draw once, independently of its playback gate. */
+export function createFigureDrawReporter(target: Element) {
+  let reported = false;
+  return () => {
+    if (reported) return;
+    reported = true;
+    target.setAttribute('data-figure-drawn', '');
+  };
+}
+
+/** All renderers declared by the document must finish a draw before it can be warmed. */
+export function hasFigureDrawn(document: Document | null): boolean {
+  const renderers = [...(document?.querySelectorAll('[data-figure-drawn]') ?? [])];
+  return (
+    renderers.length > 0 && renderers.every((node) => node.getAttribute('data-figure-drawn') === '')
+  );
+}

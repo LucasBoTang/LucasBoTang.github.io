@@ -1,3 +1,4 @@
+import { hasFigureDrawn } from '../../../lib/figure-ready.ts';
 import { enhance } from '../../../lib/lifecycle';
 import { openingPending, waitForOpeningVisible } from '../../../lib/opening-gate';
 import { waitForIdleWindow } from './idle-window';
@@ -10,8 +11,8 @@ const INPUT_QUIET_MS = 600;
 const MAX_OPENING_WAIT_MS = 8000;
 
 /** Ignore warm-up slots when checking visible embeds. */
-const isFigureShown = (src: string) =>
-  [...document.querySelectorAll('iframe')].some(
+const findShownFigure = (src: string) =>
+  [...document.querySelectorAll('iframe')].find(
     (frame) => frame.getAttribute('src') === src && !frame.closest('[data-figure-warmup]'),
   );
 
@@ -82,8 +83,9 @@ export async function warmInTurn(
   for (const source of pendingFigures) {
     await quiet(startedAt);
     // Visible embeds compile their own programs; remember them without drawing again.
-    if (isFigureShown(source.src)) {
-      memory.remember(source.src);
+    const shown = findShownFigure(source.src);
+    if (shown) {
+      if (hasFigureDrawn(shown.contentDocument)) memory.remember(source.src);
       continue;
     }
     const isComplete = await warmFigures([source], filters);

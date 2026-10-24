@@ -1,7 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { parseHTML } from 'linkedom';
-import { whenFigureReady } from '../../src/lib/figure-ready.ts';
+import {
+  createFigureDrawReporter,
+  hasFigureDrawn,
+  whenFigureReady,
+} from '../../src/lib/figure-ready.ts';
 import { installGlobals } from '../helpers/browser.mjs';
 
 function host(t, embedded = true) {
@@ -83,4 +87,23 @@ test('a figure drawn ahead in a warm-up slot starts at once, whatever its host i
   let starts = 0;
   whenFigureReady(() => starts++);
   assert.equal(starts, 1);
+});
+
+test('drawing readiness requires every declared renderer and is reported only once', () => {
+  const { document } = parseHTML(
+    '<html><body><div data-figure-drawn="pending"></div><div data-figure-drawn="pending"></div></body></html>',
+  );
+  const [first, second] = document.querySelectorAll('[data-figure-drawn]');
+  const reportFirst = createFigureDrawReporter(first);
+  assert.equal(hasFigureDrawn(null), false);
+  assert.equal(hasFigureDrawn(document), false);
+  reportFirst();
+  assert.equal(hasFigureDrawn(document), false);
+  createFigureDrawReporter(second)();
+  assert.equal(hasFigureDrawn(document), true);
+  first.setAttribute = () => assert.fail('a reported draw must not write on every frame');
+  reportFirst();
+  first.remove();
+  second.remove();
+  assert.equal(hasFigureDrawn(document), false);
 });
