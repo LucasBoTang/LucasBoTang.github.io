@@ -104,21 +104,21 @@ const numbered = notebooks.map((notebook) => ({
   }
   .notebook-row {
     align-items: baseline;
+    column-gap: var(--step-24);
     display: grid;
     grid-template-columns: 2ch minmax(0, 1fr);
-    column-gap: var(--step-24);
     line-height: var(--line-label-block);
   }
   .notebook-number {
-    color: var(--paper);
     font-variant-numeric: tabular-nums;
+    color: var(--paper);
   }
   .notebook-link {
     align-items: baseline;
     display: inline-flex;
     gap: var(--step-8);
-    width: fit-content;
     max-width: 100%;
+    width: fit-content;
     color: var(--blue);
   }
   .notebook-link :global(svg) {
@@ -129,12 +129,12 @@ const numbered = notebooks.map((notebook) => ({
     align-items: center;
     display: flex;
     gap: var(--step-8);
-    width: fit-content;
+    border: 0;
     margin: var(--step-8) 0 0;
     padding: var(--step-8) 0;
-    border: 0;
-    background: transparent;
+    width: fit-content;
     font: inherit;
+    background: transparent;
     color: var(--muted);
     cursor: pointer;
   }
@@ -146,26 +146,26 @@ const numbered = notebooks.map((notebook) => ({
   }
   .notebook-toggle-mark {
     position: relative;
-    width: 10px;
     height: 10px;
     margin-left: var(--step-8);
+    width: 10px;
     color: var(--blue);
   }
   .notebook-toggle-mark::before,
   .notebook-toggle-mark::after {
     content: '';
-    position: absolute;
     inset: 0;
+    position: absolute;
     margin: auto;
     background: currentColor;
   }
   .notebook-toggle-mark::before {
-    width: 10px;
     height: 1px;
+    width: 10px;
   }
   .notebook-toggle-mark::after {
-    width: 1px;
     height: 10px;
+    width: 1px;
   }
   [data-expanded='true'] .notebook-toggle-mark::after {
     transform: scaleY(0);
