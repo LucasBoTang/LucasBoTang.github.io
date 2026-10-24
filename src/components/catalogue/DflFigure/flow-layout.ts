@@ -150,13 +150,7 @@ document.querySelectorAll<HTMLElement>('.training-flow').forEach((root) => {
           sweep(...timing.reverseOptimization, true),
         ],
       ],
-      [
-        '.loss-node',
-        [
-          sweep(timing.evaluation, timing.evaluation + captionSweepDuration),
-          sweep(timing.backward[0] - captionSweepDuration, timing.backward[0], true),
-        ],
-      ],
+      ['.loss-node', [sweep(timing.evaluation, timing.evaluation + captionSweepDuration)]],
     ];
     figure.captions = nameEvents.map(([selector, events]) => {
       const label = root.querySelector<HTMLElement>(selector)!;

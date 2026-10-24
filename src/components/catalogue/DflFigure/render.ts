@@ -21,8 +21,6 @@ function renderModule(surface: ModuleSurface, time: number, ambient: number) {
     let sweep: number | null = null;
     if (flow >= timing.evaluation && flow < timing.evaluation + 0.6)
       sweep = (flow - timing.evaluation) / 0.6;
-    if (flow >= timing.backward[0] - 0.6 && flow < timing.backward[0])
-      sweep = 1 - (flow - (timing.backward[0] - 0.6)) / 0.6;
     drawDecisionBalance(drawing, ambient, sweep);
   }
 }
