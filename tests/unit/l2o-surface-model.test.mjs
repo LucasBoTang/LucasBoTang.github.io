@@ -54,7 +54,7 @@ test('trajectory tubes and point meshes preserve the interleaved normal/color/ar
   }
 });
 
-test('the WebGL upload and draw boundary binds attributes actually declared by its shader', () => {
+test('the WebGL upload and draw boundary binds attributes actually declared by its shader', async () => {
   const calls = [];
   let id = 0;
   const gpu = new Proxy(
@@ -73,7 +73,29 @@ test('the WebGL upload and draw boundary binds attributes actually declared by i
       },
     },
   );
-  const renderer = createSurfaceRenderer(gpu, { a: 3.9, b: 5.8 });
+  const renderer = await createSurfaceRenderer(gpu, { a: 3.9, b: 5.8 });
+  assert.deepEqual(
+    calls.filter(([method]) => method === 'enableVertexAttribArray'),
+    [0, 1, 2, 3].map((index) => ['enableVertexAttribArray', index]),
+  );
+  assert.deepEqual(
+    calls.filter(([method]) => method === 'enable'),
+    [
+      ['enable', 'DEPTH_TEST'],
+      ['enable', 'BLEND'],
+    ],
+  );
+  assert.deepEqual(
+    calls.filter(([method]) => method === 'blendFunc'),
+    [['blendFunc', 'SRC_ALPHA', 'ONE_MINUS_SRC_ALPHA']],
+  );
+  assert.deepEqual(
+    calls.filter(([method]) => method === 'clearColor'),
+    [['clearColor', 0, 0, 0, 0]],
+  );
+  const initialStateCalls = calls.filter(([method]) =>
+    ['enableVertexAttribArray', 'enable', 'blendFunc', 'clearColor'].includes(method),
+  ).length;
   const shader = calls
     .filter(([method]) => method === 'shaderSource')
     .map(([, , text]) => text)
@@ -87,6 +109,8 @@ test('the WebGL upload and draw boundary binds attributes actually declared by i
     [...calls.find(([method]) => method === 'bufferData')[2]],
     [...new Float32Array(vertices)],
   );
+  renderer.beginFrame();
+  renderer.beginFrame();
   renderer.drawMesh(mesh, 2.5, 0.7, [1, 2, 3]);
   assert.deepEqual(
     calls
@@ -98,6 +122,12 @@ test('the WebGL upload and draw boundary binds attributes actually declared by i
       [3, 40, 24],
       [1, 40, 36],
     ],
+  );
+  assert.equal(
+    calls.filter(([method]) =>
+      ['enableVertexAttribArray', 'enable', 'blendFunc', 'clearColor'].includes(method),
+    ).length,
+    initialStateCalls,
   );
   assert.deepEqual(
     calls.find(([method]) => method === 'drawArrays'),

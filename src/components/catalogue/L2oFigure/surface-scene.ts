@@ -63,7 +63,7 @@ export async function createSurfaceScene(
   const integerPointColor = hexColor('#d9c7ab'),
     ivory = hexColor('#edf4f7');
   const drawAnnotations = createSurfaceAnnotations(labelContext, worldPoint, b);
-  const renderer = createSurfaceRenderer(gl, { a, b });
+  const renderer = await createSurfaceRenderer(gl, { a, b });
   const { createMesh, drawMesh } = renderer;
   const origin: Vector3 = [0, 0, 0];
   const createPointMesh = (point: Vector3, radius: number, color: Vector3) =>

@@ -10,7 +10,7 @@ const baseURL = `http://127.0.0.1:${port}`;
 // A first visit draws every figure ahead once the opening has settled (FigureWarmup), which,
 // under software rendering and many parallel workers, loads every page with three more documents
 // and shifts the timing other specs measure. Tests start as a returning visitor whose figures are
-// already drawn through; figure-warmup.spec.ts starts fresh.
+// already drawn through; warm-up and first-visit specs start fresh.
 const returningVisitor = {
   cookies: [],
   origins: [
@@ -42,9 +42,16 @@ export default defineConfig({
   projects: [
     {
       name: 'e2e',
+      grepInvert: /@timing/,
       testDir: './tests/e2e',
       // Playwright turns the back-forward cache off; the site's animations must survive it.
       use: { launchOptions: { ignoreDefaultArgs: ['--disable-back-forward-cache'] } },
+    },
+    {
+      name: 'performance',
+      testDir: './tests/e2e',
+      testMatch: 'first-visit-performance.spec.ts',
+      grep: /@timing/,
     },
     { name: 'visual', testDir: './tests/visual', use: { reducedMotion: 'reduce' } },
   ],
