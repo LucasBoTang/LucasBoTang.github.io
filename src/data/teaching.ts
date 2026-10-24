@@ -40,6 +40,7 @@ export const teaching: Teaching = {
     {
       id: 'mie365',
       code: 'MIE365H1',
+      href: 'https://engineering.calendar.utoronto.ca/course/mie365h1',
       title: 'Advanced Operations Research',
       term: 'Fall 2020, 2023, 2024',
       role: 'Teaching assistant & lab instructor',
@@ -57,6 +58,7 @@ export const teaching: Teaching = {
     {
       id: 'mie376',
       code: 'MIE376H1',
+      href: 'https://engineering.calendar.utoronto.ca/course/mie376h1',
       title: 'Mathematical Programming',
       term: 'Winter 2024',
       role: 'Teaching assistant & lab instructor',
@@ -67,6 +69,7 @@ export const teaching: Teaching = {
     {
       id: 'mie424',
       code: 'MIE424H1',
+      href: 'https://engineering.calendar.utoronto.ca/course/mie424h1',
       title: 'Optimization in Machine Learning',
       term: 'Winter 2024',
       role: 'Teaching assistant & lab instructor',

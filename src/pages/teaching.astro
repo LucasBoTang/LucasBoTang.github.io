@@ -37,7 +37,12 @@ const description = 'Courses, lab materials, and tutorials in optimization.';
           data-lit
         >
           <div class="teaching-identity">
-            <ProjectWordmark name={course.title} id={`${course.id}-title`} variant="heading" />
+            <ProjectWordmark
+              href={course.href}
+              name={course.title}
+              id={`${course.id}-title`}
+              variant="heading"
+            />
             <p class="teaching-tag label-text">
               {course.code} · {course.term}
             </p>
