@@ -1,7 +1,9 @@
 ---
 import SiteLayout from '../layouts/SiteLayout.astro';
 import PageHeader from '../components/site/PageHeader/PageHeader.astro';
+import NotebookList from '../components/catalogue/NotebookList.astro';
 import ResourceLinks from '../components/ui/ResourceLinks.astro';
+import ProjectWordmark from '../components/catalogue/ProjectWordmark/ProjectWordmark.astro';
 import { teaching } from '../data/teaching';
 
 const description = 'Courses, lab materials, and tutorials in optimization.';
@@ -31,12 +33,11 @@ const description = 'Courses, lab materials, and tutorials in optimization.';
           aria-labelledby={`${course.id}-title`}
           data-reveal="unit"
           data-arrival="cascade"
+          data-project-host
           data-lit
         >
           <div class="teaching-identity">
-            <h3 class="teaching-entry-name heading-text" id={`${course.id}-title`}>
-              {course.title}
-            </h3>
+            <ProjectWordmark name={course.title} id={`${course.id}-title`} variant="heading" />
             <p class="teaching-tag label-text">
               {course.code} · {course.term}
             </p>
@@ -45,20 +46,11 @@ const description = 'Courses, lab materials, and tutorials in optimization.';
           <div class="teaching-details">
             <p class="teaching-description">{course.description}</p>
             {course.materials && (
-              <ol class="teaching-notebooks label-text" aria-label={course.materials.label}>
-                {course.materials.notebooks.map((notebook, index, all) => (
-                  <li
-                    class:list={[
-                      'teaching-notebook',
-                      index >= Math.ceil(all.length / 2) && 'teaching-notebook--later',
-                    ]}
-                  >
-                    <a class="teaching-notebook-link text-link" href={notebook.href}>
-                      <span class="link-label">{notebook.label}</span>
-                    </a>
-                  </li>
-                ))}
-              </ol>
+              <NotebookList
+                id={`${course.id}-notebooks`}
+                label={course.materials.label}
+                notebooks={course.materials.notebooks}
+              />
             )}
             {course.links.length > 0 && (
               <ResourceLinks links={course.links} context={`${course.code} ${course.title}`} />
@@ -118,11 +110,8 @@ const description = 'Courses, lab materials, and tutorials in optimization.';
 </SiteLayout>
 
 <style>
-  /* Everything runs to the last column. Each section opens with a rule and its label, 64px above a
-     statement across the page. A course names itself on columns 1 to 4, with its facts as labels
-     beneath, and says what it holds from column 5, as a Software entry does; item rules across the
-     page part the courses. The tutorials are one block: their statement and the PyEPO links, then
-     an unruled table of the events. */
+  /* Desktop: introductions span columns 2-11; course names occupy 2-5 and details 6-11.
+       Section rules span 1-12; course rules span 2-12. */
   .teaching-section {
     scroll-margin-top: var(--anchor-section-offset);
   }
@@ -148,20 +137,14 @@ const description = 'Courses, lab materials, and tutorials in optimization.';
   .teaching-identity {
     grid-column: var(--zone-name);
   }
-  .teaching-entry-name {
-    margin: 0;
-    text-wrap: balance;
-    color: var(--paper);
-  }
   .teaching-tag {
     margin: var(--step-8) 0 0;
     color: var(--muted);
   }
-  .teaching-entry-name + .teaching-tag {
+  .teaching-identity :global(.project-wordmark) + .teaching-tag {
     margin-top: var(--step-16);
   }
-  /* The details run from column 5 to the last as a subgrid, so the notebooks can sit in two of its
-     columns. What they hold spans them, the link row (ResourceLinks) included. */
+  /* Subgrids align descriptions, notebook columns and resource links. */
   .teaching-details {
     align-content: start;
     display: grid;
@@ -171,7 +154,6 @@ const description = 'Courses, lab materials, and tutorials in optimization.';
   .teaching-details > :global(*) {
     grid-column: 1 / -1;
   }
-  /* A statement runs across the page, from under its section's label. */
   .teaching-statement .teaching-details {
     grid-column: var(--zone-full);
   }
@@ -179,30 +161,7 @@ const description = 'Courses, lab materials, and tutorials in optimization.';
     margin: 0 0 var(--step-24);
     color: var(--body-copy);
   }
-  /* The notebooks read down two columns, the first half on columns 5 to 7 and the second, whose
-     names run longer, on columns 8 to 12. */
-  .teaching-notebooks {
-    display: grid;
-    grid-auto-flow: row dense;
-    grid-template-columns: subgrid;
-    row-gap: var(--step-8);
-    margin: 0 0 var(--step-24);
-    padding: 0;
-    list-style: none;
-  }
-  .teaching-notebook {
-    grid-column: 1 / 4;
-    line-height: var(--line-label-block);
-  }
-  .teaching-notebook--later {
-    grid-column: 4 / -1;
-  }
-  .teaching-notebook-link {
-    color: var(--blue);
-  }
-  /* The events are an unruled table beneath their statement and its links: the year on column 2,
-     the event, a link to its page, on columns 3 to 8, and what was taught on 9 to 12, so the
-     longest line ends at the page's edge. */
+  /* Workshop year, title and role share the introduction grid. */
   .teaching-workshops {
     display: grid;
     grid-column: 1 / -1;
@@ -237,7 +196,7 @@ const description = 'Courses, lab materials, and tutorials in optimization.';
     color: var(--muted);
   }
   /* A camera marks an event whose page holds its recording: a line icon on the name's baseline,
-     part of the name, so it takes its colour and turns blue with it. */
+       part of the name, so it takes its colour and turns blue with it. */
   .teaching-workshop-recording {
     display: inline-block;
     vertical-align: -2px; /* optical: the camera's box sits on the baseline, not below it */
@@ -250,14 +209,41 @@ const description = 'Courses, lab materials, and tutorials in optimization.';
   .teaching-workshop-recording :is(rect, path) {
     vector-effect: non-scaling-stroke;
   }
-  @media (pointer: coarse) {
-    .teaching-notebook-link {
-      margin-block: calc(-1 * var(--step-8));
-      padding-block: var(--step-8);
+  /* Preserve shell column widths while reserving column 12 for whitespace. */
+  @media (min-width: 721px) {
+    .teaching-section {
+      width: calc(100% - (100% - 11 * var(--column-gap)) / 12 - var(--column-gap));
+    }
+    .teaching-section > h2 {
+      width: calc((100% + var(--column-gap)) * 12 / 11 - var(--column-gap));
+    }
+    .teaching-entry {
+      grid-template-columns: repeat(11, minmax(0, 1fr));
+    }
+    .teaching-entry.teaching-course {
+      border-top-color: transparent;
+      margin-left: calc((100% + var(--column-gap)) / 11);
+      grid-template-columns: repeat(10, minmax(0, 1fr));
+    }
+    .teaching-course::after {
+      content: '';
+      position: absolute;
+      top: -1px;
+      left: 0;
+      width: calc(100% + (100% + var(--column-gap)) / 10);
+      border-top: 1px solid var(--rule-item);
+      pointer-events: none;
+    }
+    .teaching-details {
+      grid-column: 5 / -1;
+    }
+    .teaching-statement .teaching-details {
+      grid-column: 2 / -1;
     }
   }
+
   /* On one column everything takes the full width, and an event's year hangs in the first column
-     beside its name and what was taught. */
+       beside its name and what was taught. */
   @media (max-width: 720px) {
     h2 {
       margin-bottom: var(--step-32);
@@ -266,10 +252,7 @@ const description = 'Courses, lab materials, and tutorials in optimization.';
       row-gap: var(--step-24);
       padding-block: var(--step-32);
     }
-    .teaching-notebook,
-    .teaching-notebook--later {
-      grid-column: 1 / -1;
-    }
+
     /* The statement's parts keep their own margins, as on wider screens. */
     .teaching-statement {
       row-gap: 0;
