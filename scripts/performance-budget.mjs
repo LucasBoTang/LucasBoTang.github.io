@@ -16,7 +16,7 @@ const BUDGET = {
   // Includes home previews and the sign's event-driven readiness; figures load only on intent,
   // but on a first visit on a screen with hover the warm-up draws them ahead behind the opening's
   // waiting caret, which the opening's hold also covers before the warm-up's script has run.
-  'index.html': { html: 80, scripts: 71.25 },
+  'index.html': { html: 80, scripts: 71.5 },
   // Includes four accessible theme lanes; their repeated visual lettering adds about 8KB.
   // Includes the phone lanes' shared entrance choreography and reading-index controller, plus
   // bounded figure preparation before the body arrives (about 30.1KB of scripts in total).
@@ -31,7 +31,7 @@ const BUDGET = {
   [`${figurePaths.gpu.slice(1)}index.html`]: { html: 80, scripts: 36 },
   [`${figurePaths.dfl.slice(1)}index.html`]: { html: 10, scripts: 28 },
   // Includes bounded asynchronous compilation and its compatibility/error paths.
-  [`${figurePaths.l2o.slice(1)}index.html`]: { html: 26.25, scripts: 32.75 },
+  [`${figurePaths.l2o.slice(1)}index.html`]: { html: 26.25, scripts: 33 },
   default: { html: 48, scripts: 24 },
 };
 /** Fonts every page fetches early: the serif, the mono and the sans of its first screen. */

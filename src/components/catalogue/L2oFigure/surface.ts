@@ -19,6 +19,7 @@ async function initializeTrainingFigure(root: HTMLElement) {
   const createdScene = await createSurfaceScene(canvas, overlay, recorded);
   if (!createdScene) {
     root.querySelector<HTMLElement>('.surface-fallback')!.hidden = false;
+    root.setAttribute('data-figure-drawn', 'fallback');
     return;
   }
   const scene = createdScene;

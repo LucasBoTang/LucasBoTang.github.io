@@ -1,3 +1,4 @@
+import { canPresentFigure } from '../../../lib/figure-ready.ts';
 import { enhance } from '../../../lib/lifecycle.ts';
 import { reducedMotionQuery, watchActivity } from '../../../lib/motion.ts';
 import { observePreviewLayout } from './preview-layout.ts';
@@ -29,6 +30,7 @@ function setupPreview(
   let connected = false;
   let wordmarkState: 'waiting' | 'arriving' | 'ready' = opening.complete ? 'ready' : 'waiting';
   let iframe: HTMLIFrameElement | undefined;
+  let drawingObserver: MutationObserver | undefined;
   let intentTimerId = 0;
   let handoverTimerId = 0;
   let releaseTimerId = 0;
@@ -48,6 +50,8 @@ function setupPreview(
     );
   };
   const unloadPreview = () => {
+    drawingObserver?.disconnect();
+    drawingObserver = undefined;
     iframe?.remove();
     iframe = undefined;
     loaded = false;
@@ -67,9 +71,24 @@ function setupPreview(
         'load',
         () => {
           if (iframe !== child) return;
-          child.contentDocument?.documentElement.setAttribute('data-home-preview', '');
-          loaded = true;
-          revealPreview();
+          const inner = child.contentDocument;
+          if (!inner) return;
+          inner.documentElement.setAttribute('data-home-preview', '');
+          // Keep the wordmark until drawing is ready; playback still waits for the handover.
+          const revealWhenReady = () => {
+            if (iframe !== child || !canPresentFigure(inner)) return;
+            drawingObserver?.disconnect();
+            drawingObserver = undefined;
+            loaded = true;
+            revealPreview();
+          };
+          drawingObserver = new MutationObserver(revealWhenReady);
+          for (const renderer of inner.querySelectorAll('[data-figure-drawn]'))
+            drawingObserver.observe(renderer, {
+              attributes: true,
+              attributeFilter: ['data-figure-drawn'],
+            });
+          revealWhenReady();
         },
         { once: true },
       );
