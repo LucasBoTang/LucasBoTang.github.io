@@ -136,7 +136,7 @@ test('moving between pages, the page title rewrites itself in place', async ({ p
   await expect(page.locator('h1')).toHaveAccessibleName('Software');
 });
 
-for (const title of ['Research', 'Software', 'About']) {
+for (const title of ['Research', 'Software', 'Teaching', 'About']) {
   test(`selecting ${title} on its own page replays the title decode`, async ({ page }) => {
     await page.goto(`/${title.toLowerCase()}/`);
     await expect(page.locator('h1')).toHaveCSS('opacity', '1');

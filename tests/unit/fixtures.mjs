@@ -40,6 +40,7 @@ export function contentFixture() {
     links: [code, { label: 'Related paper', href: 'https://example.invalid/paper' }],
   };
   return {
+    teaching: { courses: [], workshops: [], tutorialLinks: [] },
     publications: { example: publication },
     researchAreas: [
       {
@@ -130,6 +131,7 @@ export function outputFixture(t) {
     ),
   );
   write('about/index.html', page('/about/', '<p>Example biography.</p>'));
+  write('teaching/index.html', page('/teaching/', '<p>Example teaching materials.</p>'));
   write(
     'assets/site.css',
     '@font-face{font-family:Example;src:url("../fonts/example.woff2") format("woff2")}',

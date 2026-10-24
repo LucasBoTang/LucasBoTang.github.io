@@ -100,6 +100,41 @@ const contactLinkSchema = z.object({
   icon: z.enum(['email', 'scholar', 'github', 'linkedin']),
 });
 
+const teachingCourseSchema = z.object({
+  id,
+  code: text,
+  title: text,
+  term: text,
+  role: text,
+  description: text,
+  links: z.array(resourceLinkSchema),
+  materials: z
+    .object({
+      label: text,
+      notebooks: z.array(resourceLinkSchema).min(1),
+    })
+    .optional(),
+});
+
+const teachingWorkshopSchema = z.object({
+  id,
+  title: text,
+  date: text,
+  role: text,
+  /** The event's own page, which its title links to. */
+  href,
+  /** Whether the event's page holds its recording, marked by a camera beside the title. */
+  recording: z.boolean().optional(),
+});
+
+const teachingSchema = z.object({
+  courses: z.array(teachingCourseSchema),
+  workshops: z.array(teachingWorkshopSchema),
+  tutorialLinks: z.array(resourceLinkSchema),
+});
+
+export type Teaching = z.infer<typeof teachingSchema>;
+
 /** Everything the content checks receive; see `scripts/site-content.mjs`. */
 export const siteContentSchema = z.object({
   publications: z.record(z.string(), publicationSchema),
@@ -107,6 +142,7 @@ export const siteContentSchema = z.object({
   softwareGroups: z.array(softwareGroupSchema),
   selectedWork: z.array(selectedWorkSchema),
   contactLinks: z.array(contactLinkSchema),
+  teaching: teachingSchema,
 });
 
 export type ResourceLink = z.infer<typeof resourceLinkSchema>;

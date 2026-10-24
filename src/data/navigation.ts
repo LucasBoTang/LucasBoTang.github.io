@@ -4,6 +4,7 @@ export const routes = {
   about: '/about/',
   research: '/research/',
   software: '/software/',
+  teaching: '/teaching/',
 } as const;
 
 export type PageId = keyof typeof routes;
@@ -16,5 +17,6 @@ interface NavigationItem {
 export const primaryNavigation: NavigationItem[] = [
   { page: 'research', label: 'Research' },
   { page: 'software', label: 'Software' },
+  { page: 'teaching', label: 'Teaching' },
   { page: 'about', label: 'About' },
 ];

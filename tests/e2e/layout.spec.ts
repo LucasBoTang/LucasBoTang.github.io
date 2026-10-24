@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import sharp from 'sharp';
-import { routes } from '../../src/data/navigation';
+import { primaryNavigation, routes } from '../../src/data/navigation';
 import { contentPageRoutes, missingPageRoute } from '../test-routes';
 import { cssColors } from '../theme';
 import { firstBaseline, gridColumns, textExtent, textLeft } from './helpers';
@@ -18,7 +18,7 @@ test('the header sets the name on column 1 and the pages flush right', async ({ 
   const cols = await gridColumns(page);
   near(await textLeft(page, '.site-header-name'), cols[0].left, 2);
   const links = page.locator('.site-header nav a');
-  await expect(links).toHaveCount(3);
+  await expect(links).toHaveCount(primaryNavigation.length);
   await expect(page.locator('.site-header a[download]')).toHaveCount(0);
   const last = await textExtent(page, '.site-header nav a:last-child');
   near(last[0].right, cols[11].right);
@@ -261,7 +261,7 @@ test('BibTeX keeps its spelling', async ({ page }) => {
 });
 
 test('headings are set at weight 400, wordmarks aside', async ({ page }) => {
-  for (const route of [routes.home, routes.about, routes.research, routes.software]) {
+  for (const route of Object.values(routes)) {
     await page.goto(route);
     const weights = await page
       .locator('h1, h2, h3:not(.project-wordmark), strong')
@@ -740,7 +740,7 @@ test.describe('hover and wrapping rules', () => {
     const muted = cssColors['muted'];
     for (const width of [1280, 375]) {
       await page.setViewportSize({ width, height: 900 });
-      for (const route of [routes.home, routes.research, routes.software, routes.about]) {
+      for (const route of Object.values(routes)) {
         await page.goto(route);
         for (const link of await page.locator('.site-header nav a').all()) {
           const color = (await link.getAttribute('href')) === route ? blue : muted;
@@ -848,6 +848,7 @@ test('an item rule starts where the text it parts starts', async ({ page }) => {
   for (const [route, entry, text] of [
     [routes.home, '.work-entry + .work-entry', '.work-details'],
     [routes.software, '.software-entry + .software-entry', '.entry-description'],
+    [routes.teaching, '.teaching-course + .teaching-course', '.teaching-entry-name'],
   ]) {
     await page.goto(route);
     const target = page.locator(entry).first();
@@ -867,4 +868,162 @@ test('an item rule starts where the text it parts starts', async ({ page }) => {
     }
     near(start, textBox.x, 1);
   }
+});
+
+test.describe('Teaching', () => {
+  // Teaching's courses are set as Software's entries are, the name on columns 1 to 4 and what it
+  // holds from column 5; each section opens on a statement from column 1, and the tutorials'
+  // events are a table inside theirs. The serif is the page title alone.
+  test('every course names itself on column 1 and describes itself from column 5', async ({
+    page,
+  }) => {
+    await page.goto(routes.teaching);
+    const cols = await gridColumns(page);
+    await expect(page.locator('main .section-label')).toHaveText(['Courses', 'Tutorials']);
+    await expect(page.locator('.teaching-course')).toHaveCount(3);
+    for (let index = 0; index < 3; index++) {
+      near(await textLeft(page, '.teaching-course .teaching-entry-name', index), cols[0].left);
+      near(await textLeft(page, '.teaching-course .teaching-description', index), cols[4].left);
+    }
+  });
+
+  test('text runs to the last column, each section opening on a statement from column 1', async ({
+    page,
+  }) => {
+    await page.goto(routes.teaching);
+    const cols = await gridColumns(page);
+    const rights = await page
+      .locator('.teaching-course .teaching-description')
+      .evaluateAll((all) => all.map((element) => element.getBoundingClientRect().right));
+    expect(rights.length).toBeGreaterThan(0);
+    for (const right of rights) near(right, cols[11].right);
+    // Both sections open on a statement across the page, from column 1 to the last.
+    await expect(page.locator('.teaching-statement')).toHaveCount(2);
+    for (let index = 0; index < 2; index++) {
+      near(await textLeft(page, '.teaching-statement .teaching-description', index), cols[0].left);
+      const right = await page
+        .locator('.teaching-statement .teaching-description')
+        .nth(index)
+        .evaluate((element) => element.getBoundingClientRect().right);
+      near(right, cols[11].right);
+    }
+  });
+
+  test('the tutorials are one block: a table of the events inside their statement', async ({
+    page,
+  }) => {
+    await page.goto(routes.teaching);
+    const cols = await gridColumns(page);
+    await expect(page.locator('.teaching-statement .teaching-workshop')).toHaveCount(3);
+    await expect(page.locator('.teaching-workshop-date')).toHaveText(['2024', '2024', '2023']);
+    for (let index = 0; index < 3; index++) {
+      near(await textLeft(page, '.teaching-workshop-date', index), cols[1].left);
+      near(await textLeft(page, '.teaching-workshop-name', index), cols[2].left);
+      near(await textLeft(page, '.teaching-workshop-role', index), cols[8].left);
+    }
+    // Names are read at the body size, not set as headings.
+    await expect(page.locator('.teaching-workshop-name').first()).toHaveCSS('font-size', '16px');
+    const table = (await page.locator('.teaching-workshops').boundingBox())!;
+    // The table runs to the last column, with no rules of its own.
+    near(table.x + table.width, cols[11].right);
+    await expect(page.locator('.teaching-workshops')).toHaveCSS('border-top-width', '0px');
+  });
+
+  test('links run in one row across the details, as on Software', async ({ page }) => {
+    await page.goto(routes.teaching);
+    const cols = await gridColumns(page);
+    const rows = await page.locator('main .resource-links').evaluateAll((all) =>
+      all.map((row) => {
+        const items = [...row.querySelectorAll('li')].map((item) =>
+          Math.round(item.getBoundingClientRect().top),
+        );
+        return { lines: new Set(items).size, right: row.getBoundingClientRect().right };
+      }),
+    );
+    for (const row of rows) {
+      expect(row.lines).toBe(1);
+      expect(row.right).toBeGreaterThan(cols[8].right);
+    }
+  });
+
+  test('names are read in the sans, and the serif is the page title alone', async ({ page }) => {
+    await page.goto(routes.teaching);
+    const serif = await page.evaluate(
+      () =>
+        [...document.querySelectorAll('main *')].filter(
+          (element) =>
+            !element.closest('h1') &&
+            [...element.childNodes].some(
+              (node) => node.nodeType === 3 && node.textContent!.trim(),
+            ) &&
+            getComputedStyle(element).fontFamily.includes('Bodoni'),
+        ).length,
+    );
+    expect(serif).toBe(0);
+    const name = await page
+      .locator('.teaching-entry-name')
+      .first()
+      .evaluate((element) => {
+        const style = getComputedStyle(element);
+        return [style.fontFamily.split(',')[0], style.fontSize, style.color];
+      });
+    expect(name).toEqual(['"Geist Variable"', '24px', cssColors.paper]);
+  });
+
+  test('each event name leads to the event, with no separate link to it', async ({ page }) => {
+    await page.goto(routes.teaching);
+    const titles = page.locator('.teaching-workshop-name a');
+    await expect(titles).toHaveCount(3);
+    await expect(titles.first()).toHaveAttribute('href', /piml4control/);
+    // The lecture whose page holds its recording says so with a camera beside its title.
+    const camera = page.locator('#coridm .teaching-workshop-name svg[aria-label="Recording"]');
+    await expect(camera).toHaveCount(1);
+    // It is part of the title: it takes the title's colour and turns blue with it.
+    expect(await camera.evaluate((icon) => getComputedStyle(icon).stroke)).toBe(cssColors.paper);
+    await expect(page.locator('.teaching-workshop-recording')).toHaveCount(1);
+  });
+
+  test('the lab notebooks read down two columns, from column 5 and from column 8', async ({
+    page,
+  }) => {
+    await page.goto(routes.teaching);
+    const cols = await gridColumns(page);
+    await expect(page.locator('.teaching-notebook-link')).toHaveCount(8);
+    for (let index = 0; index < 8; index++) {
+      const box = (await page.locator('.teaching-notebook-link').nth(index).boundingBox())!;
+      near(box.x, index < 4 ? cols[4].left : cols[7].left);
+    }
+    const tops = await page
+      .locator('.teaching-notebook-link')
+      .evaluateAll((all) => all.map((link) => Math.round(link.getBoundingClientRect().top)));
+    expect(tops.slice(4)).toEqual(tops.slice(0, 4));
+  });
+
+  test('courses arrive and light as Software entries do; the tutorials arrive whole', async ({
+    page,
+  }) => {
+    await page.goto(routes.teaching);
+    const marks = await page
+      .locator('.teaching-course')
+      .evaluateAll((all) =>
+        all.map((entry) =>
+          [
+            entry.getAttribute('data-reveal'),
+            entry.getAttribute('data-arrival'),
+            entry.hasAttribute('data-lit'),
+          ].join(' '),
+        ),
+      );
+    expect(new Set(marks)).toEqual(new Set(['unit cascade true']));
+    const intros = page.locator('.teaching-statement');
+    await expect(intros).toHaveCount(2);
+    for (const intro of await intros.all()) {
+      await expect(intro).toHaveAttribute('data-reveal', 'unit');
+      await expect(intro).not.toHaveAttribute('data-lit', /.*/);
+    }
+    // The events ride in their statement, which arrives whole.
+    for (const event of await page.locator('.teaching-workshop').all()) {
+      await expect(event).not.toHaveAttribute('data-reveal', /.*/);
+    }
+  });
 });

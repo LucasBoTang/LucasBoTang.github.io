@@ -67,6 +67,7 @@ export function validateContent(content, figures = {}) {
   uniqueIds(researchAreas, 'research area');
   uniqueIds(softwareGroups, 'software group');
   uniqueIds(softwareEntries, 'software');
+  uniqueIds([...content.teaching.courses, ...content.teaching.workshops], 'teaching');
 
   for (const publication of records) {
     if (publication.review) {

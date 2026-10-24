@@ -36,6 +36,31 @@ test('rejects duplicate software IDs across groups', () => {
   assert.throws(() => validateContent(content), /duplicate software id/i);
 });
 
+test('teaching courses and workshop credits cannot share an anchor', () => {
+  const content = contentFixture();
+  content.teaching.courses = [
+    {
+      id: 'example-course',
+      code: 'MIE365H1',
+      title: 'Example course',
+      term: 'Fall 2024',
+      role: 'Lab instructor',
+      description: 'An example course.',
+      links: [],
+    },
+  ];
+  content.teaching.workshops = [
+    {
+      id: 'example-course',
+      title: 'Example tutorial',
+      date: 'July 2024',
+      role: 'Tutorial',
+      href: 'https://example.com/',
+    },
+  ];
+  assert.throws(() => validateContent(content), /duplicate teaching id/i);
+});
+
 test('requires a featured research area for the home topics', () => {
   const content = contentFixture();
   content.researchAreas[0].featured = false;

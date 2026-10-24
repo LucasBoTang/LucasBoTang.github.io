@@ -154,6 +154,17 @@ export function validateOutput({ directory: output, files, documents }, content)
       `${group.id}: software entries must match their data`,
     );
   }
+  const teaching = documents.get('teaching/index.html');
+  sameRecords(
+    [...teaching.querySelectorAll('article.teaching-course')].map((item) => item.id),
+    content.teaching.courses.map(({ id }) => id),
+    'Teaching must render every course exactly once',
+  );
+  sameRecords(
+    [...teaching.querySelectorAll('li.teaching-workshop')].map((item) => item.id),
+    content.teaching.workshops.map(({ id }) => id),
+    'Teaching must render every workshop credit exactly once',
+  );
   sameRecords(
     [...home.querySelectorAll('.research-topics a')].map((link) => link.getAttribute('href')),
     researchAreas.filter((area) => area.featured).map((area) => `${routes.research}#${area.id}`),

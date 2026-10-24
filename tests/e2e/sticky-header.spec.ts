@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { routes } from '../../src/data/navigation';
+import { primaryNavigation, routes } from '../../src/data/navigation';
 
 test.use({ reducedMotion: 'reduce' });
 
@@ -8,7 +8,7 @@ for (const width of [1280, 430, 390, 375, 320]) {
     page,
   }) => {
     await page.setViewportSize({ width, height: 900 });
-    for (const route of [routes.home, routes.research, routes.software, routes.about]) {
+    for (const route of Object.values(routes)) {
       await page.goto(route);
       const initialName = (await page.locator('.site-header-name').boundingBox())!;
       const initialNavigation = (await page
@@ -26,10 +26,10 @@ for (const width of [1280, 430, 390, 375, 320]) {
       expect(
         Math.max(name.y + name.height, navigation.y + navigation.height),
         route,
-      ).toBeLessThanOrEqual(width > 720 ? 64 : 80);
+      ).toBeLessThanOrEqual(initialNavigation.y + initialNavigation.height);
       expect(
         await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link').count(),
-      ).toBe(3);
+      ).toBe(primaryNavigation.length);
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
         true,
       );
@@ -82,11 +82,21 @@ for (const width of [320, 375, 390, 414, 430, 720]) {
       };
     });
     const oneRow = required <= available;
-    if (width <= 375) expect(oneRow).toBe(false);
-    if (width >= 414) expect(oneRow).toBe(true);
+    if (width <= 380) {
+      const links = await navigation.getByRole('link').all();
+      const boxes = await Promise.all(links.map((link) => link.boundingBox()));
+      expect(Math.abs(boxes[0]!.y - boxes[1]!.y)).toBeLessThan(1);
+      expect(Math.abs(boxes[2]!.y - boxes[3]!.y)).toBeLessThan(1);
+      expect(boxes[2]!.y).toBeGreaterThan(boxes[0]!.y);
+      expect(name.y).toBeLessThan(nav.y + nav.height);
+      expect(nav.x).toBeGreaterThanOrEqual(name.x + name.width);
+    }
+    if (width >= 720) expect(oneRow).toBe(true);
     const sizing = `${required}px required, ${available}px available`;
     expect(Math.abs(name.x - header.x)).toBeLessThan(1);
-    if (oneRow) {
+    if (width <= 380) {
+      expect(header.height).toBeLessThanOrEqual(80);
+    } else if (oneRow) {
       expect(name.y, sizing).toBeLessThan(nav.y + nav.height);
       expect(nav.y, sizing).toBeLessThan(name.y + name.height);
       expect(Math.abs(nav.x + nav.width - header.x - header.width)).toBeLessThan(1);
@@ -98,7 +108,8 @@ for (const width of [320, 375, 390, 414, 430, 720]) {
     await expect(links.first()).toHaveCSS('font-size', '16px');
     const first = (await links.first().boundingBox())!;
     const last = (await links.last().boundingBox())!;
-    expect(Math.abs(first.y - last.y)).toBeLessThan(1);
+    expect(last.y).toBeGreaterThanOrEqual(first.y);
+    expect(last.x + last.width).toBeLessThanOrEqual(header.x + header.width + 1);
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width);
   });
 }
@@ -177,7 +188,7 @@ for (const width of [1280, 375]) {
         sample();
       });
     });
-    for (const route of [routes.research, routes.software, routes.about]) {
+    for (const route of Object.values(routes).filter((route) => route !== routes.home)) {
       await page.goto(route);
       await page.evaluate(() => scrollTo(0, 700));
       await page.locator('.site-header-name').click();

@@ -29,12 +29,15 @@ Shared content records live in `src/data/`:
 
 - `publications.ts`: papers. IDs are used as page anchors, so don't rename them.
 - `research.ts`: research themes and which papers belong to each. Themes with `featured: true` appear on the home page.
+- `teaching.ts`: course roles, lab notebook links, and workshop credits.
 - `software.ts`: projects, upstream contributions, and how each project's name is drawn (`wordmark`).
 - `selected-work.ts`: the three highlights on the home page.
 - `profile.ts`: name, bio, affiliation, people and contact links.
 - `resources.ts`: shared links to papers, software, documentation and conference events.
 
 Page-specific prose and descriptions live in `src/pages/`. The homepage's About copy lives in `src/components/home/AboutSection/AboutSection.astro`; the full About page is `src/pages/about.astro`. Update both when changing shared background facts.
+
+The Teaching page is `src/pages/teaching.astro`. Shared page routes and the header's navigation order live in `src/data/navigation.ts`.
 
 The CV is `public/files/Bo-Tang-CV.pdf` and the portrait is `src/assets/bo-tang.jpg`. Replace the files to update them.
 

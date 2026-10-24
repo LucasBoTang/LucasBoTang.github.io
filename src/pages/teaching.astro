@@ -1,0 +1,291 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import PageHeader from '../components/site/PageHeader/PageHeader.astro';
+import ResourceLinks from '../components/ui/ResourceLinks.astro';
+import { teaching } from '../data/teaching';
+
+const description = 'Courses, lab materials, and tutorials in optimization.';
+---
+
+<SiteLayout title="Teaching — Bo Tang" description={description} page="teaching" opening="reveal">
+  <div class="shell">
+    <PageHeader title="Teaching" description={description} mobileBreakBefore="and" />
+    <section class="teaching-section" aria-labelledby="courses-heading">
+      <h2 class="section-label" id="courses-heading" data-reveal="unit">
+        Courses
+      </h2>
+      <div class="teaching-statement teaching-entry page-grid" data-reveal="unit">
+        <div class="teaching-details">
+          <p class="teaching-description">
+            At the University of Toronto, I led tutorials and labs in mathematical optimization and
+            machine learning. My teaching connects mathematical formulations, computational methods,
+            and their behavior in practice, helping students understand how modeling and algorithmic
+            choices affect solutions.
+          </p>
+        </div>
+      </div>
+      {teaching.courses.map((course) => (
+        <article
+          class="teaching-course teaching-entry page-grid"
+          id={course.id}
+          aria-labelledby={`${course.id}-title`}
+          data-reveal="unit"
+          data-arrival="cascade"
+          data-lit
+        >
+          <div class="teaching-identity">
+            <h3 class="teaching-entry-name heading-text" id={`${course.id}-title`}>
+              {course.title}
+            </h3>
+            <p class="teaching-tag label-text">
+              {course.code} · {course.term}
+            </p>
+            <p class="teaching-tag label-text">{course.role}</p>
+          </div>
+          <div class="teaching-details">
+            <p class="teaching-description">{course.description}</p>
+            {course.materials && (
+              <ol class="teaching-notebooks label-text" aria-label={course.materials.label}>
+                {course.materials.notebooks.map((notebook, index, all) => (
+                  <li
+                    class:list={[
+                      'teaching-notebook',
+                      index >= Math.ceil(all.length / 2) && 'teaching-notebook--later',
+                    ]}
+                  >
+                    <a class="teaching-notebook-link text-link" href={notebook.href}>
+                      <span class="link-label">{notebook.label}</span>
+                    </a>
+                  </li>
+                ))}
+              </ol>
+            )}
+            {course.links.length > 0 && (
+              <ResourceLinks links={course.links} context={`${course.code} ${course.title}`} />
+            )}
+          </div>
+        </article>
+      ))}
+    </section>
+    <section class="teaching-section" aria-labelledby="tutorials-heading">
+      <h2 class="section-label" id="tutorials-heading" data-reveal="unit">
+        Tutorials
+      </h2>
+      <div class="teaching-statement teaching-entry page-grid" data-reveal="unit">
+        <div class="teaching-details">
+          <p class="teaching-description">
+            PyEPO is the library I develop for decision-focused learning. These tutorials teach the
+            idea behind it: a predictive model should be judged by the decisions it leads to, not by
+            its prediction error alone. The tutorial materials then cover the workflow: embedding an
+            optimization model in PyTorch training, learning with decision-focused losses, and
+            comparing decision regret with that of a conventional two-stage baseline.
+          </p>
+          <ResourceLinks links={teaching.tutorialLinks} context="PyEPO" />
+        </div>
+        <ul class="teaching-workshops">
+          {teaching.workshops.map((workshop) => (
+            <li class="teaching-workshop" id={workshop.id} data-paper-entry>
+              {/* Only the year stands in the table, as a paper's does. */}
+              <p class="teaching-workshop-date label-text">{workshop.date.split(' ').at(-1)}</p>
+              <h3 class="teaching-workshop-name">
+                <a class="paper-title-link" href={workshop.href}>
+                  {workshop.title}
+                  {workshop.recording && (
+                    <>
+                      &nbsp;
+                      <svg
+                        class="teaching-workshop-recording"
+                        viewBox="0 0 24 24"
+                        width="16"
+                        height="16"
+                        role="img"
+                        aria-label="Recording"
+                      >
+                        <rect x="2" y="6" width="14" height="12" rx="1" />
+                        <path d="m16 10 6-3v10l-6-3" />
+                      </svg>
+                    </>
+                  )}
+                </a>
+              </h3>
+              <p class="teaching-workshop-role">{workshop.role}</p>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  </div>
+</SiteLayout>
+
+<style>
+  /* Everything runs to the last column. Each section opens with a rule and its label, 64px above a
+     statement across the page. A course names itself on columns 1 to 4, with its facts as labels
+     beneath, and says what it holds from column 5, as a Software entry does; item rules across the
+     page part the courses. The tutorials are one block: their statement and the PyEPO links, then
+     an unruled table of the events. */
+  .teaching-section {
+    scroll-margin-top: var(--anchor-section-offset);
+  }
+  .teaching-section + .teaching-section {
+    margin-top: var(--section-space);
+  }
+  h2 {
+    border-top: var(--rule-line);
+    margin-bottom: var(--step-64);
+    padding-top: var(--step-24);
+  }
+  .teaching-entry {
+    align-items: baseline;
+    padding-block: var(--step-48);
+    scroll-margin-top: var(--anchor-item-offset);
+  }
+  h2 + .teaching-entry {
+    padding-top: 0;
+  }
+  .teaching-entry + .teaching-entry {
+    border-top: 1px solid var(--rule-item);
+  }
+  .teaching-identity {
+    grid-column: var(--zone-name);
+  }
+  .teaching-entry-name {
+    margin: 0;
+    text-wrap: balance;
+    color: var(--paper);
+  }
+  .teaching-tag {
+    margin: var(--step-8) 0 0;
+    color: var(--muted);
+  }
+  .teaching-entry-name + .teaching-tag {
+    margin-top: var(--step-16);
+  }
+  /* The details run from column 5 to the last as a subgrid, so the notebooks can sit in two of its
+     columns. What they hold spans them, the link row (ResourceLinks) included. */
+  .teaching-details {
+    align-content: start;
+    display: grid;
+    grid-column: var(--zone-line);
+    grid-template-columns: subgrid;
+  }
+  .teaching-details > :global(*) {
+    grid-column: 1 / -1;
+  }
+  /* A statement runs across the page, from under its section's label. */
+  .teaching-statement .teaching-details {
+    grid-column: var(--zone-full);
+  }
+  .teaching-description {
+    margin: 0 0 var(--step-24);
+    color: var(--body-copy);
+  }
+  /* The notebooks read down two columns, the first half on columns 5 to 7 and the second, whose
+     names run longer, on columns 8 to 12. */
+  .teaching-notebooks {
+    display: grid;
+    grid-auto-flow: row dense;
+    grid-template-columns: subgrid;
+    row-gap: var(--step-8);
+    margin: 0 0 var(--step-24);
+    padding: 0;
+    list-style: none;
+  }
+  .teaching-notebook {
+    grid-column: 1 / 4;
+    line-height: var(--line-label-block);
+  }
+  .teaching-notebook--later {
+    grid-column: 4 / -1;
+  }
+  .teaching-notebook-link {
+    color: var(--blue);
+  }
+  /* The events are an unruled table beneath their statement and its links: the year on column 2,
+     the event, a link to its page, on columns 3 to 8, and what was taught on 9 to 12, so the
+     longest line ends at the page's edge. */
+  .teaching-workshops {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
+    row-gap: var(--step-8);
+    margin: var(--step-32) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .teaching-workshop {
+    align-items: baseline;
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
+    scroll-margin-top: var(--anchor-item-offset);
+  }
+  .teaching-workshop-date {
+    grid-column: 2 / 3;
+    margin: 0;
+    color: var(--muted);
+  }
+  .teaching-workshop-name {
+    grid-column: 3 / 9;
+    margin: 0;
+    font-size: inherit;
+    line-height: inherit;
+    color: var(--paper);
+  }
+  .teaching-workshop-role {
+    grid-column: 9 / -1;
+    margin: 0;
+    color: var(--muted);
+  }
+  /* A camera marks an event whose page holds its recording: a line icon on the name's baseline,
+     part of the name, so it takes its colour and turns blue with it. */
+  .teaching-workshop-recording {
+    display: inline-block;
+    vertical-align: -2px; /* optical: the camera's box sits on the baseline, not below it */
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1;
+  }
+  .teaching-workshop-recording :is(rect, path) {
+    vector-effect: non-scaling-stroke;
+  }
+  @media (pointer: coarse) {
+    .teaching-notebook-link {
+      margin-block: calc(-1 * var(--step-8));
+      padding-block: var(--step-8);
+    }
+  }
+  /* On one column everything takes the full width, and an event's year hangs in the first column
+     beside its name and what was taught. */
+  @media (max-width: 720px) {
+    h2 {
+      margin-bottom: var(--step-32);
+    }
+    .teaching-entry {
+      row-gap: var(--step-24);
+      padding-block: var(--step-32);
+    }
+    .teaching-notebook,
+    .teaching-notebook--later {
+      grid-column: 1 / -1;
+    }
+    /* The statement's parts keep their own margins, as on wider screens. */
+    .teaching-statement {
+      row-gap: 0;
+    }
+    .teaching-workshops {
+      row-gap: var(--step-16);
+    }
+    .teaching-workshop {
+      row-gap: var(--step-8);
+    }
+    .teaching-workshop-date {
+      grid-column: 1 / 2;
+    }
+    .teaching-workshop-name,
+    .teaching-workshop-role {
+      grid-column: 2 / -1;
+    }
+  }
+</style>

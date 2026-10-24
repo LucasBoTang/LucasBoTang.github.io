@@ -23,6 +23,8 @@ const BUDGET = {
   // Shared arrival queue reservations also ship with the software reading units, as does the
   // opening hold its introduction's typing observes (opening-gate.ts).
   'software/index.html': { html: 48, scripts: 26 },
+  // Teaching ships the same arrival and lit-entry controls as Software, without its wordmarks.
+  'teaching/index.html': { html: 48, scripts: 26 },
   // Artwork baselines (HTML/scripts): GPU 77/33KB after removing unused matrix frames,
   // DFL 8/25KB, L2O 23/28KB. Keep modest headroom without hiding a new data bundle.
   [`${figurePaths.gpu.slice(1)}index.html`]: { html: 80, scripts: 36 },
