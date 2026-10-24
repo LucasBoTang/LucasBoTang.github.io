@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
+import { figureVersion } from '../../scripts/figure-version.mjs';
 import { routes } from '../../src/data/navigation';
-import { figureVersion } from '../../src/data/research/figure-version';
 import { figureWarmups } from '../../src/data/research/figures';
 
 // On a first visit each figure document is drawn once in an unseen slot, so the GPU has compiled
@@ -52,9 +52,12 @@ async function expectDrawnBeforeTyping(page: Page) {
   await expect
     .poll(async () => (await remembered(page)).sort(), { timeout: 30_000 })
     .toEqual(everyFigure);
-  const { gateLifted, typingStarted, slots } = await warmup(page);
+  const { gateLifted, slots } = await warmup(page);
   const [first] = slots;
   if (first?.sources.length === figureWarmups.length) {
+    // Persistence can finish before the opening starts its first key.
+    await expect.poll(async () => (await warmup(page)).typingStarted).not.toBeNull();
+    const { typingStarted } = await warmup(page);
     expect(first.at, 'drawn before the first key').toBeLessThan(typingStarted!);
   } else {
     // A page ready too late to hold its opening (here, under many parallel workers) leaves the

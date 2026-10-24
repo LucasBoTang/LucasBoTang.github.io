@@ -17,7 +17,7 @@ const { src, title, class: className } = Astro.props;
   <iframe class={className} src={src} title={title} loading="lazy" tabindex="-1"></iframe>
 </noscript>
 <script>
-  import { loadFigureEmbeds } from '../../lib/figure-loading';
+  import { loadFigureEmbeds } from './figure-loading';
   loadFigureEmbeds(
     document.querySelectorAll<HTMLIFrameElement>('iframe[data-figure-src]'),
     window.IntersectionObserver,

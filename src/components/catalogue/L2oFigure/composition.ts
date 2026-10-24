@@ -4,7 +4,7 @@ import { reducedMotionQuery } from '../../../lib/motion';
 import { compositionPaths, type SignalStage } from './composition-layout';
 import { createParameterSignals } from './parameter-signal';
 import { trainingBeat, trainingCadence, trainingSignals } from './timing';
-import type { TrainingTickEvent } from './training-events';
+import { L2O_TICK_EVENT, type TrainingTickEvent } from './training-events';
 
 const NS = 'http://www.w3.org/2000/svg';
 enhance<HTMLElement>('[data-l2o-material] [data-training-composition]', (root) => {
@@ -164,7 +164,7 @@ enhance<HTMLElement>('[data-l2o-material] [data-training-composition]', (root) =
         t < beat.loss + trainingCadence.action + trainingCadence.pulse / 2,
     );
   }
-  root.addEventListener('l2o:tick', ((event: TrainingTickEvent) =>
+  root.addEventListener(L2O_TICK_EVENT, ((event: TrainingTickEvent) =>
     draw(event.detail.t, event.detail.beat)) as EventListener);
   new ResizeObserver(build).observe(root);
   document.fonts.ready.then(build);

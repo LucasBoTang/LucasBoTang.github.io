@@ -38,7 +38,9 @@ async function page(t, { innerWidth = 1280, markup = '', stored = {} } = {}) {
     const module = await import(
       `../../src/components/catalogue/FigureWarmup/figure-warmup.ts?test=${++instance}`
     );
-    return { document, frames, Event, ...module };
+    const { warmFigures } =
+      await import('../../src/components/catalogue/FigureWarmup/warmup-renderer.ts');
+    return { document, frames, Event, ...module, warmFigures };
   } finally {
     hooks.deregister();
   }
