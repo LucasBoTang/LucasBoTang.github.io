@@ -10,7 +10,7 @@ export const researchAreas: ResearchArea[] = [
     title: 'GPU-accelerated optimization',
     question: 'How can optimization algorithms scale with modern hardware?',
     introduction:
-      'GPU-accelerated optimization rethinks algorithms to use parallel computing for larger problems and faster solutions. I develop first-order methods that bring linear programming and infeasibility detection into a unified GPU framework, with convergence guarantees that connect algorithm design to reliable computation.',
+      'GPU-accelerated optimization rethinks algorithms to use parallel computing for larger problems and faster solutions. I develop first-order methods that bring linear programming and infeasibility detection with GPU.',
     publications: [publications.hPdlp],
     featured: true,
   },
