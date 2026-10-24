@@ -42,16 +42,15 @@ export default defineConfig({
   projects: [
     {
       name: 'e2e',
-      grepInvert: /@timing/,
       testDir: './tests/e2e',
       // Playwright turns the back-forward cache off; the site's animations must survive it.
       use: { launchOptions: { ignoreDefaultArgs: ['--disable-back-forward-cache'] } },
     },
     {
       name: 'performance',
-      testDir: './tests/e2e',
-      testMatch: ['first-visit-performance.spec.ts', 'figure-drawn.spec.ts'],
-      grep: /@timing/,
+      testDir: './tests/performance',
+      fullyParallel: false,
+      workers: 1,
     },
     { name: 'visual', testDir: './tests/visual', use: { reducedMotion: 'reduce' } },
   ],
