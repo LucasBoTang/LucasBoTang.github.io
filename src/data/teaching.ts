@@ -77,7 +77,6 @@ export const teaching: Teaching = {
   ],
   workshops,
   tutorialLinks: [
-    { label: 'Documentation', href: 'https://khalil-research.github.io/PyEPO/' },
     {
       label: 'Slides',
       href: 'https://github.com/khalil-research/PyEPO/blob/main/slides/PyEPO.pdf',
