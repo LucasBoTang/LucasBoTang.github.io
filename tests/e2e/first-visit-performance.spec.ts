@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { routes } from '../../src/data/navigation';
+import { trackVisit, visitReport } from '../helpers/visit-metrics';
 
 test.use({ storageState: { cookies: [], origins: [] }, viewport: { width: 1280, height: 900 } });
 
@@ -78,4 +79,57 @@ test('surface drawing works without parallel shader compilation', async ({ page 
     timeout: 15000,
   });
   expect(errors).toEqual([]);
+});
+
+test.describe('cold-cache weak-network visits', { tag: '@timing' }, () => {
+  test.skip(!!process.env.CI, 'Shared CI machines cannot provide stable time budgets');
+  test.setTimeout(60000);
+  for (const route of [routes.home, routes.research]) {
+    test(`cold ${route} remains responsive with slow downloads`, async ({ page }, info) => {
+      const errors: string[] = [];
+      page.on('pageerror', (error) => errors.push(error.message));
+      const session = await trackVisit(page);
+      await session.send('Network.enable');
+      await session.send('Network.clearBrowserCache');
+      await session.send('Network.setCacheDisabled', { cacheDisabled: true });
+      // Repeatable cold loads: 150ms latency, 1.6Mbps down, 750Kbps up, and a 4x slower CPU.
+      await session.send('Network.emulateNetworkConditions', {
+        offline: false,
+        latency: 150,
+        downloadThroughput: 200000,
+        uploadThroughput: 93750,
+      });
+      let cachedResponses = 0;
+      let mainResponseSeen = false;
+      let mainDocumentFromCache = false;
+      session.on('Network.responseReceived', ({ type, response }) => {
+        if (type !== 'Document' || new URL(response.url).pathname !== route) return;
+        mainResponseSeen = true;
+        mainDocumentFromCache = Boolean(
+          response.fromDiskCache || response.fromPrefetchCache || response.fromServiceWorker,
+        );
+      });
+      session.on('Network.requestServedFromCache', () => cachedResponses++);
+      await page.goto(route);
+      await expect(page.locator('[data-typing-started]').first()).toBeAttached({ timeout: 10000 });
+      await expect(page.locator('html')).not.toHaveAttribute('data-opening-pending', '', {
+        timeout: 10000,
+      });
+      await page.waitForTimeout(12000);
+      const report = await visitReport(page, info, {
+        route,
+        cpuRate: 4,
+        latencyMs: 150,
+        downMbps: 1.6,
+        cacheDisabled: true,
+        cachedResponses,
+      });
+      // Preloads can be reused within this visit; that does not make its initial navigation warm.
+      expect(mainResponseSeen).toBe(true);
+      expect(mainDocumentFromCache).toBe(false);
+      expect(report.paints.some((paint) => paint.name === 'first-contentful-paint')).toBe(true);
+      expect(report.maxTask, 'main page and child-document long-task budget').toBeLessThan(200);
+      expect(errors).toEqual([]);
+    });
+  }
 });

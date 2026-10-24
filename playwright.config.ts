@@ -50,7 +50,7 @@ export default defineConfig({
     {
       name: 'performance',
       testDir: './tests/e2e',
-      testMatch: 'first-visit-performance.spec.ts',
+      testMatch: ['first-visit-performance.spec.ts', 'figure-drawn.spec.ts'],
       grep: /@timing/,
     },
     { name: 'visual', testDir: './tests/visual', use: { reducedMotion: 'reduce' } },

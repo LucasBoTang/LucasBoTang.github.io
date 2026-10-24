@@ -47,8 +47,21 @@ export function createFigureDrawReporter(target: Element) {
 
 /** All renderers declared by the document must finish a draw before it can be warmed. */
 export function hasFigureDrawn(document: Document | null): boolean {
+  return renderersReady(document, false);
+}
+
+/** A visible preview may also present an explicit rendering fallback. */
+export function canPresentFigure(document: Document | null): boolean {
+  return renderersReady(document, true);
+}
+
+function renderersReady(document: Document | null, allowFallback: boolean): boolean {
   const renderers = [...(document?.querySelectorAll('[data-figure-drawn]') ?? [])];
   return (
-    renderers.length > 0 && renderers.every((node) => node.getAttribute('data-figure-drawn') === '')
+    renderers.length > 0 &&
+    renderers.every((node) => {
+      const state = node.getAttribute('data-figure-drawn');
+      return state === '' || (allowFallback && state === 'fallback');
+    })
   );
 }

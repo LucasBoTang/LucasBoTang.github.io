@@ -43,6 +43,12 @@ async function preview(t, { reduced = false, booting = false } = {}) {
   installGlobals(t, values);
   await import(`../../src/components/home/WorkPreview/work-preview.ts?test=${++instance}`);
   const emit = (target, name, properties = {}) => {
+    if (name === 'load' && target.tagName === 'IFRAME' && !target.contentDocument) {
+      const inner = parseHTML(
+        '<html><body><div data-figure-drawn=""></div></body></html>',
+      ).document;
+      Object.defineProperty(target, 'contentDocument', { configurable: true, value: inner });
+    }
     const event = Object.assign(new Event(name, { cancelable: true }), properties);
     target.dispatchEvent(event);
     return event;
@@ -225,4 +231,42 @@ test('the wordmark gets a readable pause after its row finishes arriving', async
   assert.equal(Boolean(p.frame()), false);
   p.tick(1);
   assert.ok(p.frame());
+});
+
+test('a loaded preview keeps its wordmark until every renderer draws, then uses the original handover', async (t) => {
+  const p = await preview(t);
+  p.emit(p.host, 'pointerenter', { pointerType: 'mouse' });
+  p.tick(240);
+  const inner = p.host.ownerDocument.createElement('html');
+  inner.innerHTML = '<body><div data-figure-drawn="pending"></div></body>';
+  inner.documentElement = inner;
+  Object.defineProperty(p.frame(), 'contentDocument', { value: inner });
+  p.emit(p.frame(), 'load');
+  p.tick(1000);
+  assert.equal(p.link.hasAttribute('data-preview-visible'), false);
+  assert.equal(p.link.hasAttribute('data-preview-pending'), true);
+  inner.querySelector('[data-figure-drawn]').setAttribute('data-figure-drawn', '');
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(p.link.hasAttribute('data-preview-visible'), true);
+  p.tick(519);
+  assert.equal(p.link.hasAttribute('data-preview-pending'), true);
+  p.tick(1);
+  assert.equal(p.link.hasAttribute('data-preview-pending'), false);
+});
+
+test('a drawing that finishes after leaving cannot reveal a discarded preview', async (t) => {
+  const p = await preview(t);
+  p.emit(p.host, 'pointerenter', { pointerType: 'mouse' });
+  p.tick(240);
+  const inner = p.host.ownerDocument.createElement('html');
+  inner.innerHTML = '<body><div data-figure-drawn="pending"></div></body>';
+  inner.documentElement = inner;
+  Object.defineProperty(p.frame(), 'contentDocument', { value: inner });
+  p.emit(p.frame(), 'load');
+  p.emit(p.host, 'pointerleave', { pointerType: 'mouse' });
+  p.tick(320);
+  inner.querySelector('[data-figure-drawn]').setAttribute('data-figure-drawn', '');
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(p.frame(), null);
+  assert.equal(p.link.hasAttribute('data-preview-visible'), false);
 });

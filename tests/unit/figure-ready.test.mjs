@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { parseHTML } from 'linkedom';
 import {
+  canPresentFigure,
   createFigureDrawReporter,
   hasFigureDrawn,
   whenFigureReady,
@@ -106,4 +107,17 @@ test('drawing readiness requires every declared renderer and is reported only on
   first.remove();
   second.remove();
   assert.equal(hasFigureDrawn(document), false);
+});
+
+test('fallbacks can be presented but cannot count as successful warm-up drawing', () => {
+  const { document } = parseHTML(
+    '<html><body><div data-figure-drawn="fallback"></div><div data-figure-drawn="pending"></div></body></html>',
+  );
+  assert.equal(canPresentFigure(null), false);
+  assert.equal(canPresentFigure(document), false);
+  document.querySelector('[data-figure-drawn="pending"]').setAttribute('data-figure-drawn', '');
+  assert.equal(canPresentFigure(document), true);
+  assert.equal(hasFigureDrawn(document), false);
+  document.querySelector('[data-figure-drawn="fallback"]').setAttribute('data-figure-drawn', '');
+  assert.equal(hasFigureDrawn(document), true);
 });
