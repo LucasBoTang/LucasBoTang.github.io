@@ -1,3 +1,4 @@
+import { mapInSlices } from './sliced-map.ts';
 import { createSurfaceAnnotations } from './surface-annotations.ts';
 import { createSurfaceCamera } from './surface-camera.ts';
 import {
@@ -47,7 +48,7 @@ export async function createSurfaceScene(
   overlay: HTMLCanvasElement,
   recorded: SurfaceRecording,
 ): Promise<SurfaceScene | null> {
-  // Keep the approved construction yields so loading does not monopolize scrolling.
+  // Separate mesh phases so uploads and construction do not monopolize input.
   const yieldToBrowser = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
   // The overlay holds only the constraint labels: drawn on resize, never touched by a frame.
   const labelContext = overlay.getContext('2d')!;
@@ -80,7 +81,7 @@ export async function createSurfaceScene(
   const palettes = [neutralPalette, terrainPalette].map((stops) =>
     Array.from({ length: 16 }, (_, i) => paletteColor(stops, i / 16)),
   );
-  const gridSamples = ys.map((py) =>
+  const gridSamples = await mapInSlices(ys, (py) =>
     xs.map((px) => {
       const eps = 0.001;
       const dzx = (heightAt(px + eps, py) - heightAt(px - eps, py)) / (2 * eps * 1.3);
@@ -96,7 +97,7 @@ export async function createSurfaceScene(
   const terrainData: number[] = [],
     fitPoints: Vector3[] = [];
   for (let iy = 0; iy < ys.length - 1; iy++) {
-    if (iy > 0 && iy % 24 === 0) await yieldToBrowser();
+    if (iy > 0 && iy % 8 === 0) await yieldToBrowser();
     for (let ix = 0; ix < xs.length - 1; ix++) {
       const x = (xs[ix] + xs[ix + 1]) / 2,
         y = (ys[iy] + ys[iy + 1]) / 2;
@@ -137,6 +138,7 @@ export async function createSurfaceScene(
   for (const x of [-Math.sqrt(b), 0]) {
     const pts = Array.from({ length: 221 }, (_, i) => worldPoint(x, -1.3 + (7 * i) / 220, 0.02));
     appendTube(boundaries, pts, hexColor('#647c91'), 0.005);
+    await yieldToBrowser();
   }
   appendTube(
     boundaries,
@@ -169,12 +171,13 @@ export async function createSurfaceScene(
     }
     const lengths = trajectoryLengths(pts, (point) => [dot(point, right), dot(point, up)]);
     segments.push({ points: pts, lengths });
+    if (i % 4 === 0) await yieldToBrowser();
   }
   const timeline = trainingTimeline(
     segments.map((segment) => segment.lengths[segment.lengths.length - 1]),
   );
   const { arrivals, speed } = timeline;
-  const traceSegments = segments.map((segment, i) => {
+  const traceSegments = await mapInSlices(segments, (segment, i) => {
     const from = arrivals[i],
       to = arrivals[i + 1];
     const times = segment.lengths.map((length) => from + length / speed);
@@ -183,7 +186,7 @@ export async function createSurfaceScene(
   });
   const trace = createMesh(traceData, 1);
   await yieldToBrowser();
-  const pointMeshes = samples.map((p, i) =>
+  const pointMeshes = await mapInSlices(samples, (p, i) =>
     createPointMesh(
       worldPoint(...p, 0.075),
       i % 2 ? trajectory.integerRadius : trajectory.relaxedRadius,
