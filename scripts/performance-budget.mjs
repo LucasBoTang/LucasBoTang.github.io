@@ -29,7 +29,8 @@ const BUDGET = {
   // DFL 8/25KB, L2O 23/28KB. Keep modest headroom without hiding a new data bundle.
   [`${figurePaths.gpu.slice(1)}index.html`]: { html: 80, scripts: 36 },
   [`${figurePaths.dfl.slice(1)}index.html`]: { html: 10, scripts: 28 },
-  [`${figurePaths.l2o.slice(1)}index.html`]: { html: 26, scripts: 32 },
+  // Includes bounded asynchronous compilation and its compatibility/error paths.
+  [`${figurePaths.l2o.slice(1)}index.html`]: { html: 26, scripts: 32.5 },
   default: { html: 48, scripts: 24 },
 };
 /** Fonts every page fetches early: the serif, the mono and the sans of its first screen. */

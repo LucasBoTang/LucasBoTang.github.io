@@ -6,6 +6,7 @@ import {
   type SurfaceParameters,
   type Vector3,
 } from './surface-model.ts';
+import { createSurfaceProgram } from './surface-program.ts';
 
 type SurfaceMesh = { buffer: WebGLBuffer; count: number; material: number };
 
@@ -18,10 +19,10 @@ interface SurfaceRenderer {
 }
 
 /** The fixed shader, interleaved vertex layout, uploads and draw-state contract for this figure. */
-export function createSurfaceRenderer(
+export async function createSurfaceRenderer(
   gpu: WebGLRenderingContext,
   { a, b }: SurfaceParameters,
-): SurfaceRenderer {
+): Promise<SurfaceRenderer> {
   const vertexShaderSource = `attribute vec3 position;attribute vec3 normal;attribute vec3 color;attribute float arrival;uniform vec3 right;uniform vec3 up;uniform vec3 forward;uniform vec3 center;uniform vec2 scale;varying vec3 vColor;varying vec3 vNormal;varying vec3 vPosition;varying float vArrival;varying float vTone;uniform vec3 problem;uniform float material;uniform vec3 translation;void main(){vPosition=position+translation;vTone=0.;if(material<.1){float x=position.x/1.3-1.25,y=position.y/.65+2.2;float value=(problem.x-x)*(problem.x-x)+50.*(y-x*x)*(y-x*x);vTone=clamp(log(3200./max(12.,value))/log(3200./12.),0.,1.);}vec3 d=vPosition-center;gl_Position=vec4(dot(d,right)*scale.x,dot(d,up)*scale.y,-dot(d,forward)*.13,1.);vColor=color;vNormal=normal;vArrival=arrival;}`;
   const fragmentShaderSource = `precision highp float;
  varying vec3 vColor;varying vec3 vNormal;varying vec3 vPosition;varying float vArrival;varying float vTone;
@@ -44,20 +45,7 @@ export function createSurfaceRenderer(
   gl_FragColor=vec4(c,opacity);
  }`;
 
-  function compileShader(type: number, source: string) {
-    const shader = gpu.createShader(type)!;
-    gpu.shaderSource(shader, source);
-    gpu.compileShader(shader);
-    if (!gpu.getShaderParameter(shader, gpu.COMPILE_STATUS))
-      throw new Error(gpu.getShaderInfoLog(shader) || 'Surface shader failed');
-    return shader;
-  }
-  const program = gpu.createProgram()!;
-  gpu.attachShader(program, compileShader(gpu.VERTEX_SHADER, vertexShaderSource));
-  gpu.attachShader(program, compileShader(gpu.FRAGMENT_SHADER, fragmentShaderSource));
-  gpu.linkProgram(program);
-  if (!gpu.getProgramParameter(program, gpu.LINK_STATUS))
-    throw new Error(gpu.getProgramInfoLog(program) || 'Surface program failed');
+  const program = await createSurfaceProgram(gpu, vertexShaderSource, fragmentShaderSource);
   gpu.useProgram(program);
   const uniforms = Object.fromEntries(
     [
@@ -95,6 +83,12 @@ export function createSurfaceRenderer(
   const attributes = ['position', 'normal', 'color', 'arrival'].map((name) =>
     gpu.getAttribLocation(program, name),
   );
+  // This renderer exclusively owns the context; these states do not vary by mesh or frame.
+  attributes.forEach((location) => gpu.enableVertexAttribArray(location));
+  gpu.clearColor(0, 0, 0, 0);
+  gpu.enable(gpu.DEPTH_TEST);
+  gpu.enable(gpu.BLEND);
+  gpu.blendFunc(gpu.SRC_ALPHA, gpu.ONE_MINUS_SRC_ALPHA);
   function createMesh(data: number[], material = 0): SurfaceMesh {
     const buffer = gpu.createBuffer()!;
     gpu.bindBuffer(gpu.ARRAY_BUFFER, buffer);
@@ -107,7 +101,6 @@ export function createSurfaceRenderer(
   function drawMesh(mesh: SurfaceMesh, time: number, opacity = 1, translation: Vector3 = origin) {
     gpu.bindBuffer(gpu.ARRAY_BUFFER, mesh.buffer);
     attributes.forEach((location, i) => {
-      gpu.enableVertexAttribArray(location);
       gpu.vertexAttribPointer(
         location,
         attributeWidths[i],
@@ -137,11 +130,7 @@ export function createSurfaceRenderer(
       gpu.uniform2f(uniforms.scale, (2 * scale) / width, (2 * scale) / height);
     },
     beginFrame() {
-      gpu.clearColor(0, 0, 0, 0);
       gpu.clear(gpu.COLOR_BUFFER_BIT | gpu.DEPTH_BUFFER_BIT);
-      gpu.enable(gpu.DEPTH_TEST);
-      gpu.enable(gpu.BLEND);
-      gpu.blendFunc(gpu.SRC_ALPHA, gpu.ONE_MINUS_SRC_ALPHA);
     },
   };
 }

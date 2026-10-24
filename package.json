@@ -20,6 +20,7 @@
     "check:output": "node scripts/check-output.mjs",
     "check:budget": "node scripts/performance-budget.mjs",
     "test": "node --test tests/unit/*.test.mjs",
+    "test:performance": "playwright test --project=performance --workers=1",
     "test:e2e": "playwright test --project=e2e",
     "test:visual": "playwright test --project=visual",
     "test:visual:update": "playwright test --project=visual --update-snapshots",
