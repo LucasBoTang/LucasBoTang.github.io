@@ -3,9 +3,7 @@ import { figureVersion } from '../../scripts/figure-version.mjs';
 import { routes } from '../../src/data/navigation';
 import { figureWarmups } from '../../src/data/research/figures';
 
-// On a first visit each figure document is drawn once in an unseen slot, so the GPU has compiled
-// its shaders before the figure first appears, while the opening's first typing waits behind its
-// caret.
+// First visits warm figures serially after the opening; later visits reuse the cache.
 
 // A first visit: the other specs start as a returning visitor (playwright.config.ts).
 test.use({ storageState: { cookies: [], origins: [] } });
@@ -45,37 +43,28 @@ const remembered = (page: Page) =>
   page.evaluate(() => JSON.parse(localStorage.getItem('figure-warmup') ?? '[]') as string[]);
 const everyFigure = figureWarmups.map(({ src }) => `${src}#${figureVersion}`).sort();
 
-/** Checks that the first visit drew every figure at once before its first key, or, when the
- * page was ready too late to hold its opening, one at a time after the opening. */
-async function expectDrawnBeforeTyping(page: Page) {
-  // Each figure is drawn ahead, here or at a later quiet moment, and remembered.
+/** Warm-up must neither hold the opening nor load several hidden figures together. */
+async function expectIdleWarmup(page: Page) {
+  await expect.poll(async () => (await warmup(page)).typingStarted).not.toBeNull();
   await expect
     .poll(async () => (await remembered(page)).sort(), { timeout: 30_000 })
     .toEqual(everyFigure);
-  const { gateLifted, slots } = await warmup(page);
-  const [first] = slots;
-  if (first?.sources.length === figureWarmups.length) {
-    // Persistence can finish before the opening starts its first key.
-    await expect.poll(async () => (await warmup(page)).typingStarted).not.toBeNull();
-    const { typingStarted } = await warmup(page);
-    expect(first.at, 'drawn before the first key').toBeLessThan(typingStarted!);
-  } else {
-    // A page ready too late to hold its opening (here, under many parallel workers) leaves the
-    // figures to quiet moments after it, one at a time.
-    for (const slot of slots) {
-      expect(slot.at).toBeGreaterThan(gateLifted!);
-      expect(slot.sources).toHaveLength(1);
-    }
+  const { gateLifted, typingStarted, slots } = await warmup(page);
+  expect(gateLifted).not.toBeNull();
+  for (const slot of slots) {
+    expect(slot.at).toBeGreaterThan(gateLifted!);
+    expect(slot.at).toBeGreaterThan(typingStarted!);
+    expect(slot.sources).toHaveLength(1);
   }
   await expect(page.locator('[data-figure-warmup]')).toHaveCount(0);
 }
 
-test('Research draws its figures before its introduction types, and only on a first visit', async ({
+test('Research warms figures after its introduction starts, only on a first visit', async ({
   page,
 }) => {
   await recordWarmup(page);
   await page.goto(routes.research);
-  await expectDrawnBeforeTyping(page);
+  await expectIdleWarmup(page);
 
   // The browser now keeps the programs, so a later visit draws nothing ahead.
   await page.reload();
@@ -84,12 +73,10 @@ test('Research draws its figures before its introduction types, and only on a fi
   expect((await warmup(page)).slots).toEqual([]);
 });
 
-test('Home draws its previews in the dark, before its greeting types, on a screen with hover', async ({
-  page,
-}) => {
+test('Home warms previews after its greeting starts on a screen with hover', async ({ page }) => {
   await recordWarmup(page);
   await page.goto(routes.home);
-  await expectDrawnBeforeTyping(page);
+  await expectIdleWarmup(page);
 });
 
 test.describe('on a touch screen', () => {

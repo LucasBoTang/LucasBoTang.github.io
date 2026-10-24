@@ -2,7 +2,7 @@
 import { figureVersion } from '../../../../scripts/figure-version.mjs';
 import type { FigureSource } from './warmup-renderer';
 
-// Precompile figures before interaction; hover previews skip warm-up on touch screens.
+// Warm figures during idle time; hover previews skip warm-up on touch screens.
 interface Props {
   figures: FigureSource[];
   hover?: boolean;
@@ -14,7 +14,6 @@ const { figures, hover = false } = Astro.props;
   data-figure-warmup-sources={JSON.stringify(figures)}
   data-figure-warmup-hover={hover || undefined}
   data-figure-warmup-version={figureVersion}
-  data-opening-hold
   hidden
 ></div>
 
