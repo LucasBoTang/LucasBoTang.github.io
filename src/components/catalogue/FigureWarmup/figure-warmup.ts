@@ -1,20 +1,13 @@
 import { enhance } from '../../../lib/lifecycle';
-import {
-  OPENING_HOLD_UNTIL,
-  holdOpening,
-  openingPending,
-  waitForOpeningVisible,
-} from '../../../lib/opening-gate';
-import { pageResources } from '../../../lib/page-ready';
+import { openingPending, waitForOpeningVisible } from '../../../lib/opening-gate';
 
 import { createWarmupMemory } from './warmup-memory';
 import { warmFigures, type FigureSource, type FilterSequence } from './warmup-renderer';
 
-// Prewarm before the opening when its deadline permits; otherwise wait for idle moments.
+// Visible content has priority; warm hidden figures only after the opening settles.
 const SCROLL_QUIET_MS = 600;
 const POLL_INTERVAL_MS = 250;
 const MAX_OPENING_WAIT_MS = 8000;
-const MIN_OPENING_HOLD_MS = 300;
 const delay = (ms: number) => new Promise<void>((resolve) => window.setTimeout(resolve, ms));
 
 /** Ignore warm-up slots when checking visible embeds. */
@@ -99,26 +92,6 @@ export async function warmInTurn(
   }
 }
 
-/** Warm before the opening deadline, then queue any unfinished work. */
-export async function warmBeforeOpening(
-  sources: FigureSource[],
-  version: string,
-  filters: FilterSequence[] = [],
-) {
-  const memory = createWarmupMemory(version);
-  const pendingFigures = sources.filter((source) => !memory.has(source.src));
-  if (!pendingFigures.length) return;
-  // Page fonts and images retain priority over figure warm-up.
-  await pageResources();
-  const remainingHoldMs = OPENING_HOLD_UNTIL - performance.now();
-  const isComplete =
-    openingPending() &&
-    remainingHoldMs > MIN_OPENING_HOLD_MS &&
-    (await warmFigures(pendingFigures, filters, remainingHoldMs));
-  if (isComplete) for (const source of pendingFigures) memory.remember(source.src);
-  else void warmInTurn(sources, version, filters);
-}
-
 /** Every filter sequence the page's entrances declare, each once. */
 function readDeclaredFilters(): FilterSequence[] {
   const sequences = new Map<string, FilterSequence>();
@@ -128,14 +101,7 @@ function readDeclaredFilters(): FilterSequence[] {
   return [...sequences.values()];
 }
 
-enhance('[data-figure-warmup-sources]', (host) => {
-  try {
-    startWarmup(host);
-  } finally {
-    // The opening waits for this decision (opening-gate.ts); any hold is in place by now.
-    host.removeAttribute('data-opening-hold');
-  }
-});
+enhance('[data-figure-warmup-sources]', startWarmup);
 
 function startWarmup(host: HTMLElement) {
   // Previews open on hover, so on a screen without hover they are not drawn ahead; nor is
@@ -146,10 +112,5 @@ function startWarmup(host: HTMLElement) {
   if (connection?.saveData) return;
   const sources = JSON.parse(host.dataset.figureWarmupSources ?? '[]') as FigureSource[];
   const version = host.dataset.figureWarmupVersion ?? '';
-  // Returning visitors do not hold the opening.
-  const memory = createWarmupMemory(version);
-  const hasUnseenFigures = sources.some(({ src }) => !memory.has(src));
-  if (hasUnseenFigures && openingPending())
-    holdOpening(warmBeforeOpening(sources, version, readDeclaredFilters()));
-  else void warmInTurn(sources, version, readDeclaredFilters());
+  void warmInTurn(sources, version, readDeclaredFilters());
 }

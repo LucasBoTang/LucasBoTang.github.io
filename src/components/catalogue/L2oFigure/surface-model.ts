@@ -113,7 +113,7 @@ export const objectiveTone = (v: number) =>
   clamp(Math.log(3200 / Math.max(12, v)) / Math.log(3200 / 12));
 
 export function appendVertex(data: number[], p: Vector3, n: Vector3, c: Vector3, t = -100) {
-  data.push(...p, ...n, ...c, t);
+  data.push(p[0], p[1], p[2], n[0], n[1], n[2], c[0], c[1], c[2], t);
 }
 
 export function appendTube(
