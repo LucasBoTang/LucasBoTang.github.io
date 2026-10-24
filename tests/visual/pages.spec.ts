@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { routes as siteRoutes } from '../../src/data/navigation';
+import { waitForPicture } from '../helpers/visual-ready';
 
 // Screenshots with reduced motion, compared with baselines in `pages.spec.ts-snapshots/`.
 // Update them after an intended visual change: npm run test:visual:update.
@@ -10,7 +11,7 @@ for (const width of [1280, 800, 375]) {
     test(`${name} at ${width}px`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 });
       await page.goto(route);
-      await page.evaluate(() => document.fonts.ready);
+      await waitForPicture(page);
       await expect(page).toHaveScreenshot(`${name}-${width}.png`, { animations: 'disabled' });
     });
   }
@@ -18,7 +19,7 @@ for (const width of [1280, 800, 375]) {
   test(`home About section at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.goto(siteRoutes.home);
-    await page.evaluate(() => document.fonts.ready);
+    await waitForPicture(page);
     await expect(page.locator('.about')).toHaveScreenshot(`about-section-${width}.png`, {
       animations: 'disabled',
     });
