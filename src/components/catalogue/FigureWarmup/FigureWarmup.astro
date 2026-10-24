@@ -1,11 +1,8 @@
 ---
-import { figureVersion } from '../../../data/research/figure-version';
-import type { FigureSource } from './figure-warmup';
+import { figureVersion } from '../../../../scripts/figure-version.mjs';
+import type { FigureSource } from './warmup-renderer';
 
-// Draws the page's figure documents once, unseen, so the GPU has compiled their shaders before a
-// figure first appears (figure-warmup.ts): while the opening's first typing waits behind its
-// caret, or at quiet moments after it. `hover` limits this to screens with hover, for figures that
-// open on hover.
+// Precompile figures before interaction; hover previews skip warm-up on touch screens.
 interface Props {
   figures: FigureSource[];
   hover?: boolean;

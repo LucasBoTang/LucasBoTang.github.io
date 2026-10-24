@@ -1,5 +1,5 @@
 import { defineConfig } from '@playwright/test';
-import { figureVersion } from './src/data/research/figure-version';
+import { figureVersion } from './scripts/figure-version.mjs';
 import { figureWarmups } from './src/data/research/figures';
 
 // Another checkout running its own tests may hold the default port; set PLAYWRIGHT_PORT to keep

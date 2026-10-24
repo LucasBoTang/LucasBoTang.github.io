@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { parseHTML } from 'linkedom';
-import { loadFigureEmbeds } from '../../src/lib/figure-loading.ts';
+import { loadFigureEmbeds } from '../../src/components/catalogue/FigureEmbed/figure-loading.ts';
 import { intersectionObservers } from '../helpers/browser.mjs';
 
 test('figure documents load only near the reader, once per figure', () => {

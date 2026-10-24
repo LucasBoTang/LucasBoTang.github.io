@@ -1,9 +1,7 @@
 import { defineConfig } from 'astro/config';
 import modulePreload from './scripts/module-preload.mjs';
 
-/** Hides text until its webfont arrives instead of showing a fallback face first: the first
- * screen's faces are preloaded, so the wait is short, and on a slow host the type no longer
- * visibly changes face in front of the reader. After three seconds the fallback shows. */
+// Preloaded fonts avoid a visible face swap; CSS allows fallback after three seconds.
 const blockFontDisplay = {
   name: 'block-font-display',
   transform(code, id) {
