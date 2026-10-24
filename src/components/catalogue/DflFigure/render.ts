@@ -1,5 +1,5 @@
 import { createFigureClock } from '../../../lib/figure-clock';
-import { whenFigureReady } from '../../../lib/figure-ready';
+import { createFigureDrawReporter, whenFigureReady } from '../../../lib/figure-ready';
 import { ambientSwing, updateDatasetAmbient } from './ambient';
 import { drawDecisionBalance } from './balance';
 import { prepareModuleFrame, type ModuleSurface } from './drawing';
@@ -28,27 +28,27 @@ function renderModule(surface: ModuleSurface, time: number, ambient: number) {
 // One clock drives every module and wire. Geometry is measured only on resize.
 const root = document.querySelector<HTMLElement>('.dfl-composition');
 if (root) {
+  const reportDraw = createFigureDrawReporter(root);
   const sign = root.querySelector<HTMLElement>('.dfl-sign');
-  const surfaces = Array.from(root.querySelectorAll<HTMLCanvasElement>('canvas')).flatMap(
-    (canvas) => {
-      const ctx = canvas.getContext('2d');
-      const formula = canvas.parentElement!.querySelector<HTMLElement>('.opt-formula');
-      if (formula) {
-        formula.style.left = '0px';
-        formula.style.top = '0px';
-      }
-      return ctx
-        ? [
-            {
-              canvas,
-              ctx,
-              box: { width: 0, height: 0 },
-              formula,
-            },
-          ]
-        : [];
-    },
-  );
+  const canvases = [...root.querySelectorAll<HTMLCanvasElement>('canvas')];
+  const surfaces = canvases.flatMap((canvas) => {
+    const ctx = canvas.getContext('2d');
+    const formula = canvas.parentElement!.querySelector<HTMLElement>('.opt-formula');
+    if (formula) {
+      formula.style.left = '0px';
+      formula.style.top = '0px';
+    }
+    return ctx
+      ? [
+          {
+            canvas,
+            ctx,
+            box: { width: 0, height: 0 },
+            formula,
+          },
+        ]
+      : [];
+  });
   const draw = (elapsed: number, reduced: boolean) => {
     const time = reduced ? 0 : elapsed / 1000;
     surfaces.forEach((surface) => renderModule(surface, time, time));
@@ -61,6 +61,12 @@ if (root) {
       sign.style.setProperty('--sign-light', lit);
     updateDatasetAmbient(root, time);
     updateDflFlow(time, reduced);
+    if (
+      surfaces.length === canvases.length &&
+      surfaces.length > 0 &&
+      surfaces.every(({ box }) => box.width > 0 && box.height > 0)
+    )
+      reportDraw();
   };
   const clock = createFigureClock(root, draw, { startWhen: whenFigureReady });
   const observer = new ResizeObserver((entries) => {

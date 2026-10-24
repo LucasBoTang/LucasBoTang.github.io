@@ -1,3 +1,5 @@
+import { hasFigureDrawn } from '../../../lib/figure-ready.ts';
+
 /** A figure document and the size its embed will give it; the compact size below `compactAt`. */
 export interface FigureSource {
   src: string;
@@ -17,8 +19,6 @@ const WARMUP_FRAMES = 24;
 /** A figure's warm-up gives up after this long, its document fetch included. */
 const WARMUP_TIMEOUT_MS = 4000;
 
-const waitForFrame = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-
 /** Settles once `frame`'s document has its fonts and images, or when it cannot be read. */
 async function waitForFrameResources(frame: HTMLIFrameElement) {
   const inner = frame.contentDocument;
@@ -37,19 +37,17 @@ function createFigureFrame(source: FigureSource) {
   frame.title = '';
   frame.tabIndex = -1;
   Object.assign(frame.style, { position: 'absolute', left: '0', top: '0', border: '0' });
-  const drawn = new Promise<void>((resolve) => {
-    frame.addEventListener(
-      'load',
-      async () => {
-        await waitForFrameResources(frame);
-        for (let i = 0; i < WARMUP_FRAMES; i++) await waitForFrame();
-        resolve();
-      },
-      { once: true },
-    );
-  });
+  let resourcesReady = false;
+  frame.addEventListener(
+    'load',
+    async () => {
+      await waitForFrameResources(frame);
+      resourcesReady = true;
+    },
+    { once: true },
+  );
   frame.src = source.src;
-  return { frame, drawn };
+  return { frame, isReady: () => resourcesReady && hasFigureDrawn(frame.contentDocument) };
 }
 
 /** A small lettered box in the slot, carried through `sequence` over the warm-up's frames. */
@@ -98,17 +96,23 @@ export function warmFigures(
   document.body.append(slot);
   return new Promise<boolean>((resolve) => {
     let settled = false;
+    let frameId = 0;
+    let drawnFrames = 0;
     const finish = (isComplete: boolean) => {
       if (settled) return;
       settled = true;
       window.clearTimeout(timeoutId);
+      cancelAnimationFrame(frameId);
       slot.remove();
       resolve(isComplete);
     };
     const timeoutId = window.setTimeout(() => finish(false), timeoutMs);
-    const played = (async () => {
-      for (let i = 0; i < WARMUP_FRAMES; i++) await waitForFrame();
-    })();
-    void Promise.all([...figures.map(({ drawn }) => drawn), played]).then(() => finish(true));
+    const sweep = () => {
+      if (figures.every(({ isReady }) => isReady())) drawnFrames++;
+      else drawnFrames = 0;
+      if (drawnFrames >= WARMUP_FRAMES) finish(true);
+      else frameId = requestAnimationFrame(sweep);
+    };
+    frameId = requestAnimationFrame(sweep);
   });
 }
