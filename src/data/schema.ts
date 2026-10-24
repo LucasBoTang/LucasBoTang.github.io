@@ -102,6 +102,8 @@ const contactLinkSchema = z.object({
 
 const teachingCourseSchema = z.object({
   id,
+  /** Official course information, linked from the course title. */
+  href: href.optional(),
   code: text,
   title: text,
   term: text,

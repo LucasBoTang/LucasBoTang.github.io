@@ -4,13 +4,15 @@ import type { WordmarkStyle } from '../../../data/software';
 
 interface Props {
   name: string;
+  href?: string;
   id: string;
   /** Spacing from the project's data. */
   wordmark?: WordmarkStyle;
   /** Course headings keep their typography and use gentler distortion at the same cadence. */
   variant?: 'project' | 'heading';
 }
-const { name, id, wordmark = {}, variant = 'project' } = Astro.props;
+const { name, id, href, wordmark = {}, variant = 'project' } = Astro.props;
+const GlyphTag = href ? 'a' : 'span';
 const glyphClasses = [
   'project-glyphs',
   {
@@ -25,10 +27,10 @@ const glyphClasses = [
   data-project-wordmark
   id={id}
 >
-  <span class:list={glyphClasses}>
+  <GlyphTag class:list={glyphClasses} href={href}>
     <span class="project-face">{name}</span>
     <span class="project-echo" data-project-name={name} aria-hidden="true"></span>
-  </span>
+  </GlyphTag>
 </h3>
 
 <script>
@@ -85,6 +87,13 @@ const glyphClasses = [
     display: inline-block;
     white-space: nowrap;
     transform-origin: var(--project-origin, center);
+  }
+  .project-glyphs[href] {
+    text-decoration: none;
+    color: inherit;
+  }
+  .project-wordmark--heading .project-glyphs[href]:is(:hover, :focus-visible) {
+    color: var(--blue);
   }
   .project-glyphs-long {
     font-size: 0.88em;
