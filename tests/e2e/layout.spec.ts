@@ -848,7 +848,7 @@ test('an item rule starts where the text it parts starts', async ({ page }) => {
   for (const [route, entry, text] of [
     [routes.home, '.work-entry + .work-entry', '.work-details'],
     [routes.software, '.software-entry + .software-entry', '.entry-description'],
-    [routes.teaching, '.teaching-course + .teaching-course', '.teaching-entry-name'],
+    [routes.teaching, '.teaching-course + .teaching-course', '.project-wordmark--heading'],
   ]) {
     await page.goto(route);
     const target = page.locator(entry).first();
@@ -871,10 +871,9 @@ test('an item rule starts where the text it parts starts', async ({ page }) => {
 });
 
 test.describe('Teaching', () => {
-  // Teaching's courses are set as Software's entries are, the name on columns 1 to 4 and what it
-  // holds from column 5; each section opens on a statement from column 1, and the tutorials'
-  // events are a table inside theirs. The serif is the page title alone.
-  test('every course names itself on column 1 and describes itself from column 5', async ({
+  // Approved desktop grid: names on 2-5, details on 6-11, introductions on 2-11.
+  // Section rules span 1-12 and course rules span 2-12; notebooks form one disclosure.
+  test('every course names itself on column 2 and describes itself from column 6', async ({
     page,
   }) => {
     await page.goto(routes.teaching);
@@ -882,12 +881,45 @@ test.describe('Teaching', () => {
     await expect(page.locator('main .section-label')).toHaveText(['Courses', 'Tutorials']);
     await expect(page.locator('.teaching-course')).toHaveCount(3);
     for (let index = 0; index < 3; index++) {
-      near(await textLeft(page, '.teaching-course .teaching-entry-name', index), cols[0].left);
-      near(await textLeft(page, '.teaching-course .teaching-description', index), cols[4].left);
+      near(
+        await textLeft(page, '.teaching-course .project-wordmark--heading', index),
+        cols[1].left,
+      );
+      near(await textLeft(page, '.teaching-course .teaching-description', index), cols[5].left);
     }
   });
 
-  test('text runs to the last column, each section opening on a statement from column 1', async ({
+  test('course names and descriptions start level, capital to capital', async ({ page }) => {
+    for (const width of [1280, 900]) {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto(routes.teaching);
+      await page.evaluate(() => document.fonts.ready);
+      const gaps = await page.locator('.teaching-course').evaluateAll((entries) =>
+        entries.map((entry) => {
+          const capTop = (element: Element) => {
+            const style = getComputedStyle(element);
+            const context = document.createElement('canvas').getContext('2d')!;
+            context.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+            const metrics = context.measureText('H');
+            const range = document.createRange();
+            range.setStart(element.firstChild!, 0);
+            range.setEnd(element.firstChild!, 1);
+            return (
+              range.getClientRects()[0].top +
+              metrics.fontBoundingBoxAscent -
+              metrics.actualBoundingBoxAscent
+            );
+          };
+          return Math.abs(
+            capTop(entry.querySelector('.project-face')!) -
+              capTop(entry.querySelector('.teaching-description')!),
+          );
+        }),
+      );
+      for (const gap of gaps) expect(gap, `${width}px`).toBeLessThanOrEqual(1);
+    }
+  });
+  test('text ends at column 11, with section introductions beginning on column 2', async ({
     page,
   }) => {
     await page.goto(routes.teaching);
@@ -896,16 +928,16 @@ test.describe('Teaching', () => {
       .locator('.teaching-course .teaching-description')
       .evaluateAll((all) => all.map((element) => element.getBoundingClientRect().right));
     expect(rights.length).toBeGreaterThan(0);
-    for (const right of rights) near(right, cols[11].right);
-    // Both sections open on a statement across the page, from column 1 to the last.
+    for (const right of rights) near(right, cols[10].right);
+    // Both section introductions occupy columns 2-11.
     await expect(page.locator('.teaching-statement')).toHaveCount(2);
     for (let index = 0; index < 2; index++) {
-      near(await textLeft(page, '.teaching-statement .teaching-description', index), cols[0].left);
+      near(await textLeft(page, '.teaching-statement .teaching-description', index), cols[1].left);
       const right = await page
         .locator('.teaching-statement .teaching-description')
         .nth(index)
         .evaluate((element) => element.getBoundingClientRect().right);
-      near(right, cols[11].right);
+      near(right, cols[10].right);
     }
   });
 
@@ -924,8 +956,8 @@ test.describe('Teaching', () => {
     // Names are read at the body size, not set as headings.
     await expect(page.locator('.teaching-workshop-name').first()).toHaveCSS('font-size', '16px');
     const table = (await page.locator('.teaching-workshops').boundingBox())!;
-    // The table runs to the last column, with no rules of its own.
-    near(table.x + table.width, cols[11].right);
+    // The table ends at column 11, with no rules of its own.
+    near(table.x + table.width, cols[10].right);
     await expect(page.locator('.teaching-workshops')).toHaveCSS('border-top-width', '0px');
   });
 
@@ -961,7 +993,7 @@ test.describe('Teaching', () => {
     );
     expect(serif).toBe(0);
     const name = await page
-      .locator('.teaching-entry-name')
+      .locator('.project-wordmark--heading')
       .first()
       .evaluate((element) => {
         const style = getComputedStyle(element);
@@ -983,22 +1015,84 @@ test.describe('Teaching', () => {
     await expect(page.locator('.teaching-workshop-recording')).toHaveCount(1);
   });
 
-  test('the lab notebooks read down two columns, from column 5 and from column 8', async ({
+  test('lab notebooks keep their original numbers in a single accessible disclosure', async ({
     page,
   }) => {
     await page.goto(routes.teaching);
     const cols = await gridColumns(page);
-    await expect(page.locator('.teaching-notebook-link')).toHaveCount(8);
-    for (let index = 0; index < 8; index++) {
-      const box = (await page.locator('.teaching-notebook-link').nth(index).boundingBox())!;
-      near(box.x, index < 4 ? cols[4].left : cols[7].left);
+    const root = page.locator('[data-notebook-disclosure]');
+    const rows = root.locator('.notebook-row');
+    const links = root.locator('.notebook-link');
+    const toggle = root.getByRole('button');
+    await expect(rows).toHaveCount(8);
+    await expect(root.locator('.notebook-number')).toHaveText([
+      '01',
+      '03',
+      '05',
+      '06',
+      '07',
+      '08',
+      '10',
+      '11',
+    ]);
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await expect(root.locator('.notebook-row[inert]')).toHaveCount(5);
+    await expect(root.locator('.notebook-window')).not.toHaveCSS('mask-image', 'none');
+    const numbers = await root.locator('.notebook-number').evaluateAll((all) =>
+      all.map((node) => {
+        const box = node.getBoundingClientRect();
+        return { left: box.left, top: box.top, color: getComputedStyle(node).color };
+      }),
+    );
+    for (const [index, number] of numbers.entries()) {
+      near(number.left, cols[5].left);
+      expect(number.color).toBe(cssColors.paper);
+      if (index) expect(number.top).toBeGreaterThan(numbers[index - 1].top);
     }
-    const tops = await page
-      .locator('.teaching-notebook-link')
-      .evaluateAll((all) => all.map((link) => Math.round(link.getBoundingClientRect().top)));
-    expect(tops.slice(4)).toEqual(tops.slice(0, 4));
+    near((await toggle.boundingBox())!.x, cols[5].left);
+    for (const link of await links.all()) {
+      await expect(link).toHaveAttribute(
+        'href',
+        /^https:\/\/colab\.research\.google\.com\/github\/LucasBoTang\/MIE365-Lab\/blob\/main\/Lab_/,
+      );
+      await expect(link.locator('svg')).toHaveCount(1);
+    }
+    const viewport = root.locator('.notebook-window');
+    const collapsedHeight = (await viewport.boundingBox())!.height;
+    await toggle.click();
+    await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    await expect(root.locator('.notebook-row[inert]')).toHaveCount(0);
+    await expect(viewport).toHaveCSS('mask-image', 'none');
+    expect((await viewport.boundingBox())!.height).toBeGreaterThan(collapsedHeight);
+    // The formerly clipped last notebook is available to keyboard navigation after expansion.
+    await links.last().focus();
+    await expect(links.last()).toBeFocused();
+    await toggle.click();
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await expect(root.locator('.notebook-row[inert]')).toHaveCount(5);
+    near((await viewport.boundingBox())!.height, collapsedHeight);
   });
 
+  test('section rules span the shell and course rules span columns 2-12', async ({ page }) => {
+    await page.goto(routes.teaching);
+    const cols = await gridColumns(page);
+    for (const heading of await page.locator('main .section-label').all()) {
+      const box = (await heading.boundingBox())!;
+      near(box.x, cols[0].left);
+      near(box.x + box.width, cols[11].right);
+    }
+    for (const course of await page.locator('.teaching-course').all()) {
+      const rule = await course.evaluate((node) => {
+        const box = node.getBoundingClientRect();
+        const style = getComputedStyle(node, '::after');
+        const left = box.left + parseFloat(style.left);
+        return { left, right: left + parseFloat(style.width), border: style.borderTopWidth };
+      });
+      near(rule.left, cols[1].left);
+      near(rule.right, cols[11].right);
+      expect(rule.border).toBe('1px');
+    }
+  });
   test('courses arrive and light as Software entries do; the tutorials arrive whole', async ({
     page,
   }) => {
