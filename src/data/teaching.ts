@@ -1,6 +1,5 @@
 import type { Teaching } from './schema.ts';
 
-const labRepository = 'https://github.com/LucasBoTang/MIE365-Lab';
 const notebookFiles = [
   ['Gurobi basics', 'Lab_01_Gurobi_Basics.ipynb'],
   ['Lagrangian relaxation', 'Lab_03_Lagrangian_Relaxation.ipynb'],
@@ -30,7 +29,7 @@ const workshops = [
     id: 'coridm',
     title: 'CORIDM Lecture Series',
     date: 'November 2023',
-    role: 'Invited PyEPO lecture at Cardinal Operations',
+    role: 'Invited lecture',
     href: 'https://coridm.d2d.ai/lecture/41',
     recording: true,
   },
@@ -46,12 +45,12 @@ export const teaching: Teaching = {
       role: 'Teaching assistant & lab instructor',
       description:
         'I led the tutorials and labs over three fall terms and wrote the eight lab notebooks for Fall 2024. The notebooks combine mathematical formulations with guided exercises in modeling and algorithm implementation.',
-      links: [{ label: 'All notebooks', href: labRepository }],
+      links: [],
       materials: {
         label: 'MIE365 notebooks',
         notebooks: notebookFiles.map(([label, filename]) => ({
           label,
-          href: `${labRepository}/blob/main/${filename}`,
+          href: `https://colab.research.google.com/github/LucasBoTang/MIE365-Lab/blob/main/${filename}`,
         })),
       },
     },

@@ -1,0 +1,193 @@
+---
+import ColabIcon from '../ui/ColabIcon.astro';
+import type { ResourceLink } from '../../data/resources';
+
+interface Props {
+  id: string;
+  label: string;
+  notebooks: ResourceLink[];
+}
+const { id, label, notebooks } = Astro.props;
+// Preserve the original lab numbers, including gaps in the published sequence.
+const numbered = notebooks.map((notebook) => ({
+  ...notebook,
+  number: Number(notebook.href.match(/Lab_(\d+)_/)?.[1]),
+}));
+---
+
+<div class="notebook-disclosure label-text" data-notebook-disclosure>
+  <div class="notebook-window" id={id}>
+    <ol class="notebook-list" aria-label={label}>
+      {numbered.map((notebook) => (
+        <li class="notebook-row" value={notebook.number}>
+          <span class="notebook-number" aria-hidden="true">
+            {String(notebook.number).padStart(2, '0')}
+          </span>
+          <a
+            class="notebook-link text-link"
+            href={notebook.href}
+            title="Open and run in Google Colab"
+            aria-label={`Lab ${notebook.number}: ${notebook.label} — open and run in Google Colab`}
+          >
+            <ColabIcon />
+            <span class="link-label">{notebook.label}</span>
+          </a>
+        </li>
+      ))}
+    </ol>
+  </div>
+  <button class="notebook-toggle" type="button" aria-controls={id} aria-expanded="false" hidden>
+    <span data-notebook-toggle-label>Show all {notebooks.length}</span>
+    <span class="notebook-toggle-mark" aria-hidden="true"></span>
+  </button>
+</div>
+
+<script>
+  import { enhance } from '../../lib/lifecycle';
+
+  enhance<HTMLElement>('[data-notebook-disclosure]', (root) => {
+    const viewport = root.querySelector<HTMLElement>('.notebook-window')!;
+    const list = root.querySelector<HTMLOListElement>('.notebook-list')!;
+    const rows = [...list.querySelectorAll<HTMLLIElement>('.notebook-row')];
+    const button = root.querySelector<HTMLButtonElement>('.notebook-toggle')!;
+    const label = button.querySelector<HTMLElement>('[data-notebook-toggle-label]')!;
+    if (rows.length <= 4) return;
+    let expanded = false;
+    const update = () => {
+      // Three readable rows, with a glimpse of the fourth fading into the fold.
+      const preview = rows[3].offsetTop - list.offsetTop + rows[3].offsetHeight + 8;
+      viewport.style.height = `${expanded ? list.scrollHeight : preview}px`;
+      root.dataset.expanded = String(expanded);
+      rows.forEach((row, index) => (row.inert = !expanded && index >= 3));
+      button.setAttribute('aria-expanded', String(expanded));
+      button.setAttribute(
+        'aria-label',
+        expanded ? 'Show fewer notebooks' : `Show all ${rows.length} notebooks`,
+      );
+      label.textContent = expanded ? 'Show fewer' : `Show all ${rows.length}`;
+    };
+    button.hidden = false;
+    update();
+    button.addEventListener('click', () => {
+      expanded = !expanded;
+      update();
+    });
+    new ResizeObserver(update).observe(list);
+  });
+</script>
+
+<style>
+  .notebook-disclosure {
+    margin-bottom: var(--step-24);
+    min-width: 0;
+  }
+  .notebook-window {
+    position: relative;
+    overflow: hidden;
+  }
+  [data-expanded='false'] .notebook-window {
+    mask-image: linear-gradient(
+      to bottom,
+      black calc(100% - 48px),
+      rgb(0 0 0 / 0.85) calc(100% - 34px),
+      rgb(0 0 0 / 0.3) calc(100% - 14px),
+      transparent
+    );
+  }
+  .notebook-list {
+    position: relative;
+    display: grid;
+    row-gap: var(--step-16);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .notebook-row {
+    align-items: baseline;
+    display: grid;
+    grid-template-columns: 2ch minmax(0, 1fr);
+    column-gap: var(--step-24);
+    line-height: var(--line-label-block);
+  }
+  .notebook-number {
+    color: var(--paper);
+    font-variant-numeric: tabular-nums;
+  }
+  .notebook-link {
+    align-items: baseline;
+    display: inline-flex;
+    gap: var(--step-8);
+    width: fit-content;
+    max-width: 100%;
+    color: var(--blue);
+  }
+  .notebook-link :global(svg) {
+    flex-shrink: 0;
+    transform: translateY(3px);
+  }
+  .notebook-toggle {
+    align-items: center;
+    display: flex;
+    gap: var(--step-8);
+    width: fit-content;
+    margin: var(--step-8) 0 0;
+    padding: var(--step-8) 0;
+    border: 0;
+    background: transparent;
+    font: inherit;
+    color: var(--muted);
+    cursor: pointer;
+  }
+  .notebook-toggle[hidden] {
+    display: none;
+  }
+  .notebook-toggle:is(:hover, :focus-visible) {
+    color: var(--paper);
+  }
+  .notebook-toggle-mark {
+    position: relative;
+    width: 10px;
+    height: 10px;
+    margin-left: var(--step-8);
+    color: var(--blue);
+  }
+  .notebook-toggle-mark::before,
+  .notebook-toggle-mark::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    background: currentColor;
+  }
+  .notebook-toggle-mark::before {
+    width: 10px;
+    height: 1px;
+  }
+  .notebook-toggle-mark::after {
+    width: 1px;
+    height: 10px;
+  }
+  [data-expanded='true'] .notebook-toggle-mark::after {
+    transform: scaleY(0);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .notebook-window {
+      transition: height 420ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .notebook-toggle-mark::after {
+      transition: transform 240ms ease;
+    }
+    .notebook-toggle {
+      transition: color 180ms ease;
+    }
+  }
+  @media (pointer: coarse) {
+    .notebook-link {
+      margin-block: calc(-1 * var(--step-8));
+      padding-block: var(--step-8);
+    }
+    .notebook-toggle {
+      min-height: 44px;
+    }
+  }
+</style>

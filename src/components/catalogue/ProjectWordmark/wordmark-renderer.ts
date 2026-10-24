@@ -34,6 +34,10 @@ function inkOf(glyphs: HTMLElement, face: HTMLElement) {
 
 /** Owns letter measurements and drawing layers; the controller decides when each frame plays. */
 export function createWordmarkRenderer(node: HTMLElement) {
+  const calm = node.classList.contains('project-wordmark--heading');
+  const bandCount = calm ? [1, 1] : BANDS;
+  const bandHeight = calm ? [0.025, 0.045] : BAND_HEIGHT;
+  const displacement = calm ? [0.4, 1] : SHIFT;
   const glyphs = node.querySelector<HTMLElement>(':scope > .project-glyphs');
   const face = glyphs?.querySelector<HTMLElement>('.project-face');
   const echo = glyphs?.querySelector<HTMLElement>('.project-echo');
@@ -84,9 +88,9 @@ export function createWordmarkRenderer(node: HTMLElement) {
     const percent = (share: number) => `${(share * 100).toFixed(1)}%`;
     // Thin bands at random through the ink, kept apart so each reads on its own.
     const torn: [number, number][] = [];
-    const count = Math.random() < CLEAN_CHANCE ? 0 : Math.round(between(BANDS));
+    const count = Math.random() < CLEAN_CHANCE ? 0 : Math.round(between(bandCount));
     for (let tries = 0; torn.length < count && tries < 12; tries++) {
-      const height = between(BAND_HEIGHT) * span;
+      const height = between(bandHeight) * span;
       const top = inkTop + Math.random() * (span - height);
       if (torn.some(([t, b]) => top < b + 0.02 && top + height > t - 0.02)) continue;
       torn.push([top, top + height]);
@@ -103,11 +107,11 @@ export function createWordmarkRenderer(node: HTMLElement) {
       const tear = torn[index];
       band.toggleAttribute('data-torn', !!tear);
       if (!tear) return;
-      const shift = between(SHIFT) * Math.max(0.3, strength) * sign();
+      const shift = between(displacement) * Math.max(0.3, strength) * sign();
       band.style.clipPath = `inset(${percent(tear[0])} -40px ${percent(1 - tear[1])} -40px)`;
       band.style.transform = `translateX(${shift.toFixed(1)}px)`;
     });
-    if (torn.length && Math.random() < SPLIT_CHANCE) {
+    if (!calm && torn.length && Math.random() < SPLIT_CHANCE) {
       echo.style.clipPath = 'none';
       echo.style.color = 'var(--signal-light)';
       echo.style.opacity = (0.12 + 0.2 * strength).toFixed(3);

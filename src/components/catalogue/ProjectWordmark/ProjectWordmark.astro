@@ -6,9 +6,11 @@ interface Props {
   name: string;
   id: string;
   /** Spacing from the project's data. */
-  wordmark: WordmarkStyle;
+  wordmark?: WordmarkStyle;
+  /** Course headings keep their typography and use gentler distortion at the same cadence. */
+  variant?: 'project' | 'heading';
 }
-const { name, id, wordmark } = Astro.props;
+const { name, id, wordmark = {}, variant = 'project' } = Astro.props;
 const glyphClasses = [
   'project-glyphs',
   {
@@ -18,7 +20,11 @@ const glyphClasses = [
 ];
 ---
 
-<h3 class="project-wordmark" data-project-wordmark id={id}>
+<h3
+  class:list={['project-wordmark', { 'project-wordmark--heading': variant === 'heading' }]}
+  data-project-wordmark
+  id={id}
+>
   <span class:list={glyphClasses}>
     <span class="project-face">{name}</span>
     <span class="project-echo" data-project-name={name} aria-hidden="true"></span>
@@ -50,6 +56,28 @@ const glyphClasses = [
     line-height: var(--line-title);
     text-align: center;
     color: var(--blue);
+  }
+  .project-wordmark--heading {
+    --project-height: 0px;
+    --project-padding: 0px;
+    --project-align: flex-start;
+    --project-origin: left center;
+    --project-hover-scale: 1.015;
+    --project-size: var(--type-heading);
+    font-family: inherit;
+    font-weight: inherit;
+    letter-spacing: var(--tracking-heading);
+    line-height: var(--line-heading);
+    text-align: left;
+    color: var(--paper);
+  }
+  .project-wordmark--heading .project-glyphs {
+    white-space: normal;
+    text-wrap: balance;
+  }
+  .project-wordmark--heading .project-echo {
+    opacity: 0.025;
+    transform: translateX(0.5px);
   }
   .project-glyphs {
     isolation: isolate;
