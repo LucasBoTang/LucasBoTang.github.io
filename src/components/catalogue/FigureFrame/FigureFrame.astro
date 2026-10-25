@@ -18,6 +18,7 @@ const dimensions = `--figure-compact-canvas-height:${compactHeight}px;--figure-c
   <div
     class="figure-frame"
     data-scalable-figure={kind}
+    data-figure-poster-pending
     data-figure-fit={JSON.stringify(fitting)}
     style={dimensions}
   >
@@ -58,6 +59,10 @@ const dimensions = `--figure-compact-canvas-height:${compactHeight}px;--figure-c
     height: 100%;
     object-fit: contain;
     width: 100%;
+  }
+  .figure-frame[data-figure-fitted] :global([data-figure-poster] img) {
+    object-fit: cover;
+    object-position: left top;
   }
   .figure-frame[data-figure-live] :global([data-figure-poster]) {
     visibility: hidden;

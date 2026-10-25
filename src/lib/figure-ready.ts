@@ -14,11 +14,13 @@ export function whenFigureReady(start: () => void): void {
     start();
     return;
   }
+  const poster = window.frameElement?.closest('[data-figure-poster-pending]');
   const page = screen.ownerDocument.documentElement;
   const waiting = () =>
     page.hasAttribute('data-opening-pending') ||
     screen.hasAttribute('data-screen-pending') ||
-    screen.hasAttribute('data-preview-pending');
+    screen.hasAttribute('data-preview-pending') ||
+    Boolean(poster?.hasAttribute('data-figure-poster-pending'));
   if (!waiting()) {
     start();
     return;
@@ -28,6 +30,8 @@ export function whenFigureReady(start: () => void): void {
     observer.disconnect();
     start();
   });
+  if (poster)
+    observer.observe(poster, { attributes: true, attributeFilter: ['data-figure-poster-pending'] });
   observer.observe(page, { attributes: true, attributeFilter: ['data-opening-pending'] });
   observer.observe(screen, {
     attributes: true,

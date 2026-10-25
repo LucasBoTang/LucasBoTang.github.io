@@ -121,3 +121,18 @@ test('fallbacks can be presented but cannot count as successful warm-up drawing'
   document.querySelector('[data-figure-drawn="fallback"]').setAttribute('data-figure-drawn', '');
   assert.equal(hasFigureDrawn(document), true);
 });
+
+test('research playback stays at its first frame until the poster handover ends', async (t) => {
+  const { page, screen } = host(t);
+  page.removeAttribute('data-opening-pending');
+  screen.innerHTML = '<div data-figure-poster-pending><iframe></iframe></div>';
+  window.frameElement = screen.querySelector('iframe');
+  const posterHost = screen.querySelector('[data-figure-poster-pending]');
+  let starts = 0;
+  whenFigureReady(() => starts++);
+  await flush();
+  assert.equal(starts, 0);
+  posterHost.removeAttribute('data-figure-poster-pending');
+  await flush();
+  assert.equal(starts, 1);
+});

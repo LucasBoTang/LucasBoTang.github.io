@@ -1,0 +1,1724 @@
+{
+  "gpu": [
+    {
+      "maxViewport": 280,
+      "file": "gpu-phone-280.webp",
+      "width": 360,
+      "height": 539
+    },
+    {
+      "maxViewport": 282,
+      "file": "gpu-phone-282.webp",
+      "width": 362,
+      "height": 539
+    },
+    {
+      "maxViewport": 284,
+      "file": "gpu-phone-284.webp",
+      "width": 364,
+      "height": 539
+    },
+    {
+      "maxViewport": 286,
+      "file": "gpu-phone-286.webp",
+      "width": 366,
+      "height": 539
+    },
+    {
+      "maxViewport": 288,
+      "file": "gpu-phone-288.webp",
+      "width": 368,
+      "height": 539
+    },
+    {
+      "maxViewport": 290,
+      "file": "gpu-phone-290.webp",
+      "width": 370,
+      "height": 539
+    },
+    {
+      "maxViewport": 292,
+      "file": "gpu-phone-292.webp",
+      "width": 372,
+      "height": 539
+    },
+    {
+      "maxViewport": 294,
+      "file": "gpu-phone-294.webp",
+      "width": 374,
+      "height": 539
+    },
+    {
+      "maxViewport": 296,
+      "file": "gpu-phone-296.webp",
+      "width": 376,
+      "height": 539
+    },
+    {
+      "maxViewport": 298,
+      "file": "gpu-phone-298.webp",
+      "width": 378,
+      "height": 539
+    },
+    {
+      "maxViewport": 300,
+      "file": "gpu-phone-300.webp",
+      "width": 380,
+      "height": 539
+    },
+    {
+      "maxViewport": 302,
+      "file": "gpu-phone-302.webp",
+      "width": 382,
+      "height": 539
+    },
+    {
+      "maxViewport": 304,
+      "file": "gpu-phone-304.webp",
+      "width": 384,
+      "height": 539
+    },
+    {
+      "maxViewport": 306,
+      "file": "gpu-phone-306.webp",
+      "width": 386,
+      "height": 539
+    },
+    {
+      "maxViewport": 308,
+      "file": "gpu-phone-308.webp",
+      "width": 388,
+      "height": 539
+    },
+    {
+      "maxViewport": 310,
+      "file": "gpu-phone-310.webp",
+      "width": 390,
+      "height": 539
+    },
+    {
+      "maxViewport": 312,
+      "file": "gpu-phone-312.webp",
+      "width": 392,
+      "height": 539
+    },
+    {
+      "maxViewport": 314,
+      "file": "gpu-phone-314.webp",
+      "width": 394,
+      "height": 539
+    },
+    {
+      "maxViewport": 316,
+      "file": "gpu-phone-316.webp",
+      "width": 396,
+      "height": 539
+    },
+    {
+      "maxViewport": 318,
+      "file": "gpu-phone-318.webp",
+      "width": 398,
+      "height": 539
+    },
+    {
+      "maxViewport": 320,
+      "file": "gpu-phone-320.webp",
+      "width": 400,
+      "height": 539
+    },
+    {
+      "maxViewport": 322,
+      "file": "gpu-phone-322.webp",
+      "width": 402,
+      "height": 539
+    },
+    {
+      "maxViewport": 324,
+      "file": "gpu-phone-324.webp",
+      "width": 404,
+      "height": 539
+    },
+    {
+      "maxViewport": 326,
+      "file": "gpu-phone-326.webp",
+      "width": 406,
+      "height": 539
+    },
+    {
+      "maxViewport": 328,
+      "file": "gpu-phone-328.webp",
+      "width": 408,
+      "height": 539
+    },
+    {
+      "maxViewport": 330,
+      "file": "gpu-phone-330.webp",
+      "width": 410,
+      "height": 539
+    },
+    {
+      "maxViewport": 332,
+      "file": "gpu-phone-332.webp",
+      "width": 412,
+      "height": 539
+    },
+    {
+      "maxViewport": 334,
+      "file": "gpu-phone-334.webp",
+      "width": 414,
+      "height": 539
+    },
+    {
+      "maxViewport": 336,
+      "file": "gpu-phone-336.webp",
+      "width": 416,
+      "height": 539
+    },
+    {
+      "maxViewport": 338,
+      "file": "gpu-phone-338.webp",
+      "width": 418,
+      "height": 539
+    },
+    {
+      "maxViewport": 339,
+      "file": "gpu-phone-339.webp",
+      "width": 419,
+      "height": 539
+    },
+    {
+      "maxViewport": 340,
+      "file": "gpu-phone-340.webp",
+      "width": 420,
+      "height": 539
+    },
+    {
+      "maxViewport": 342,
+      "file": "gpu-phone-342.webp",
+      "width": 422,
+      "height": 539
+    },
+    {
+      "maxViewport": 344,
+      "file": "gpu-phone-344.webp",
+      "width": 424,
+      "height": 539
+    },
+    {
+      "maxViewport": 346,
+      "file": "gpu-phone-346.webp",
+      "width": 426,
+      "height": 539
+    },
+    {
+      "maxViewport": 348,
+      "file": "gpu-phone-348.webp",
+      "width": 428,
+      "height": 539
+    },
+    {
+      "maxViewport": 350,
+      "file": "gpu-phone-350.webp",
+      "width": 430,
+      "height": 539
+    },
+    {
+      "maxViewport": 352,
+      "file": "gpu-phone-352.webp",
+      "width": 432,
+      "height": 539
+    },
+    {
+      "maxViewport": 354,
+      "file": "gpu-phone-354.webp",
+      "width": 434,
+      "height": 539
+    },
+    {
+      "maxViewport": 356,
+      "file": "gpu-phone-356.webp",
+      "width": 436,
+      "height": 539
+    },
+    {
+      "maxViewport": 358,
+      "file": "gpu-phone-358.webp",
+      "width": 438,
+      "height": 539
+    },
+    {
+      "maxViewport": 360,
+      "file": "gpu-phone-360.webp",
+      "width": 440,
+      "height": 539
+    },
+    {
+      "maxViewport": 362,
+      "file": "gpu-phone-362.webp",
+      "width": 442,
+      "height": 539
+    },
+    {
+      "maxViewport": 364,
+      "file": "gpu-phone-364.webp",
+      "width": 444,
+      "height": 539
+    },
+    {
+      "maxViewport": 366,
+      "file": "gpu-phone-366.webp",
+      "width": 446,
+      "height": 539
+    },
+    {
+      "maxViewport": 368,
+      "file": "gpu-phone-368.webp",
+      "width": 448,
+      "height": 539
+    },
+    {
+      "maxViewport": 369,
+      "file": "gpu-phone-369.webp",
+      "width": 449,
+      "height": 539
+    },
+    {
+      "maxViewport": 370,
+      "file": "gpu-phone-370.webp",
+      "width": 450,
+      "height": 539
+    },
+    {
+      "maxViewport": 372,
+      "file": "gpu-phone-372.webp",
+      "width": 452,
+      "height": 539
+    },
+    {
+      "maxViewport": 374,
+      "file": "gpu-phone-374.webp",
+      "width": 454,
+      "height": 539
+    },
+    {
+      "maxViewport": 375,
+      "file": "gpu-phone-375.webp",
+      "width": 455,
+      "height": 539
+    },
+    {
+      "maxViewport": 376,
+      "file": "gpu-phone-376.webp",
+      "width": 456,
+      "height": 539
+    },
+    {
+      "maxViewport": 378,
+      "file": "gpu-phone-378.webp",
+      "width": 458,
+      "height": 539
+    },
+    {
+      "maxViewport": 379,
+      "file": "gpu-phone-379.webp",
+      "width": 459,
+      "height": 539
+    },
+    {
+      "maxViewport": 380,
+      "file": "gpu-phone-380.webp",
+      "width": 460,
+      "height": 539
+    },
+    {
+      "maxViewport": 382,
+      "file": "gpu-phone-382.webp",
+      "width": 462,
+      "height": 539
+    },
+    {
+      "maxViewport": 384,
+      "file": "gpu-phone-384.webp",
+      "width": 464,
+      "height": 539
+    },
+    {
+      "maxViewport": 386,
+      "file": "gpu-phone-386.webp",
+      "width": 466,
+      "height": 539
+    },
+    {
+      "maxViewport": 387,
+      "file": "gpu-phone-387.webp",
+      "width": 467,
+      "height": 539
+    },
+    {
+      "maxViewport": 388,
+      "file": "gpu-phone-388.webp",
+      "width": 468,
+      "height": 539
+    },
+    {
+      "maxViewport": 390,
+      "file": "gpu-phone-390.webp",
+      "width": 470,
+      "height": 539
+    },
+    {
+      "maxViewport": 392,
+      "file": "gpu-phone-392.webp",
+      "width": 472,
+      "height": 539
+    },
+    {
+      "maxViewport": 393,
+      "file": "gpu-phone-393.webp",
+      "width": 473,
+      "height": 539
+    },
+    {
+      "maxViewport": 394,
+      "file": "gpu-phone-394.webp",
+      "width": 474,
+      "height": 539
+    },
+    {
+      "maxViewport": 396,
+      "file": "gpu-phone-396.webp",
+      "width": 476,
+      "height": 539
+    },
+    {
+      "maxViewport": 398,
+      "file": "gpu-phone-398.webp",
+      "width": 478,
+      "height": 539
+    },
+    {
+      "maxViewport": 400,
+      "file": "gpu-phone-400.webp",
+      "width": 480,
+      "height": 539
+    },
+    {
+      "maxViewport": 402,
+      "file": "gpu-phone-402.webp",
+      "width": 482,
+      "height": 539
+    },
+    {
+      "maxViewport": 404,
+      "file": "gpu-phone-404.webp",
+      "width": 484,
+      "height": 539
+    },
+    {
+      "maxViewport": 406,
+      "file": "gpu-phone-406.webp",
+      "width": 486,
+      "height": 539
+    },
+    {
+      "maxViewport": 408,
+      "file": "gpu-phone-408.webp",
+      "width": 488,
+      "height": 539
+    },
+    {
+      "maxViewport": 410,
+      "file": "gpu-phone-410.webp",
+      "width": 490,
+      "height": 539
+    },
+    {
+      "maxViewport": 412,
+      "file": "gpu-phone-412.webp",
+      "width": 492,
+      "height": 539
+    },
+    {
+      "maxViewport": 414,
+      "file": "gpu-phone-414.webp",
+      "width": 494,
+      "height": 539
+    },
+    {
+      "maxViewport": 416,
+      "file": "gpu-phone-416.webp",
+      "width": 496,
+      "height": 539
+    },
+    {
+      "maxViewport": 418,
+      "file": "gpu-phone-418.webp",
+      "width": 498,
+      "height": 539
+    },
+    {
+      "maxViewport": 420,
+      "file": "gpu-phone-420.webp",
+      "width": 500,
+      "height": 539
+    },
+    {
+      "maxViewport": 422,
+      "file": "gpu-phone-422.webp",
+      "width": 502,
+      "height": 539
+    },
+    {
+      "maxViewport": 424,
+      "file": "gpu-phone-424.webp",
+      "width": 504,
+      "height": 539
+    },
+    {
+      "maxViewport": 426,
+      "file": "gpu-phone-426.webp",
+      "width": 506,
+      "height": 539
+    },
+    {
+      "maxViewport": 427,
+      "file": "gpu-phone-427.webp",
+      "width": 507,
+      "height": 539
+    },
+    {
+      "maxViewport": 428,
+      "file": "gpu-phone-428.webp",
+      "width": 508,
+      "height": 539
+    },
+    {
+      "maxViewport": 430,
+      "file": "gpu-phone-430.webp",
+      "width": 510,
+      "height": 539
+    },
+    {
+      "maxViewport": 432,
+      "file": "gpu-phone-432.webp",
+      "width": 512,
+      "height": 539
+    },
+    {
+      "maxViewport": 434,
+      "file": "gpu-phone-434.webp",
+      "width": 514,
+      "height": 539
+    },
+    {
+      "maxViewport": 436,
+      "file": "gpu-phone-436.webp",
+      "width": 516,
+      "height": 539
+    },
+    {
+      "maxViewport": 438,
+      "file": "gpu-phone-438.webp",
+      "width": 518,
+      "height": 539
+    },
+    {
+      "maxViewport": 440,
+      "file": "gpu-phone-440.webp",
+      "width": 520,
+      "height": 539
+    },
+    {
+      "maxViewport": 442,
+      "file": "gpu-phone-442.webp",
+      "width": 522,
+      "height": 539
+    },
+    {
+      "maxViewport": 444,
+      "file": "gpu-phone-444.webp",
+      "width": 524,
+      "height": 539
+    },
+    {
+      "maxViewport": 446,
+      "file": "gpu-phone-446.webp",
+      "width": 526,
+      "height": 539
+    },
+    {
+      "maxViewport": 448,
+      "file": "gpu-phone-448.webp",
+      "width": 528,
+      "height": 539
+    },
+    {
+      "maxViewport": 450,
+      "file": "gpu-phone-450.webp",
+      "width": 530,
+      "height": 539
+    },
+    {
+      "maxViewport": 452,
+      "file": "gpu-phone-452.webp",
+      "width": 532,
+      "height": 539
+    },
+    {
+      "maxViewport": 454,
+      "file": "gpu-phone-454.webp",
+      "width": 534,
+      "height": 539
+    },
+    {
+      "maxViewport": 456,
+      "file": "gpu-phone-456.webp",
+      "width": 536,
+      "height": 539
+    },
+    {
+      "maxViewport": 458,
+      "file": "gpu-phone-458.webp",
+      "width": 538,
+      "height": 539
+    },
+    {
+      "maxViewport": 460,
+      "file": "gpu-phone-460.webp",
+      "width": 540,
+      "height": 539
+    },
+    {
+      "maxViewport": 462,
+      "file": "gpu-phone-462.webp",
+      "width": 542,
+      "height": 539
+    },
+    {
+      "maxViewport": 464,
+      "file": "gpu-phone-464.webp",
+      "width": 544,
+      "height": 539
+    },
+    {
+      "maxViewport": 466,
+      "file": "gpu-phone-466.webp",
+      "width": 546,
+      "height": 539
+    },
+    {
+      "maxViewport": 468,
+      "file": "gpu-phone-468.webp",
+      "width": 548,
+      "height": 539
+    },
+    {
+      "maxViewport": 469,
+      "file": "gpu-phone-469.webp",
+      "width": 549,
+      "height": 539
+    },
+    {
+      "maxViewport": 470,
+      "file": "gpu-phone-470.webp",
+      "width": 550,
+      "height": 539
+    },
+    {
+      "maxViewport": 472,
+      "file": "gpu-phone-472.webp",
+      "width": 552,
+      "height": 539
+    },
+    {
+      "maxViewport": 474,
+      "file": "gpu-phone-474.webp",
+      "width": 554,
+      "height": 539
+    },
+    {
+      "maxViewport": 476,
+      "file": "gpu-phone-476.webp",
+      "width": 556,
+      "height": 539
+    },
+    {
+      "maxViewport": 478,
+      "file": "gpu-phone-478.webp",
+      "width": 558,
+      "height": 539
+    },
+    {
+      "maxViewport": 480,
+      "file": "gpu-phone-480.webp",
+      "width": 560,
+      "height": 539
+    },
+    {
+      "maxViewport": 482,
+      "file": "gpu-phone-482.webp",
+      "width": 562,
+      "height": 539
+    },
+    {
+      "maxViewport": 484,
+      "file": "gpu-phone-484.webp",
+      "width": 564,
+      "height": 539
+    },
+    {
+      "maxViewport": 486,
+      "file": "gpu-phone-486.webp",
+      "width": 566,
+      "height": 539
+    },
+    {
+      "maxViewport": 488,
+      "file": "gpu-phone-488.webp",
+      "width": 568,
+      "height": 539
+    },
+    {
+      "maxViewport": 490,
+      "file": "gpu-phone-490.webp",
+      "width": 570,
+      "height": 539
+    },
+    {
+      "maxViewport": 492,
+      "file": "gpu-phone-492.webp",
+      "width": 572,
+      "height": 539
+    },
+    {
+      "maxViewport": 494,
+      "file": "gpu-phone-494.webp",
+      "width": 574,
+      "height": 539
+    },
+    {
+      "maxViewport": 496,
+      "file": "gpu-phone-496.webp",
+      "width": 576,
+      "height": 539
+    },
+    {
+      "maxViewport": 498,
+      "file": "gpu-phone-498.webp",
+      "width": 578,
+      "height": 539
+    },
+    {
+      "maxViewport": 500,
+      "file": "gpu-phone-500.webp",
+      "width": 580,
+      "height": 539
+    },
+    {
+      "maxViewport": 502,
+      "file": "gpu-phone-502.webp",
+      "width": 582,
+      "height": 539
+    },
+    {
+      "maxViewport": 504,
+      "file": "gpu-phone-504.webp",
+      "width": 584,
+      "height": 539
+    },
+    {
+      "maxViewport": 506,
+      "file": "gpu-phone-506.webp",
+      "width": 586,
+      "height": 539
+    },
+    {
+      "maxViewport": 508,
+      "file": "gpu-phone-508.webp",
+      "width": 588,
+      "height": 539
+    },
+    {
+      "maxViewport": 510,
+      "file": "gpu-phone-510.webp",
+      "width": 590,
+      "height": 539
+    },
+    {
+      "maxViewport": 512,
+      "file": "gpu-phone-512.webp",
+      "width": 592,
+      "height": 539
+    },
+    {
+      "maxViewport": 514,
+      "file": "gpu-phone-514.webp",
+      "width": 594,
+      "height": 539
+    },
+    {
+      "maxViewport": 516,
+      "file": "gpu-phone-516.webp",
+      "width": 596,
+      "height": 539
+    },
+    {
+      "maxViewport": 518,
+      "file": "gpu-phone-518.webp",
+      "width": 598,
+      "height": 539
+    },
+    {
+      "maxViewport": 520,
+      "file": "gpu-phone-520.webp",
+      "width": 600,
+      "height": 539
+    },
+    {
+      "maxViewport": 522,
+      "file": "gpu-phone-522.webp",
+      "width": 602,
+      "height": 539
+    },
+    {
+      "maxViewport": 524,
+      "file": "gpu-phone-524.webp",
+      "width": 604,
+      "height": 539
+    },
+    {
+      "maxViewport": 526,
+      "file": "gpu-phone-526.webp",
+      "width": 606,
+      "height": 539
+    },
+    {
+      "maxViewport": 528,
+      "file": "gpu-phone-528.webp",
+      "width": 608,
+      "height": 539
+    }
+  ],
+  "l2o": [
+    {
+      "maxViewport": 376,
+      "file": "l2o-compact.webp",
+      "width": 330,
+      "height": 632
+    },
+    {
+      "maxViewport": 378,
+      "file": "l2o-phone-378.webp",
+      "width": 330,
+      "height": 632
+    },
+    {
+      "maxViewport": 379,
+      "file": "l2o-phone-379.webp",
+      "width": 331,
+      "height": 632
+    },
+    {
+      "maxViewport": 380,
+      "file": "l2o-phone-380.webp",
+      "width": 332,
+      "height": 632
+    },
+    {
+      "maxViewport": 382,
+      "file": "l2o-phone-382.webp",
+      "width": 334,
+      "height": 632
+    },
+    {
+      "maxViewport": 384,
+      "file": "l2o-phone-384.webp",
+      "width": 336,
+      "height": 632
+    },
+    {
+      "maxViewport": 386,
+      "file": "l2o-phone-386.webp",
+      "width": 338,
+      "height": 632
+    },
+    {
+      "maxViewport": 387,
+      "file": "l2o-phone-387.webp",
+      "width": 339,
+      "height": 632
+    },
+    {
+      "maxViewport": 388,
+      "file": "l2o-phone-388.webp",
+      "width": 340,
+      "height": 632
+    },
+    {
+      "maxViewport": 390,
+      "file": "l2o-phone-390.webp",
+      "width": 342,
+      "height": 632
+    },
+    {
+      "maxViewport": 392,
+      "file": "l2o-phone-392.webp",
+      "width": 344,
+      "height": 632
+    },
+    {
+      "maxViewport": 393,
+      "file": "l2o-phone-393.webp",
+      "width": 345,
+      "height": 632
+    },
+    {
+      "maxViewport": 394,
+      "file": "l2o-phone-394.webp",
+      "width": 346,
+      "height": 632
+    },
+    {
+      "maxViewport": 396,
+      "file": "l2o-phone-396.webp",
+      "width": 348,
+      "height": 632
+    },
+    {
+      "maxViewport": 398,
+      "file": "l2o-phone-398.webp",
+      "width": 350,
+      "height": 632
+    },
+    {
+      "maxViewport": 400,
+      "file": "l2o-phone-400.webp",
+      "width": 352,
+      "height": 632
+    },
+    {
+      "maxViewport": 402,
+      "file": "l2o-phone-402.webp",
+      "width": 354,
+      "height": 632
+    },
+    {
+      "maxViewport": 404,
+      "file": "l2o-phone-404.webp",
+      "width": 356,
+      "height": 632
+    },
+    {
+      "maxViewport": 406,
+      "file": "l2o-phone-406.webp",
+      "width": 358,
+      "height": 632
+    },
+    {
+      "maxViewport": 408,
+      "file": "l2o-phone-408.webp",
+      "width": 360,
+      "height": 632
+    },
+    {
+      "maxViewport": 410,
+      "file": "l2o-phone-410.webp",
+      "width": 362,
+      "height": 632
+    },
+    {
+      "maxViewport": 412,
+      "file": "l2o-phone-412.webp",
+      "width": 364,
+      "height": 632
+    },
+    {
+      "maxViewport": 414,
+      "file": "l2o-phone-414.webp",
+      "width": 366,
+      "height": 632
+    },
+    {
+      "maxViewport": 416,
+      "file": "l2o-phone-416.webp",
+      "width": 368,
+      "height": 632
+    },
+    {
+      "maxViewport": 418,
+      "file": "l2o-phone-418.webp",
+      "width": 370,
+      "height": 632
+    },
+    {
+      "maxViewport": 420,
+      "file": "l2o-phone-420.webp",
+      "width": 372,
+      "height": 632
+    },
+    {
+      "maxViewport": 422,
+      "file": "l2o-phone-422.webp",
+      "width": 374,
+      "height": 632
+    },
+    {
+      "maxViewport": 424,
+      "file": "l2o-phone-424.webp",
+      "width": 376,
+      "height": 632
+    },
+    {
+      "maxViewport": 426,
+      "file": "l2o-phone-426.webp",
+      "width": 378,
+      "height": 632
+    },
+    {
+      "maxViewport": 427,
+      "file": "l2o-phone-427.webp",
+      "width": 379,
+      "height": 632
+    },
+    {
+      "maxViewport": 428,
+      "file": "l2o-phone-428.webp",
+      "width": 380,
+      "height": 632
+    },
+    {
+      "maxViewport": 430,
+      "file": "l2o-phone-430.webp",
+      "width": 382,
+      "height": 632
+    },
+    {
+      "maxViewport": 432,
+      "file": "l2o-phone-432.webp",
+      "width": 384,
+      "height": 632
+    },
+    {
+      "maxViewport": 434,
+      "file": "l2o-phone-434.webp",
+      "width": 386,
+      "height": 632
+    },
+    {
+      "maxViewport": 436,
+      "file": "l2o-phone-436.webp",
+      "width": 388,
+      "height": 632
+    },
+    {
+      "maxViewport": 438,
+      "file": "l2o-phone-438.webp",
+      "width": 390,
+      "height": 632
+    },
+    {
+      "maxViewport": 440,
+      "file": "l2o-phone-440.webp",
+      "width": 392,
+      "height": 632
+    },
+    {
+      "maxViewport": 442,
+      "file": "l2o-phone-442.webp",
+      "width": 394,
+      "height": 632
+    },
+    {
+      "maxViewport": 444,
+      "file": "l2o-phone-444.webp",
+      "width": 396,
+      "height": 632
+    },
+    {
+      "maxViewport": 446,
+      "file": "l2o-phone-446.webp",
+      "width": 398,
+      "height": 632
+    },
+    {
+      "maxViewport": 448,
+      "file": "l2o-phone-448.webp",
+      "width": 400,
+      "height": 632
+    },
+    {
+      "maxViewport": 450,
+      "file": "l2o-phone-450.webp",
+      "width": 402,
+      "height": 632
+    },
+    {
+      "maxViewport": 452,
+      "file": "l2o-phone-452.webp",
+      "width": 404,
+      "height": 632
+    },
+    {
+      "maxViewport": 454,
+      "file": "l2o-phone-454.webp",
+      "width": 406,
+      "height": 632
+    },
+    {
+      "maxViewport": 456,
+      "file": "l2o-phone-456.webp",
+      "width": 408,
+      "height": 632
+    },
+    {
+      "maxViewport": 458,
+      "file": "l2o-phone-458.webp",
+      "width": 410,
+      "height": 632
+    },
+    {
+      "maxViewport": 460,
+      "file": "l2o-phone-460.webp",
+      "width": 412,
+      "height": 632
+    },
+    {
+      "maxViewport": 462,
+      "file": "l2o-phone-462.webp",
+      "width": 414,
+      "height": 632
+    },
+    {
+      "maxViewport": 464,
+      "file": "l2o-phone-464.webp",
+      "width": 416,
+      "height": 632
+    },
+    {
+      "maxViewport": 466,
+      "file": "l2o-phone-466.webp",
+      "width": 418,
+      "height": 632
+    },
+    {
+      "maxViewport": 468,
+      "file": "l2o-phone-468.webp",
+      "width": 420,
+      "height": 632
+    }
+  ],
+  "dfl": [
+    {
+      "maxViewport": 280,
+      "file": "dfl-phone-280.webp",
+      "width": 296,
+      "height": 704
+    },
+    {
+      "maxViewport": 282,
+      "file": "dfl-phone-282.webp",
+      "width": 298,
+      "height": 704
+    },
+    {
+      "maxViewport": 284,
+      "file": "dfl-phone-284.webp",
+      "width": 300,
+      "height": 704
+    },
+    {
+      "maxViewport": 286,
+      "file": "dfl-phone-286.webp",
+      "width": 302,
+      "height": 704
+    },
+    {
+      "maxViewport": 288,
+      "file": "dfl-phone-288.webp",
+      "width": 304,
+      "height": 704
+    },
+    {
+      "maxViewport": 290,
+      "file": "dfl-phone-290.webp",
+      "width": 306,
+      "height": 704
+    },
+    {
+      "maxViewport": 292,
+      "file": "dfl-phone-292.webp",
+      "width": 308,
+      "height": 704
+    },
+    {
+      "maxViewport": 294,
+      "file": "dfl-phone-294.webp",
+      "width": 310,
+      "height": 704
+    },
+    {
+      "maxViewport": 296,
+      "file": "dfl-phone-296.webp",
+      "width": 312,
+      "height": 704
+    },
+    {
+      "maxViewport": 298,
+      "file": "dfl-phone-298.webp",
+      "width": 314,
+      "height": 704
+    },
+    {
+      "maxViewport": 300,
+      "file": "dfl-phone-300.webp",
+      "width": 316,
+      "height": 704
+    },
+    {
+      "maxViewport": 302,
+      "file": "dfl-phone-302.webp",
+      "width": 318,
+      "height": 704
+    },
+    {
+      "maxViewport": 304,
+      "file": "dfl-phone-304.webp",
+      "width": 320,
+      "height": 704
+    },
+    {
+      "maxViewport": 306,
+      "file": "dfl-phone-306.webp",
+      "width": 322,
+      "height": 704
+    },
+    {
+      "maxViewport": 308,
+      "file": "dfl-phone-308.webp",
+      "width": 324,
+      "height": 704
+    },
+    {
+      "maxViewport": 310,
+      "file": "dfl-phone-310.webp",
+      "width": 326,
+      "height": 704
+    },
+    {
+      "maxViewport": 312,
+      "file": "dfl-phone-312.webp",
+      "width": 328,
+      "height": 704
+    },
+    {
+      "maxViewport": 314,
+      "file": "dfl-phone-314.webp",
+      "width": 330,
+      "height": 704
+    },
+    {
+      "maxViewport": 316,
+      "file": "dfl-phone-316.webp",
+      "width": 332,
+      "height": 704
+    },
+    {
+      "maxViewport": 318,
+      "file": "dfl-phone-318.webp",
+      "width": 334,
+      "height": 704
+    },
+    {
+      "maxViewport": 320,
+      "file": "dfl-phone-320.webp",
+      "width": 336,
+      "height": 704
+    },
+    {
+      "maxViewport": 322,
+      "file": "dfl-phone-322.webp",
+      "width": 338,
+      "height": 704
+    },
+    {
+      "maxViewport": 324,
+      "file": "dfl-phone-324.webp",
+      "width": 340,
+      "height": 704
+    },
+    {
+      "maxViewport": 326,
+      "file": "dfl-phone-326.webp",
+      "width": 342,
+      "height": 704
+    },
+    {
+      "maxViewport": 328,
+      "file": "dfl-phone-328.webp",
+      "width": 344,
+      "height": 704
+    },
+    {
+      "maxViewport": 330,
+      "file": "dfl-phone-330.webp",
+      "width": 346,
+      "height": 704
+    },
+    {
+      "maxViewport": 332,
+      "file": "dfl-phone-332.webp",
+      "width": 348,
+      "height": 704
+    },
+    {
+      "maxViewport": 334,
+      "file": "dfl-phone-334.webp",
+      "width": 350,
+      "height": 704
+    },
+    {
+      "maxViewport": 336,
+      "file": "dfl-phone-336.webp",
+      "width": 352,
+      "height": 704
+    },
+    {
+      "maxViewport": 338,
+      "file": "dfl-phone-338.webp",
+      "width": 354,
+      "height": 704
+    },
+    {
+      "maxViewport": 339,
+      "file": "dfl-phone-339.webp",
+      "width": 355,
+      "height": 704
+    },
+    {
+      "maxViewport": 340,
+      "file": "dfl-phone-340.webp",
+      "width": 356,
+      "height": 704
+    },
+    {
+      "maxViewport": 342,
+      "file": "dfl-phone-342.webp",
+      "width": 358,
+      "height": 704
+    },
+    {
+      "maxViewport": 344,
+      "file": "dfl-phone-344.webp",
+      "width": 360,
+      "height": 704
+    },
+    {
+      "maxViewport": 346,
+      "file": "dfl-phone-346.webp",
+      "width": 362,
+      "height": 704
+    },
+    {
+      "maxViewport": 348,
+      "file": "dfl-phone-348.webp",
+      "width": 364,
+      "height": 704
+    },
+    {
+      "maxViewport": 350,
+      "file": "dfl-phone-350.webp",
+      "width": 366,
+      "height": 704
+    },
+    {
+      "maxViewport": 352,
+      "file": "dfl-phone-352.webp",
+      "width": 368,
+      "height": 704
+    },
+    {
+      "maxViewport": 354,
+      "file": "dfl-phone-354.webp",
+      "width": 370,
+      "height": 704
+    },
+    {
+      "maxViewport": 356,
+      "file": "dfl-phone-356.webp",
+      "width": 372,
+      "height": 704
+    },
+    {
+      "maxViewport": 358,
+      "file": "dfl-phone-358.webp",
+      "width": 374,
+      "height": 704
+    },
+    {
+      "maxViewport": 360,
+      "file": "dfl-phone-360.webp",
+      "width": 376,
+      "height": 704
+    },
+    {
+      "maxViewport": 362,
+      "file": "dfl-phone-362.webp",
+      "width": 378,
+      "height": 704
+    },
+    {
+      "maxViewport": 364,
+      "file": "dfl-phone-364.webp",
+      "width": 380,
+      "height": 704
+    },
+    {
+      "maxViewport": 366,
+      "file": "dfl-phone-366.webp",
+      "width": 382,
+      "height": 704
+    },
+    {
+      "maxViewport": 368,
+      "file": "dfl-phone-368.webp",
+      "width": 384,
+      "height": 704
+    },
+    {
+      "maxViewport": 369,
+      "file": "dfl-phone-369.webp",
+      "width": 385,
+      "height": 704
+    },
+    {
+      "maxViewport": 370,
+      "file": "dfl-phone-370.webp",
+      "width": 386,
+      "height": 704
+    },
+    {
+      "maxViewport": 372,
+      "file": "dfl-phone-372.webp",
+      "width": 388,
+      "height": 704
+    },
+    {
+      "maxViewport": 374,
+      "file": "dfl-phone-374.webp",
+      "width": 390,
+      "height": 704
+    },
+    {
+      "maxViewport": 375,
+      "file": "dfl-phone-375.webp",
+      "width": 391,
+      "height": 704
+    },
+    {
+      "maxViewport": 376,
+      "file": "dfl-phone-376.webp",
+      "width": 392,
+      "height": 704
+    },
+    {
+      "maxViewport": 378,
+      "file": "dfl-phone-378.webp",
+      "width": 394,
+      "height": 704
+    },
+    {
+      "maxViewport": 379,
+      "file": "dfl-phone-379.webp",
+      "width": 395,
+      "height": 704
+    },
+    {
+      "maxViewport": 380,
+      "file": "dfl-phone-380.webp",
+      "width": 396,
+      "height": 704
+    },
+    {
+      "maxViewport": 382,
+      "file": "dfl-phone-382.webp",
+      "width": 398,
+      "height": 704
+    },
+    {
+      "maxViewport": 384,
+      "file": "dfl-phone-384.webp",
+      "width": 400,
+      "height": 704
+    },
+    {
+      "maxViewport": 386,
+      "file": "dfl-phone-386.webp",
+      "width": 402,
+      "height": 704
+    },
+    {
+      "maxViewport": 387,
+      "file": "dfl-phone-387.webp",
+      "width": 403,
+      "height": 704
+    },
+    {
+      "maxViewport": 388,
+      "file": "dfl-phone-388.webp",
+      "width": 404,
+      "height": 704
+    },
+    {
+      "maxViewport": 390,
+      "file": "dfl-phone-390.webp",
+      "width": 406,
+      "height": 704
+    },
+    {
+      "maxViewport": 392,
+      "file": "dfl-phone-392.webp",
+      "width": 408,
+      "height": 704
+    },
+    {
+      "maxViewport": 393,
+      "file": "dfl-phone-393.webp",
+      "width": 409,
+      "height": 704
+    },
+    {
+      "maxViewport": 394,
+      "file": "dfl-phone-394.webp",
+      "width": 410,
+      "height": 704
+    },
+    {
+      "maxViewport": 396,
+      "file": "dfl-phone-396.webp",
+      "width": 412,
+      "height": 704
+    },
+    {
+      "maxViewport": 398,
+      "file": "dfl-phone-398.webp",
+      "width": 414,
+      "height": 704
+    },
+    {
+      "maxViewport": 400,
+      "file": "dfl-phone-400.webp",
+      "width": 416,
+      "height": 704
+    },
+    {
+      "maxViewport": 402,
+      "file": "dfl-phone-402.webp",
+      "width": 418,
+      "height": 704
+    },
+    {
+      "maxViewport": 404,
+      "file": "dfl-phone-404.webp",
+      "width": 420,
+      "height": 704
+    },
+    {
+      "maxViewport": 406,
+      "file": "dfl-phone-406.webp",
+      "width": 422,
+      "height": 704
+    },
+    {
+      "maxViewport": 408,
+      "file": "dfl-phone-408.webp",
+      "width": 424,
+      "height": 704
+    },
+    {
+      "maxViewport": 410,
+      "file": "dfl-phone-410.webp",
+      "width": 426,
+      "height": 704
+    },
+    {
+      "maxViewport": 412,
+      "file": "dfl-phone-412.webp",
+      "width": 428,
+      "height": 704
+    },
+    {
+      "maxViewport": 414,
+      "file": "dfl-phone-414.webp",
+      "width": 430,
+      "height": 704
+    },
+    {
+      "maxViewport": 416,
+      "file": "dfl-phone-416.webp",
+      "width": 432,
+      "height": 704
+    },
+    {
+      "maxViewport": 418,
+      "file": "dfl-phone-418.webp",
+      "width": 434,
+      "height": 704
+    },
+    {
+      "maxViewport": 420,
+      "file": "dfl-phone-420.webp",
+      "width": 436,
+      "height": 704
+    },
+    {
+      "maxViewport": 422,
+      "file": "dfl-phone-422.webp",
+      "width": 438,
+      "height": 704
+    },
+    {
+      "maxViewport": 424,
+      "file": "dfl-phone-424.webp",
+      "width": 440,
+      "height": 704
+    },
+    {
+      "maxViewport": 426,
+      "file": "dfl-phone-426.webp",
+      "width": 442,
+      "height": 704
+    },
+    {
+      "maxViewport": 427,
+      "file": "dfl-phone-427.webp",
+      "width": 443,
+      "height": 704
+    },
+    {
+      "maxViewport": 428,
+      "file": "dfl-phone-428.webp",
+      "width": 444,
+      "height": 704
+    },
+    {
+      "maxViewport": 430,
+      "file": "dfl-phone-430.webp",
+      "width": 446,
+      "height": 704
+    },
+    {
+      "maxViewport": 432,
+      "file": "dfl-phone-432.webp",
+      "width": 448,
+      "height": 704
+    },
+    {
+      "maxViewport": 434,
+      "file": "dfl-phone-434.webp",
+      "width": 450,
+      "height": 704
+    },
+    {
+      "maxViewport": 436,
+      "file": "dfl-phone-436.webp",
+      "width": 452,
+      "height": 704
+    },
+    {
+      "maxViewport": 438,
+      "file": "dfl-phone-438.webp",
+      "width": 454,
+      "height": 704
+    },
+    {
+      "maxViewport": 440,
+      "file": "dfl-phone-440.webp",
+      "width": 456,
+      "height": 704
+    },
+    {
+      "maxViewport": 442,
+      "file": "dfl-phone-442.webp",
+      "width": 458,
+      "height": 704
+    },
+    {
+      "maxViewport": 444,
+      "file": "dfl-phone-444.webp",
+      "width": 460,
+      "height": 704
+    },
+    {
+      "maxViewport": 446,
+      "file": "dfl-phone-446.webp",
+      "width": 462,
+      "height": 704
+    },
+    {
+      "maxViewport": 448,
+      "file": "dfl-phone-448.webp",
+      "width": 464,
+      "height": 704
+    },
+    {
+      "maxViewport": 450,
+      "file": "dfl-phone-450.webp",
+      "width": 466,
+      "height": 704
+    },
+    {
+      "maxViewport": 452,
+      "file": "dfl-phone-452.webp",
+      "width": 468,
+      "height": 704
+    },
+    {
+      "maxViewport": 454,
+      "file": "dfl-phone-454.webp",
+      "width": 470,
+      "height": 704
+    },
+    {
+      "maxViewport": 456,
+      "file": "dfl-phone-456.webp",
+      "width": 472,
+      "height": 704
+    },
+    {
+      "maxViewport": 458,
+      "file": "dfl-phone-458.webp",
+      "width": 474,
+      "height": 704
+    },
+    {
+      "maxViewport": 460,
+      "file": "dfl-phone-460.webp",
+      "width": 476,
+      "height": 704
+    },
+    {
+      "maxViewport": 462,
+      "file": "dfl-phone-462.webp",
+      "width": 478,
+      "height": 704
+    },
+    {
+      "maxViewport": 464,
+      "file": "dfl-phone-464.webp",
+      "width": 480,
+      "height": 704
+    },
+    {
+      "maxViewport": 466,
+      "file": "dfl-phone-466.webp",
+      "width": 482,
+      "height": 704
+    },
+    {
+      "maxViewport": 468,
+      "file": "dfl-phone-468.webp",
+      "width": 484,
+      "height": 704
+    }
+  ]
+}
