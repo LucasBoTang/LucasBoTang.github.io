@@ -3,7 +3,7 @@ import { routes } from '../../src/data/navigation';
 import { researchFigures } from '../../src/data/research/figures';
 import { ARRIVAL_EVENT } from '../../src/lib/arrival';
 
-test('a stalled figure releases its entrance and caption at the failure bound', async ({
+test('a stalled live document does not delay its static first frame and caption', async ({
   page,
 }) => {
   await page.clock.install();

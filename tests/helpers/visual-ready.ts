@@ -5,7 +5,11 @@ export async function waitForPicture(page: Page) {
   for (const frame of page.frames()) {
     await frame.evaluate(async () => {
       await document.fonts.ready;
-      await Promise.allSettled([...document.images].map((image) => image.decode()));
+      await Promise.allSettled(
+        [...document.images]
+          .filter((image) => image.loading !== 'lazy' || image.complete)
+          .map((image) => image.decode()),
+      );
     });
     const renderers = frame.locator('[data-figure-drawn]');
     for (const renderer of await renderers.all())

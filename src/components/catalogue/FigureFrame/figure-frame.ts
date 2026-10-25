@@ -1,11 +1,15 @@
 import type { ResearchFigure } from '../../../data/schema.ts';
 import { enhance } from '../../../lib/lifecycle.ts';
+import { presentFigureWhenDrawn } from './figure-poster.ts';
 
 // Narrow desktop columns and wider phones keep one approved composition. Only a phone column
 // below the artwork's own breakpoint uses its compact layout; that layout can also declare a
 // minimum canvas to preserve its geometry. Bleed and height always shrink with the same scale.
 enhance<HTMLElement>('[data-scalable-figure]', (frame) => {
   // The build validates the record; the browser receives no captions or credit text.
+  const liveFrame = frame.querySelector<HTMLIFrameElement>('iframe');
+  if (liveFrame) presentFigureWhenDrawn(frame, liveFrame);
+  const compactPoster = frame.querySelector<HTMLSourceElement>('[data-poster-compact]');
   const fitting = JSON.parse(frame.dataset.figureFit!) as ResearchFigure['fitting'];
   // Read the initial inline canvas once; these declarations already provide the no-JS layout.
   // Reading inline values does not ask the browser to recompute style or layout.
@@ -21,6 +25,7 @@ enhance<HTMLElement>('[data-scalable-figure]', (frame) => {
 
   function fit() {
     const compact = !desktop.matches && availableWidth <= fitting.compactAt;
+    if (compactPoster) compactPoster.media = compact ? 'all' : 'not all';
     const canvas = compact && fitting.compactCanvas ? fitting.compactCanvas : original;
     const contentWidth = canvas.width - 2 * canvas.bleed;
     const scaled =

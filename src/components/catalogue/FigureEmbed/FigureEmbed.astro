@@ -3,19 +3,22 @@ interface Props {
   src: string;
   title: string;
   class?: string;
+  staticFallback?: boolean;
 }
-const { src, title, class: className } = Astro.props;
+const { src, title, class: className, staticFallback = false } = Astro.props;
 ---
 
 <iframe class={className} data-figure-src={src} title={title} tabindex="-1"></iframe>
-<noscript>
-  <style is:inline>
-    iframe[data-figure-src] {
-      display: none !important;
-    }
-  </style>
-  <iframe class={className} src={src} title={title} loading="lazy" tabindex="-1"></iframe>
-</noscript>
+{!staticFallback && (
+  <noscript>
+    <style is:inline>
+      iframe[data-figure-src] {
+        display: none !important;
+      }
+    </style>
+    <iframe class={className} src={src} title={title} loading="lazy" tabindex="-1"></iframe>
+  </noscript>
+)}
 <script>
   import { loadFigureEmbeds } from './figure-loading';
   loadFigureEmbeds(

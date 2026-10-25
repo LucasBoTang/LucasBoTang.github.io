@@ -39,3 +39,25 @@ export function preparePicture(frame: HTMLIFrameElement) {
   });
   return { ready, cancel };
 }
+
+/** Either a decoded poster or a drawn live figure can release the entrance; cancellation stays bounded. */
+export function preparePoster(image: HTMLImageElement, liveHost?: Element | null) {
+  let cancel!: () => void;
+  const ready = new Promise<void>((resolve) => {
+    let observer: MutationObserver | undefined;
+    const finish = () => {
+      observer?.disconnect();
+      resolve();
+    };
+    cancel = finish;
+    if (liveHost?.hasAttribute('data-figure-live')) return finish();
+    if (liveHost) {
+      observer = new MutationObserver(() => {
+        if (liveHost.hasAttribute('data-figure-live')) finish();
+      });
+      observer.observe(liveHost, { attributes: true, attributeFilter: ['data-figure-live'] });
+    }
+    void image.decode().then(finish, finish);
+  });
+  return { ready, cancel };
+}

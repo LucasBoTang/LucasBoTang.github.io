@@ -1,5 +1,6 @@
 ---
 import FigureEmbed from '../FigureEmbed/FigureEmbed.astro';
+import FigurePoster from './FigurePoster.astro';
 import { researchFigures, type FigureKind } from '../../../data/research/figures';
 
 interface Props {
@@ -20,7 +21,8 @@ const dimensions = `--figure-compact-canvas-height:${compactHeight}px;--figure-c
     data-figure-fit={JSON.stringify(fitting)}
     style={dimensions}
   >
-    <FigureEmbed src={src} title={title} />
+    <FigurePoster kind={kind} />
+    <FigureEmbed src={src} title={title} staticFallback />
   </div>
 </div>
 
@@ -31,10 +33,12 @@ const dimensions = `--figure-compact-canvas-height:${compactHeight}px;--figure-c
     padding-inline: var(--gutter);
   }
   .figure-frame {
+    position: relative;
     width: 100%;
     container-type: inline-size;
   }
-  .figure-frame :global(iframe) {
+  .figure-frame :global(iframe),
+  .figure-frame :global([data-figure-poster]) {
     display: block;
     border: 0;
     height: var(--figure-canvas-height);
@@ -42,22 +46,41 @@ const dimensions = `--figure-compact-canvas-height:${compactHeight}px;--figure-c
     width: calc(100% + 2 * var(--figure-canvas-bleed));
     pointer-events: none;
   }
+  .figure-frame :global([data-figure-poster]) {
+    left: 0;
+    position: absolute;
+    top: 0;
+    z-index: 1;
+    background: var(--ink);
+  }
+  .figure-frame :global([data-figure-poster] img) {
+    display: block;
+    height: 100%;
+    object-fit: contain;
+    width: 100%;
+  }
+  .figure-frame[data-figure-live] :global([data-figure-poster]) {
+    visibility: hidden;
+  }
   /* Native fallbacks remain readable without enhancement. A fitted canvas outranks these
      rules, preserving its chosen desktop or compact composition at smaller display widths. */
   @container (max-width:560px) {
-    .figure-frame:where([data-scalable-figure='l2o']) :global(iframe) {
+    .figure-frame:where([data-scalable-figure='l2o']) :global(iframe),
+    .figure-frame:where([data-scalable-figure='l2o']) :global([data-figure-poster]) {
       height: var(--figure-compact-canvas-height);
     }
   }
   @container (max-width:420px) {
-    .figure-frame:where([data-scalable-figure='dfl']) :global(iframe) {
+    .figure-frame:where([data-scalable-figure='dfl']) :global(iframe),
+    .figure-frame:where([data-scalable-figure='dfl']) :global([data-figure-poster]) {
       height: 704px;
     }
   }
   .figure-frame[data-scaled] {
     height: calc(var(--figure-canvas-height) * var(--figure-scale));
   }
-  .figure-frame[data-scaled] :global(iframe) {
+  .figure-frame[data-scaled] :global(iframe),
+  .figure-frame[data-scaled] :global([data-figure-poster]) {
     height: var(--figure-canvas-height);
     margin-left: calc(-1 * var(--figure-canvas-bleed) * var(--figure-scale));
     width: var(--figure-canvas-width);

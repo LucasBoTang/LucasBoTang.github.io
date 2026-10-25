@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { parseHTML } from 'linkedom';
-import { preparePicture } from '../../src/components/catalogue/ScreenReveal/picture-ready.ts';
+import {
+  preparePicture,
+  preparePoster,
+} from '../../src/components/catalogue/ScreenReveal/picture-ready.ts';
 import { frameQueue, installGlobals } from '../helpers/browser.mjs';
 
 const flush = () => new Promise((resolve) => setImmediate(resolve));
@@ -123,4 +126,39 @@ test('cancelling between paint frames removes the remaining paint work', async (
   await p.done;
   assert.equal(p.frames.pending.size, 0);
   assert.deepEqual([p.frame.onload, p.frame.onerror], [null, null]);
+});
+
+test('a stalled poster decode can be released without waiting on its network request', async () => {
+  const decode = Promise.withResolvers();
+  const preparation = preparePoster({ decode: () => decode.promise });
+  let ready = false;
+  preparation.ready.then(() => {
+    ready = true;
+  });
+  await flush();
+  assert.equal(ready, false);
+  preparation.cancel();
+  await preparation.ready;
+  assert.equal(ready, true);
+  decode.reject(new Error('late image failure'));
+  await flush();
+});
+
+test('a live figure can release a poster whose image is still decoding', async (t) => {
+  const { document, MutationObserver } = parseHTML('<html><body><div></div></body></html>');
+  installGlobals(t, { MutationObserver });
+  const decode = Promise.withResolvers();
+  const host = document.querySelector('div');
+  const preparation = preparePoster({ decode: () => decode.promise }, host);
+  let ready = false;
+  preparation.ready.then(() => {
+    ready = true;
+  });
+  await flush();
+  assert.equal(ready, false);
+  host.setAttribute('data-figure-live', '');
+  await flush();
+  assert.equal(ready, true);
+  decode.reject(new Error('late poster failure'));
+  await flush();
 });

@@ -53,7 +53,9 @@ for (const width of [1280, 375]) {
   });
 }
 
-test('a late Research document keeps its entrance until its picture is ready', async ({ page }) => {
+test('a late Research document enters with its static first frame, then hands over when drawn', async ({
+  page,
+}) => {
   await page.addInitScript((arrivalEvent) => {
     document.addEventListener(
       arrivalEvent,
@@ -81,11 +83,14 @@ test('a late Research document keeps its entrance until its picture is ready', a
         }),
       )
       .toBe(true);
-    await expect(
-      screen.locator('.screen-picture'),
-      'do not spend the entrance on an empty iframe',
-    ).toHaveCSS('opacity', '0');
+    await expect(screen.locator('.screen-picture')).toHaveCSS('opacity', '1');
+    await expect(screen.locator('[data-figure-poster] img')).toBeVisible();
+    await expect(screen.locator('[data-scalable-figure]')).not.toHaveAttribute(
+      'data-figure-live',
+      '',
+    );
     release();
+    await expect(screen.locator('[data-scalable-figure]')).toHaveAttribute('data-figure-live', '');
     await expect(screen.locator('.screen-picture')).toHaveCSS('opacity', '1');
     await expect(screen).not.toHaveAttribute('data-screen-pending');
   } finally {

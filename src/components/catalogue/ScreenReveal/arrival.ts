@@ -1,5 +1,5 @@
 import { ARRIVAL_EVENT } from '../../../lib/arrival';
-import { preparePicture } from './picture-ready';
+import { preparePicture, preparePoster } from './picture-ready';
 
 // Research figures establish a steady picture, then join their own motion during the fade.
 // These timings belong to the reading page; home previews retain their separate handover.
@@ -19,7 +19,11 @@ export function screenArrival(screen: Element, trigger: Element): Animation[] | 
   screen.setAttribute('data-screen-pending', '');
   // An empty effect shares the queue's delay, pause and cancellation without another timer.
   const playback = screen.animate([], PLAYBACK_AT);
-  const preparation = preparePicture(frame);
+  const poster = screen.querySelector<HTMLImageElement>('[data-figure-poster] img');
+  // A static first frame lets content arrive without waiting for compilation or an iframe load.
+  const preparation = poster
+    ? preparePoster(poster, screen.querySelector('[data-scalable-figure]'))
+    : preparePicture(frame);
   let deadline = 0;
   const releasePlayback = () => {
     clearTimeout(deadline);

@@ -24,6 +24,7 @@
     "test:e2e": "playwright test --project=e2e",
     "test:visual": "playwright test --project=visual",
     "test:visual:update": "playwright test --project=visual --update-snapshots",
+    "figures:posters": "node scripts/figure-posters.mjs",
     "portrait": "node scripts/portrait-pixels.mjs"
   },
   "dependencies": {
