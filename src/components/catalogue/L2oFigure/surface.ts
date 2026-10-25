@@ -16,15 +16,27 @@ async function initializeTrainingFigure(root: HTMLElement) {
   const canvas = root.querySelector<HTMLCanvasElement>('.surface-gl')!;
   const overlay = root.querySelector<HTMLCanvasElement>('.surface-annotations')!;
   let reducedMotion = reducedMotionQuery().matches;
+  let failed = false;
+  let clock: ReturnType<typeof createFigureClock> | undefined;
+  let resizeObserver: ResizeObserver | undefined;
+  const showFallback = () => {
+    if (failed) return;
+    failed = true;
+    clock?.dispose();
+    resizeObserver?.disconnect();
+    root.querySelector<HTMLElement>('.surface-fallback')!.hidden = false;
+    root.setAttribute('data-figure-drawn', 'fallback');
+  };
+  canvas.addEventListener('webglcontextlost', showFallback, { once: true });
   const createdScene = await createSurfaceScene(canvas, overlay, recorded).catch((error) => {
     console.warn('Could not initialize L2O figure', error);
     return null;
   });
   if (!createdScene) {
-    root.querySelector<HTMLElement>('.surface-fallback')!.hidden = false;
-    root.setAttribute('data-figure-drawn', 'fallback');
+    showFallback();
     return;
   }
+  if (failed) return;
   const scene = createdScene;
   const reportDraw = createFigureDrawReporter(root);
   const { arrivals, beats, cycle } = scene.timeline;
@@ -65,10 +77,12 @@ async function initializeTrainingFigure(root: HTMLElement) {
     gap: 'loss',
   };
   function resize() {
+    if (failed) return;
     scene.resize();
     render();
   }
   function render() {
+    if (failed) return;
     const phase = reducedMotion ? arrivals[arrivals.length - 1] + 1 : elapsedSeconds % cycle;
     const fade = reducedMotion
       ? 1
@@ -136,10 +150,11 @@ async function initializeTrainingFigure(root: HTMLElement) {
       }),
     );
   }
-  new ResizeObserver(resize).observe(canvas);
+  resizeObserver = new ResizeObserver(resize);
+  resizeObserver.observe(canvas);
   document.fonts.ready.then(resize);
   resize();
-  createFigureClock(
+  clock = createFigureClock(
     activityTarget,
     (elapsed, reduced) => {
       reducedMotion = reduced;

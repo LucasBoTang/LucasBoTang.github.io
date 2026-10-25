@@ -242,3 +242,112 @@ test('the mobile live clock starts only after the static first frame has faded',
     release();
   }
 });
+
+test('a failed live photograph keeps the complete static first frame', async ({ page }) => {
+  await page.route('**/images/research/decision-costs.webp', (route) => route.abort());
+  await page.goto('/research/');
+  const artwork = page.locator('#bo-dfl-study [data-scalable-figure]');
+  await artwork.scrollIntoViewIfNeeded();
+  const inner = artwork.frameLocator('iframe');
+  await expect(inner.locator('[data-figure-drawn]')).toHaveAttribute('data-figure-drawn', '');
+  await expect
+    .poll(() =>
+      inner
+        .locator('.dfl-photo img')
+        .evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth === 0),
+    )
+    .toBe(true);
+  await artwork
+    .locator('[data-figure-poster] img')
+    .evaluate((image: HTMLImageElement) => image.decode());
+  // Let the ordinary two paint frames and the 120ms handover finish before checking retention.
+  await page.waitForTimeout(300);
+  await expect(artwork).not.toHaveAttribute('data-figure-live', '');
+  await expect(artwork.locator('[data-figure-poster]')).toBeVisible();
+  await expect(page.locator('#bo-dfl-study figcaption')).toHaveCSS('opacity', '1');
+});
+
+test('a hidden poster stops downloading new widths after live playback takes over', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 375, height: 900 });
+  const requested: string[] = [];
+  page.on('request', (request) => {
+    if (/\/gpu-(wide|phone-\d+)[^/]*\.webp/.test(request.url())) requested.push(request.url());
+  });
+  await page.goto('/research/');
+  const artwork = page.locator('#bo-gpu-study [data-scalable-figure]');
+  await artwork.scrollIntoViewIfNeeded();
+  await expect(artwork).toHaveAttribute('data-figure-live', '');
+  requested.length = 0;
+  for (const width of [376, 378, 380, 390, 400]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.evaluate(
+      () =>
+        new Promise<void>((resolve) =>
+          requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+        ),
+    );
+  }
+  expect(requested, 'hidden first frames should not compete with the live animation').toEqual([]);
+  await expect(artwork.locator('[data-figure-poster]')).toBeHidden();
+});
+
+test('context loss after handover restores a responsive first frame and stops surface drawing', async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.setViewportSize({ width: 375, height: 900 });
+  await page.addInitScript(() => {
+    if (!window.frameElement) return;
+    document.addEventListener(
+      'l2o:tick',
+      (event) => {
+        const html = document.documentElement;
+        if ((event as CustomEvent<{ t: number }>).detail.t > 0)
+          html.setAttribute('data-test-played', '');
+        html.dataset.testDraws = String(Number(html.dataset.testDraws ?? 0) + 1);
+      },
+      true,
+    );
+  });
+  await page.goto('/research/');
+  const artwork = page.locator('#bo-l2o-study [data-scalable-figure]');
+  await artwork.scrollIntoViewIfNeeded();
+  await expect(artwork).toHaveAttribute('data-figure-live', '', { timeout: 15000 });
+  const inner = artwork.frameLocator('iframe');
+  await expect(inner.locator('html')).toHaveAttribute('data-test-played', '');
+  const firstSource = await artwork
+    .locator('[data-figure-poster] img')
+    .evaluate((image: HTMLImageElement) => image.currentSrc);
+  await page.setViewportSize({ width: 430, height: 900 });
+  await inner.locator('.surface-gl').evaluate((canvas: HTMLCanvasElement) => {
+    const gl = canvas.getContext('webgl')!;
+    gl.getExtension('WEBGL_lose_context')!.loseContext();
+  });
+  await expect(inner.locator('[data-l2o-surface]')).toHaveAttribute(
+    'data-figure-drawn',
+    'fallback',
+  );
+  await expect(artwork).not.toHaveAttribute('data-figure-live', '');
+  const image = artwork.locator('[data-figure-poster] img');
+  await expect(image).toBeVisible();
+  await image.evaluate((element: HTMLImageElement) => element.decode());
+  await expect
+    .poll(() => image.evaluate((element: HTMLImageElement) => element.currentSrc))
+    .not.toBe(firstSource);
+  const restoredSource = await image.evaluate((element: HTMLImageElement) => element.currentSrc);
+  const draws = await inner.locator('html').getAttribute('data-test-draws');
+  await page.setViewportSize({ width: 445, height: 900 });
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+      ),
+  );
+  await image.evaluate((element: HTMLImageElement) => element.decode());
+  await expect
+    .poll(() => image.evaluate((element: HTMLImageElement) => element.currentSrc))
+    .not.toBe(restoredSource);
+  expect(await inner.locator('html').getAttribute('data-test-draws')).toBe(draws);
+});

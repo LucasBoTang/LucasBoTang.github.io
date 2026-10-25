@@ -6,9 +6,9 @@ import { frameQueue, installGlobals, mediaQuery } from '../helpers/browser.mjs';
 
 const flush = () => new Promise((resolve) => setImmediate(resolve));
 
-function poster(t) {
-  const { document, MutationObserver, Event } = parseHTML(
-    '<div data-figure-poster-pending><picture data-figure-poster><img></picture><iframe></iframe></div>',
+function poster(t, images = []) {
+  const { document, Event } = parseHTML(
+    '<div data-figure-poster-pending><picture data-figure-poster><source media="(max-width:720px)" srcset="/phone.webp"><img src="/wide.webp"></picture><iframe></iframe></div>',
   );
   const inner = parseHTML(
     '<html><body><canvas data-figure-drawn=""></canvas></body></html>',
@@ -17,7 +17,7 @@ function poster(t) {
     URL: '/figure/',
     readyState: 'complete',
     fonts: { ready: Promise.resolve() },
-    images: [],
+    images,
   });
   const host = document.querySelector('div');
   const frame = host.querySelector('iframe');
@@ -37,13 +37,14 @@ function poster(t) {
     return animation;
   };
   installGlobals(t, {
-    MutationObserver,
+    // Linkedom delivers mutations through the observed document's own window.
+    MutationObserver: inner.defaultView.MutationObserver,
     requestAnimationFrame: paints.request,
     cancelAnimationFrame: paints.cancel,
     matchMedia: () => mediaQuery(false),
   });
   presentFigureWhenDrawn(host, frame);
-  return { host, frame, Event, paints, animations };
+  return { host, frame, inner, Event, paints, animations };
 }
 
 test('a cancelled poster handover must not release playback for a new load', async (t) => {
@@ -62,4 +63,41 @@ test('a cancelled poster handover must not release playback for a new load', asy
   await flush();
   assert.equal(p.host.hasAttribute('data-figure-poster-pending'), false);
   assert.ok(p.host.hasAttribute('data-figure-live'));
+});
+
+test('a failed required image cannot replace the intact first frame', async (t) => {
+  const p = poster(t, [{ decode: () => Promise.reject(new Error('photo unavailable')) }]);
+  await flush();
+  p.paints.flush();
+  p.paints.flush();
+  assert.equal(p.animations.length, 0);
+  assert.equal(p.host.hasAttribute('data-figure-live'), false);
+  assert.ok(p.host.hasAttribute('data-figure-poster-pending'));
+});
+
+test('a renderer failure during the handover cannot publish a damaged live frame', async (t) => {
+  const p = poster(t);
+  await flush();
+  p.paints.flush();
+  p.paints.flush();
+  p.inner.querySelector('canvas').setAttribute('data-figure-drawn', 'fallback');
+  await flush();
+  p.animations[0].finish();
+  await flush();
+  assert.equal(p.host.hasAttribute('data-figure-live'), false);
+  assert.ok(p.host.hasAttribute('data-figure-poster-pending'));
+});
+
+test('a renderer failure after handover restores the poster', async (t) => {
+  const p = poster(t);
+  await flush();
+  p.paints.flush();
+  p.paints.flush();
+  p.animations[0].finish();
+  await flush();
+  assert.ok(p.host.hasAttribute('data-figure-live'));
+  p.inner.querySelector('canvas').setAttribute('data-figure-drawn', 'fallback');
+  await flush();
+  assert.equal(p.host.hasAttribute('data-figure-live'), false);
+  assert.ok(p.host.hasAttribute('data-figure-poster-pending'));
 });

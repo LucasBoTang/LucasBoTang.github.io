@@ -21,7 +21,8 @@ const BUDGET = {
   // Includes the phone lanes' shared entrance choreography and reading-index controller, plus
   // bounded figure preparation before the body arrives (about 30.1KB of scripts in total).
   // Native two-pixel phone sources add about 22KB of HTML, with one lazy image fetched per figure.
-  'research/index.html': { html: 81.25, scripts: 33.25 },
+  // Resource failure checks and reversible source freezing add about 0.5KB of script.
+  'research/index.html': { html: 81.25, scripts: 33.5 },
   // Shared arrival queue reservations also ship with the software reading units, as does the
   // opening hold its introduction's typing observes (opening-gate.ts).
   'software/index.html': { html: 48, scripts: 26 },
