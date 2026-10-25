@@ -88,3 +88,93 @@ test('a preview without WebGL presents its fallback without recording a successf
   );
   expect(await saved(page)).not.toContain(key);
 });
+
+for (const failure of ['link', 'timeout', 'context loss'] as const) {
+  test(`surface ${failure} failure presents the fallback in standalone and preview documents`, async ({
+    page,
+  }) => {
+    test.setTimeout(45000);
+    const errors: string[] = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    await page.addInitScript((failure) => {
+      const extension = WebGLRenderingContext.prototype.getExtension;
+      WebGLRenderingContext.prototype.getExtension = new Proxy(extension, {
+        apply(target, receiver, args) {
+          if (args[0] === 'KHR_parallel_shader_compile')
+            return failure === 'link' ? null : { COMPLETION_STATUS_KHR: 0x91b1 };
+          return Reflect.apply(target, receiver, args);
+        },
+      });
+      const query = WebGLRenderingContext.prototype.getProgramParameter;
+      WebGLRenderingContext.prototype.getProgramParameter = new Proxy(query, {
+        apply(target, receiver, args) {
+          if (args[1] === 0x91b1 || args[1] === receiver.LINK_STATUS) return false;
+          return Reflect.apply(target, receiver, args);
+        },
+      });
+      if (failure === 'context loss') WebGLRenderingContext.prototype.isContextLost = () => true;
+    }, failure);
+    await page.goto(figurePaths.l2o);
+    await expect(page.locator('.surface-fallback')).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('[data-l2o-surface]')).toHaveAttribute(
+      'data-figure-drawn',
+      'fallback',
+    );
+    await page.goto('/');
+    await expect(page.locator('html')).not.toHaveAttribute('data-opening-pending', '');
+    const preview = page.locator(`[data-figure-preview][data-preview-src="${figurePaths.l2o}"]`);
+    await preview.hover();
+    await expect(preview).toHaveAttribute('data-preview-visible', '', { timeout: 15000 });
+    await expect(preview).not.toHaveAttribute('data-preview-pending', '');
+    await expect(preview.frameLocator('iframe').locator('.surface-fallback')).toBeVisible();
+    expect(await saved(page)).not.toContain(key);
+    expect(errors).toEqual([]);
+  });
+}
+
+test.describe('touch navigation while a preview is unavailable', () => {
+  test.use({ hasTouch: true });
+  for (const failure of ['network', 'drawing'] as const) {
+    test(`a second tap follows the project link after ${failure} stalls the preview`, async ({
+      page,
+    }) => {
+      if (failure === 'network') {
+        await page.route(`**${figurePaths.l2o}`, (route) => route.abort());
+      } else {
+        await page.addInitScript(() => {
+          if (!window.frameElement?.closest('[data-figure-preview]')) return;
+          const extension = WebGLRenderingContext.prototype.getExtension;
+          WebGLRenderingContext.prototype.getExtension = new Proxy(extension, {
+            apply(target, receiver, args) {
+              return args[0] === 'KHR_parallel_shader_compile'
+                ? { COMPLETION_STATUS_KHR: 0x91b1 }
+                : Reflect.apply(target, receiver, args);
+            },
+          });
+          const query = WebGLRenderingContext.prototype.getProgramParameter;
+          WebGLRenderingContext.prototype.getProgramParameter = new Proxy(query, {
+            apply(target, receiver, args) {
+              if (args[1] === 0x91b1) {
+                window.parent.document.documentElement.setAttribute(
+                  'data-test-preview-compiling',
+                  '',
+                );
+                return false;
+              }
+              return Reflect.apply(target, receiver, args);
+            },
+          });
+        });
+      }
+      await page.goto('/');
+      const preview = page.locator(`[data-figure-preview][data-preview-src="${figurePaths.l2o}"]`);
+      await preview.tap();
+      await expect(preview.locator('iframe')).toHaveCount(1, { timeout: 10000 });
+      if (failure === 'drawing')
+        await expect(page.locator('html')).toHaveAttribute('data-test-preview-compiling', '');
+      await expect(preview).not.toHaveAttribute('data-preview-visible', '');
+      await preview.tap();
+      await expect(page).toHaveURL(/\/research\/#bo-l2o-study$/);
+    });
+  }
+});

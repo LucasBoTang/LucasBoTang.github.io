@@ -16,7 +16,10 @@ async function initializeTrainingFigure(root: HTMLElement) {
   const canvas = root.querySelector<HTMLCanvasElement>('.surface-gl')!;
   const overlay = root.querySelector<HTMLCanvasElement>('.surface-annotations')!;
   let reducedMotion = reducedMotionQuery().matches;
-  const createdScene = await createSurfaceScene(canvas, overlay, recorded);
+  const createdScene = await createSurfaceScene(canvas, overlay, recorded).catch((error) => {
+    console.warn('Could not initialize L2O figure', error);
+    return null;
+  });
   if (!createdScene) {
     root.querySelector<HTMLElement>('.surface-fallback')!.hidden = false;
     root.setAttribute('data-figure-drawn', 'fallback');

@@ -270,3 +270,23 @@ test('a drawing that finishes after leaving cannot reveal a discarded preview', 
   assert.equal(p.frame(), null);
   assert.equal(p.link.hasAttribute('data-preview-visible'), false);
 });
+
+test('a second touch follows the link even while the preview is still loading', async (t) => {
+  const p = await preview(t);
+  p.emit(p.link, 'pointerdown', { pointerType: 'touch' });
+  assert.equal(p.emit(p.link, 'click', { detail: 1 }).defaultPrevented, true);
+  p.emit(p.link, 'pointerdown', { pointerType: 'touch' });
+  assert.equal(p.emit(p.link, 'click', { detail: 1 }).defaultPrevented, false);
+  p.tick(240);
+  assert.ok(p.frame());
+  for (let i = 0; i < 3; i++) {
+    p.emit(p.link, 'pointerdown', { pointerType: 'touch' });
+    assert.equal(p.emit(p.link, 'click', { detail: 1 }).defaultPrevented, false);
+  }
+  p.host.removeAttribute('data-focused');
+  await new Promise((resolve) => setImmediate(resolve));
+  p.tick(320);
+  assert.equal(p.frame(), null);
+  p.emit(p.link, 'pointerdown', { pointerType: 'touch' });
+  assert.equal(p.emit(p.link, 'click', { detail: 1 }).defaultPrevented, true);
+});

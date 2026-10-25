@@ -26,6 +26,7 @@ function setupPreview(
   let hovered = false;
   let inView = false;
   let requested = false;
+  let touchPreviewRequested = false;
   let loaded = false;
   let connected = false;
   let wordmarkState: 'waiting' | 'arriving' | 'ready' = opening.complete ? 'ready' : 'waiting';
@@ -56,6 +57,7 @@ function setupPreview(
     iframe = undefined;
     loaded = false;
     connected = false;
+    touchPreviewRequested = false;
     link.removeAttribute('data-preview-pending');
     link.removeAttribute('data-preview-acquiring');
   };
@@ -150,7 +152,10 @@ function setupPreview(
   // Keyboard activation and modified mouse clicks retain native link behaviour.
   let previewTap = false;
   link.addEventListener('pointerdown', (event) => {
-    previewTap = event.pointerType === 'touch' && !link.hasAttribute('data-preview-visible');
+    previewTap =
+      event.pointerType === 'touch' &&
+      !touchPreviewRequested &&
+      !link.hasAttribute('data-preview-visible');
   });
   link.addEventListener('pointercancel', () => {
     previewTap = false;
@@ -159,6 +164,7 @@ function setupPreview(
     if (!previewTap || event.detail === 0) return;
     previewTap = false;
     event.preventDefault();
+    touchPreviewRequested = true;
     host.setAttribute('data-focused', '');
     updatePreview();
   });
