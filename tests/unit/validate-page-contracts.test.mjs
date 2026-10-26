@@ -20,7 +20,7 @@ function contractFixture(t) {
   );
   for (const document of documents.values()) {
     document.head.innerHTML += `<meta property="og:site_name" content="Bo Tang">
-      <meta name="twitter:card" content="summary">
+      <meta name="twitter:card" content="summary_large_image">
       <meta name="theme-color" content="${theme.ink}">`;
     for (const [name, value] of Object.entries(theme))
       document.documentElement.style.setProperty(`--${name}`, value);

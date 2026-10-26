@@ -23,7 +23,10 @@ export function validatePageMetadata(documents) {
     const document = documents.get(file);
     for (const p of document.querySelectorAll('.page-header p')) assert.ok(p.textContent.trim());
     assert.ok(document.querySelector('meta[property="og:site_name"]'));
-    assert.equal(document.querySelector('meta[name="twitter:card"]').content, 'summary');
+    assert.equal(
+      document.querySelector('meta[name="twitter:card"]').content,
+      'summary_large_image',
+    );
     assert.equal(document.querySelector('meta[name="theme-color"]').content, theme.ink);
     for (const [name, value] of Object.entries(theme)) {
       assert.equal(document.documentElement.style.getPropertyValue(`--${name}`).trim(), value);

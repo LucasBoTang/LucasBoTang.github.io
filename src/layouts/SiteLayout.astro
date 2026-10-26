@@ -1,5 +1,4 @@
 ---
-import { getImage } from 'astro:assets';
 import '@fontsource-variable/geist';
 import '@fontsource-variable/geist-mono';
 import serifFont from '@fontsource-variable/bodoni-moda/files/bodoni-moda-latin-opsz-normal.woff2?url';
@@ -15,7 +14,7 @@ import SiteFooter from '../components/site/SiteFooter.astro';
 import type { PageId } from '../data/navigation';
 import { profile } from '../data/profile';
 import { theme, themeVariables } from '../data/theme';
-import portrait from '../assets/bo-tang.jpg';
+import shareCover from '../assets/share-cover.png';
 
 interface Props {
   title: string;
@@ -41,9 +40,8 @@ const extendedFont = page && extendedPages.includes(page) ? 'preload' : 'prefetc
 
 // Absolute URLs need the public origin; without SITE_URL the build omits them.
 const canonical = page && Astro.site && new URL(Astro.url.pathname, Astro.site).href;
-const shareImage =
-  Astro.site &&
-  new URL((await getImage({ src: portrait, width: 800, format: 'jpg' })).src, Astro.site).href;
+const shareImage = Astro.site && new URL(shareCover.src, Astro.site).href;
+const shareImageAlt = `${profile.name} — Research`;
 ---
 
 <!doctype html>
@@ -54,7 +52,7 @@ const shareImage =
     <meta name="description" content={description} />
     <meta name="theme-color" content={theme.ink} />
     <meta property="og:site_name" content={profile.name} />
-    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:card" content="summary_large_image" />
     {!page && <meta name="robots" content="noindex" />}
     {preloadFonts.map((font) => (
       <link rel="preload" href={font} as="font" type="font/woff2" crossorigin />
@@ -66,14 +64,9 @@ const shareImage =
     {canonical && <link rel="canonical" href={canonical} />}
     {canonical && <meta property="og:url" content={canonical} />}
     {shareImage && <meta property="og:image" content={shareImage} />}
-    {shareImage && <meta property="og:image:width" content="800" />}
-    {shareImage && (
-      <meta
-        property="og:image:height"
-        content={String(Math.round((800 * portrait.height) / portrait.width))}
-      />
-    )}
-    {shareImage && <meta property="og:image:alt" content={`Portrait of ${profile.name}`} />}
+    {shareImage && <meta property="og:image:width" content={String(shareCover.width)} />}
+    {shareImage && <meta property="og:image:height" content={String(shareCover.height)} />}
+    {shareImage && <meta property="og:image:alt" content={shareImageAlt} />}
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <title>{title}</title>
     {/* Opts into transitions between pages (see motion.css). The rule must stand in the page itself:
